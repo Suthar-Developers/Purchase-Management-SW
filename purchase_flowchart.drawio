@@ -1,0 +1,43 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.7">
+  <diagram id="FLOW2" name="Purchase Flow Simple">
+    <mxGraphModel dx="1756" dy="458" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Start" vertex="1">
+          <mxGeometry height="50" width="100" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Create Purchase Request" vertex="1">
+          <mxGeometry height="50" width="220" x="-20" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="po" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Create Purchase Order" vertex="1">
+          <mxGeometry height="50" width="220" x="-20" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="receive" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Receive Goods" vertex="1">
+          <mxGeometry height="50" width="220" x="-20" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="bill" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Upload Bill" vertex="1">
+          <mxGeometry height="50" width="200" x="-10" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="End" vertex="1">
+          <mxGeometry height="50" width="100" x="40" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" edge="1" parent="1" source="start" target="pr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" edge="1" parent="1" source="pr" target="po">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" edge="1" parent="1" source="po" target="receive">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" edge="1" parent="1" source="receive" target="bill">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" edge="1" parent="1" source="bill" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

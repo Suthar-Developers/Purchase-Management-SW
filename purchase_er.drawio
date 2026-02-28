@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.7">
+  <diagram name="ER Diagram" id="0">
+    <mxGraphModel dx="1158" dy="586" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="User" vertex="1">
+          <mxGeometry height="50" width="120" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="role" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Role" vertex="1">
+          <mxGeometry height="50" width="120" x="40" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="vendor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Vendor" vertex="1">
+          <mxGeometry height="50" width="120" x="460" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="TpOXLOv9EJMF3y38vhnz-1" edge="1" parent="1" source="item" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="po" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="item" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Item" vertex="1">
+          <mxGeometry height="50" width="120" x="240" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="pr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="PurchaseRequest" vertex="1">
+          <mxGeometry height="50" width="160" x="440" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="po" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="PurchaseOrder" vertex="1">
+          <mxGeometry height="50" width="160" x="440" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="grn" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="GoodsReceipt" vertex="1">
+          <mxGeometry height="50" width="160" x="680" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bill" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Bill" vertex="1">
+          <mxGeometry height="50" width="160" x="680" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="payment" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Payment" vertex="1">
+          <mxGeometry height="50" width="160" x="900" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="role" style="endArrow=block;" target="user">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="user" style="endArrow=block;" target="pr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="po" style="endArrow=block;" target="vendor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="pr" style="endArrow=block;" target="po">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="po" style="endArrow=block;" target="grn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="vendor" style="endArrow=block;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="bill">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="bill" style="endArrow=block;" target="payment">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

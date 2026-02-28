@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+.btn:hover{
+    background-color: rgb(30, 30, 207);
+    color: white;
+}
+
+.btn:hover h2{
+    border-bottom: none;
+}
+
+.scroller::-webkit-scrollbar{
+    display: none;
+}
