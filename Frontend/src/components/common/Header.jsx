@@ -6,11 +6,11 @@ const Header = () => {
         <div></div>
       <h1 className='text-3xl font-bold'>Purchase Management</h1>
       <div className='flex items-center gap-4 mr-5'>
-        <i className="fa-solid fa-circle-user fa-2xl"></i>
         <div className='flex flex-col items-center'>
             <h3>Kamlesh Suthar</h3>
             <h5>Admin</h5>
         </div>
+        <i className="fa-solid fa-circle-user fa-2xl"></i>
       </div>
     </div>
   )

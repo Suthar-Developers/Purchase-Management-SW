@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 
 const SideNav = () => {
     return (
-        <div className='flex flex-col items-center w-fit px-3 h-full shadow-r-xl'>
+        <div className='flex flex-col items-center w-fit px-3 h-screen bg-slate-900 text-gray-300 shadow-r-xl'>
             <div className='py-5 w-full'>
                 <h1 className='text-center text-2xl font-bold'>JRC INTERIORS</h1>
             </div>

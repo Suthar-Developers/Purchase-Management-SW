@@ -5,7 +5,6 @@ import CreateSiteForm from '../../components/forms/CreateSiteForm'
 const CreateSite = () => {
   return (
     <div className='main-screen bg-slate-200 h-screen overflow-y-auto'>
-            <h1 className='text-2xl font-bold mx-8 py-2 shadow-xl'>Add New Site</h1>
             <SiteNav />
             <CreateSiteForm />
     </div>

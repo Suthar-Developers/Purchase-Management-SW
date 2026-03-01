@@ -27,7 +27,7 @@ const SiteTable = ({ text }) => {
     };
 
     return (
-        <div className='flex flex-col gap-3 w-full'>
+        <div className='flex flex-col gap-3 w-full overflow-auto'>
             <div className='flex justify-around text-xl font-bold bg-slate-200 py-3 mx-2'>
                 <div className='w-1/8 text-center'>#</div>
                 <div className='w-1/4 text-center'>Site Name</div>

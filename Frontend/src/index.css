@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
 .btn:hover{
-    background-color: rgb(30, 30, 207);
-    color: white;
+    background-color: rgb(30 41 59);
+}
+
+.btn:active{
+    background-color: rgb(57, 73, 171);
 }
 
 .btn:hover h2{
     border-bottom: none;
+    color: white;
+}
+
+.btn h2:active{
+    background-color: rgb(57, 73, 171);
+    color: white;
 }
 
 .scroller::-webkit-scrollbar{
