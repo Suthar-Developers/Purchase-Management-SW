@@ -4,22 +4,24 @@ import RecentItemList from '../../components/lists/RecentItemList'
 
 
 const Dashboard = () => {
+
     return (
-        <div className='w-full h-full bg-slate-200'>
-            <h1 className='text-4xl font-bold mx-6 pt-6'>Dashboard</h1>
-            <div className='flex flex-wrap w-full justify-around'>
-                <Cards cardIcon={<i class="fa-solid fa-arrows-down-to-line fa-2xl"></i>} cardName="Total Received Indent" number="110" > </Cards>
-                <Cards cardIcon={<i className="fa-solid fa-money-check fa-2xl"></i>} cardName="Pending Indent" number="100" > </Cards>
-                <Cards cardIcon={<i class="fa-solid fa-exclamation fa-2xl"></i>} cardName="Pending Indent Items" number="100" > </Cards>
-                <Cards cardIcon={<i class="fa-solid fa-calendar-check fa-2xl"></i>} cardName="Total PO Generated" number="110" > </Cards>
-                <Cards cardIcon={<i className="fa-solid fa-clock-rotate-left fa-2xl"></i>} cardName="Pending PO" number="110" > </Cards>
-                <Cards cardIcon={<i className="fa-solid fa-square-minus text-red-500 text-6xl"></i>} cardName="Pending PO Itmes" number="110" > </Cards>
+        <div className='flex w-full border-b border-gray-500'>
+            <div className='w-3/8 h-full border-r border-gray-500 px-2'>
+                <h1 className='text-2xl font-bold mx-6 mb-3 text-center pt-6'>Dashboard</h1>
+                <div className='flex flex-wrap w-full justify-around'>
+                    <Cards cardName="Fresh PR" number="110" > </Cards>
+                    <Cards cardName={<span className='text-sm'><span className='text-lg'>Approved PR </span>(Pending for PO)</span>} number="100" > </Cards>
+                    <Cards cardName="PO for Approval" number="100" > </Cards>
+                    <Cards cardName="Total PO Generated" number="110" > </Cards>
+                    <Cards cardName="Pending PR Items" number="110" > </Cards>
+                    <Cards cardName="Pending PO Itmes" number="110" > </Cards>
+                </div>
             </div>
 
-            <div>
+            <div className='w-2/3'>
                 <RecentItemList />
             </div>
-            
         </div>
     )
 }

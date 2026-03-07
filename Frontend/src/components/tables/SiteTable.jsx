@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const SiteTable = ({ text }) => {
+const SiteTable = ({ view, edit }) => {
     const [sites, setSites] = useState([])
 
     useEffect(() => {
@@ -46,7 +46,7 @@ const SiteTable = ({ text }) => {
                     <div className='w-1/4 text-center'>{site.projectManager}</div>
                     <div className='w-1/4 text-center'>{formatDate(site.startDate)}</div>
                     <div className='w-1/4 text-center'>{formatDate(site.endDate)}</div>
-                    <div className='w-1/4 text-center'><a href="/site-edit-form">{text}</a></div>
+                    <div className='w-1/4 text-center'><a href="/site-edit-form">{view} {edit}</a></div>
                 </div>
             ))}
         </div>
