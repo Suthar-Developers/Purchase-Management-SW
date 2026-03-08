@@ -4,8 +4,7 @@ import Dashboard from './pages/dashboard/Dashboard'
 import SideNav from './components/common/SideNav'
 import Header from './components/common/Header'
 import Sites from './pages/sites/Sites'
-import CreateSite from './pages/sites/CreateSite'
-import EditSite from './pages/sites/EditSite'
+import SiteCreate from './components/models/SiteCreate'
 
 const App = () => {
   return (
@@ -19,8 +18,7 @@ const App = () => {
           <Routes>
             <Route path='/' element={<Dashboard />} />
             <Route path='/all-sites' element={<Sites />} />
-            <Route path='/create-site' element={<CreateSite />} />
-            <Route path='/edit-site' element={<EditSite />} />
+            <Route path='/create-site' element={<SiteCreate />} />
           </Routes>
         </div>
       </div>
