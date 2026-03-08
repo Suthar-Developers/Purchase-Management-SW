@@ -172,7 +172,7 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                         placeholder="Site Address"
                         value={formData.address}
                         onChange={handleChange}
-                        className={`${inputStyle} min-h-[90px]`}
+                        className={`${inputStyle}`}
                     />
 
                     {/* Description */}
@@ -181,7 +181,7 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                         placeholder="Site Description"
                         value={formData.description}
                         onChange={handleChange}
-                        className={`${inputStyle} min-h-[100px]`}
+                        className={`${inputStyle}`}
                     />
 
                     {/* Submit */}
