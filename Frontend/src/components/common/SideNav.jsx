@@ -16,10 +16,10 @@ const SideNav = () => {
                     text="Dashboard"> </NavButtons>
                 </Link>
 
-                <Link to={'/all-sites'}>
+                <Link to={'/projects'}>
                     <NavButtons
                         icon={<i className="fa-regular fa-map fa-lg"></i>}
-                        text="Sites"> </NavButtons>
+                        text="Projects"> </NavButtons>
                 </Link>
 
                 <Link to={'/vendors'}>

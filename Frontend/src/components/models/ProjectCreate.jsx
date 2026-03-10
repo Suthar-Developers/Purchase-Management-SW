@@ -2,12 +2,12 @@ import React from 'react'
 import { useState } from 'react'
 import axios from 'axios'
 
-const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
+const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
   if (!isOpen) return null
 
   const [formData, setFormData] = useState({
-        siteName: "",
-        siteCode: "",
+        projectName: "",
+        projectCode: "",
         address: "",
         startDate: "",
         endDate: "",
@@ -25,18 +25,18 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Site Data:", formData);
+        console.log("Project Data:", formData);
 
         try {
             const res = await axios.post(
-                "http://localhost:3000/createSite", formData
+                "http://localhost:3000/api/createProject", formData
             )
 
             alert(res.data.message);
 
             setFormData({
-                siteName: "",
-                siteCode: "",
+                projectName: "",
+                projectCode: "",
                 address: "",
                 startDate: "",
                 endDate: "",
@@ -48,12 +48,12 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                 description: ""
             })
 
-            refreshSites()
+            refreshProjects()
             onClose()
 
         } catch(error){
             console.error(error)
-            alert("Error while creating site")
+            alert("Error while creating project")
         }
     };
 
@@ -61,7 +61,7 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
         "w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
       
       <div className="bg-white w-[80%] h-[90%] rounded-xl p-6">
         <button
@@ -77,16 +77,16 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                     className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8 space-y-6"
                 >
                     <h2 className="text-2xl font-semibold text-gray-800">
-                        Create New Site
+                        Create New Project
                     </h2>
 
                     {/* Grid Inputs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <input
                             type="text"
-                            name="siteName"
-                            placeholder="Site Name"
-                            value={formData.siteName}
+                            name="projectName"
+                            placeholder="Project Name"
+                            value={formData.projectName}
                             onChange={handleChange}
                             className={inputStyle}
                             required
@@ -94,9 +94,9 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
 
                         <input
                             type="text"
-                            name="siteCode"
-                            placeholder="Site Code"
-                            value={formData.siteCode}
+                            name="projectCode"
+                            placeholder="Project Code"
+                            value={formData.projectCode}
                             onChange={handleChange}
                             className={inputStyle}
                             required
@@ -169,7 +169,7 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                     {/* Address */}
                     <textarea
                         name="address"
-                        placeholder="Site Address"
+                        placeholder="Project Address"
                         value={formData.address}
                         onChange={handleChange}
                         className={`${inputStyle}`}
@@ -178,7 +178,7 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                     {/* Description */}
                     <textarea
                         name="description"
-                        placeholder="Site Description"
+                        placeholder="Project Description"
                         value={formData.description}
                         onChange={handleChange}
                         className={`${inputStyle}`}
@@ -189,7 +189,7 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
                         type="submit"
                         className="w-full rounded-lg bg-indigo-600 py-3 text-white font-medium hover:bg-indigo-700 transition"
                     >
-                        Create Site
+                        Create Project
                     </button>
                 </form>
             </div>
@@ -201,4 +201,4 @@ const SiteCreate = ({ isOpen, onClose, refreshSites }) => {
   )
 }
 
-export default SiteCreate
+export default ProjectCreate

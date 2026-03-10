@@ -3,8 +3,8 @@ import { Route, Routes } from 'react-router-dom'
 import Dashboard from './pages/dashboard/Dashboard'
 import SideNav from './components/common/SideNav'
 import Header from './components/common/Header'
-import Sites from './pages/sites/Sites'
-import SiteCreate from './components/models/SiteCreate'
+import Projects from './pages/project/Projects'
+import ProjectCreate from './components/models/ProjectCreate'
 
 const App = () => {
   return (
@@ -17,8 +17,8 @@ const App = () => {
 
           <Routes>
             <Route path='/' element={<Dashboard />} />
-            <Route path='/all-sites' element={<Sites />} />
-            <Route path='/create-site' element={<SiteCreate />} />
+            <Route path='/projects' element={<Projects />} />
+            <Route path='/create-project' element={<ProjectCreate />} />
           </Routes>
         </div>
       </div>

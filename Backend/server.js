@@ -1,7 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const db = require('./config/db')
-const siteRoutes = require('./routes/siteRoute')
+const projectRoute = require('./routes/projectRoute')
 
 const app = express()
 const port = 3000;
@@ -17,10 +17,10 @@ db.getConnection((err, connection) => {
 })
 
 app.get('/', (req, res) => {
-    req.send("Hello World")
+    res.send("Hello World")
 })
 
-app.use('/', siteRoutes)
+app.use('/api', projectRoute)
 
 app.listen(port, () => {
     console.log(`Your server is running on ${port}`)
