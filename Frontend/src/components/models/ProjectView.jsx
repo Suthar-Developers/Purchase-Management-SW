@@ -27,12 +27,12 @@ const ProjectView = ({ project, onClose }) => {
         </button>
 
         {/* Title */}
-        <h2 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-3">
+        <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">
           Project Details
         </h2>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-2 gap-6 text-lg">
+        <div className="grid grid-cols-3 gap-3 text-lg">
 
           <div className="bg-gray-100 p-4 rounded-lg">
             <p className="text-gray-500 text-sm">Project Name</p>
@@ -45,8 +45,18 @@ const ProjectView = ({ project, onClose }) => {
           </div>
 
           <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Project Manager</p>
-            <p className="font-semibold text-gray-800">{project.projectManager}</p>
+            <p className="text-gray-500 text-sm">Client Name</p>
+            <p className="font-semibold text-gray-800">{project.clientName}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Project Area Sqft</p>
+            <p className="font-semibold text-gray-800">{project.projectAreaSqft}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Scope of Work</p>
+            <p className="font-semibold text-gray-800">{project.scopeOfWork}</p>
           </div>
 
           <div className="bg-gray-100 p-4 rounded-lg">
@@ -61,6 +71,41 @@ const ProjectView = ({ project, onClose }) => {
             <p className="font-semibold text-gray-800">
               {formatDate(project.endDate)}
             </p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Contact Person Name</p>
+            <p className="font-semibold text-gray-800">{project.contactPersonName}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Contact Person Number</p>
+            <p className="font-semibold text-gray-800">{project.contactPersonNumber}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Contact Person Email</p>
+            <p className="font-semibold text-gray-800">{project.contactPersonEmail}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Status</p>
+            <p className="font-semibold text-gray-800">{project.status}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Budget</p>
+            <p className="font-semibold text-gray-800">{project.budget}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Address</p>
+            <p className="font-semibold text-gray-800">{project.address}</p>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-gray-500 text-sm">Description</p>
+            <p className="font-semibold text-gray-800">{project.description}</p>
           </div>
 
         </div>

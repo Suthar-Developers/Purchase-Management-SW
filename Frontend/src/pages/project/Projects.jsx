@@ -9,7 +9,6 @@ const Projects = () => {
     const [projects, setProjects] = useState([])
     const [selectedProject, setSelectedProject] = useState(null)
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
-
     const openModel = () => {
         setIsModelOpen(true)
     }
@@ -39,6 +38,7 @@ const Projects = () => {
         try {
             const res = await axios.get('http://localhost:3000/api/projects')
             setProjects(res.data)
+            setSerialNumber(serialNumber+1)
         } catch (error) {
             console.error("Error fetching projects : ", error)
         }
@@ -58,23 +58,23 @@ const Projects = () => {
                     <Button lable='Add' onClick={openModel} />
                 </div>
 
-                <div className='flex flex-col gap-3 w-full overflow-auto'>
+                <div className='flex flex-col gap-3 w-full overflow-auto rounded-3xl'>
                     <div className='flex justify-around text-xl font-bold bg-slate-200 py-3 mx-2'>
                         <div className='w-1/12 text-center'>#</div>
                         <div className='w-1/4 text-center'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
-                        <div className='w-1/4 text-center'>Project Manager</div>
+                        <div className='w-1/4 text-center'>Client Name</div>
                         <div className='w-1/4 text-center'>Start Date</div>
                         <div className='w-1/4 text-center'>End Date</div>
                         <div className='w-1/4 text-center'>Action</div>
                     </div>
 
-                    {projects.map((project) => (
+                    {projects.map((project, index) => (
                         <div key={project.id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
-                            <div className='w-1/8 text-center'>{project.id}</div>
+                            <div className='w-1/8 text-center'>{index + 1}</div>
                             <div className='w-1/4 text-center'>{project.projectName}</div>
                             <div className='w-1/4 text-center'>{project.projectCode}</div>
-                            <div className='w-1/4 text-center'>{project.projectManager}</div>
+                            <div className='w-1/4 text-center'>{project.clientName}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.startDate)}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.endDate)}</div>
                             <div className='w-1/4 text-center'>

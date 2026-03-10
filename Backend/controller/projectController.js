@@ -2,18 +2,18 @@ const db = require("../config/db")
 
 const newProject = async (req, res)=>{
     try{
-        const {projectName, projectCode, address, startDate, endDate, projectManager, contactNumber, clientName, status, budget, description} = req.body
+        const {projectName, projectCode, clientName, projectAreaSqft, scopeOfWork, address, startDate, endDate, contactPersonName, contactPersonNumber, contactPersonEmail, status, budget, description} = req.body
 
         if(!projectName || !address ){
             return res.status(400).json({message: "Required field is missing.."})
         }
 
         const sql = `
-        INSERT INTO projects(projectName, projectCode, address, startDate, endDate, projectManager, contactNumber, clientName, status, budget, description)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO projects(projectName, projectCode, clientName, projectAreaSqft, scopeOfWork, address, startDate, endDate, contactPersonName, contactPersonNumber, contactPersonEmail, status, budget, description)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const values = [projectName, projectCode, address, startDate, endDate, projectManager, contactNumber, clientName, status, budget, description]
+        const values = [projectName, projectCode, clientName, projectAreaSqft, scopeOfWork, address, startDate, endDate, contactPersonName, contactPersonNumber, contactPersonEmail, status, budget, description]
 
         const [result] = await db.query(sql, values);
 
@@ -27,7 +27,7 @@ const newProject = async (req, res)=>{
 
 const getAllProjects = async (req, res)=> {
     try {
-        const sql = "SELECT * FROM projects ORDER BY id ASC"
+        const sql = "SELECT * FROM projects ORDER BY LOWER(TRIM(projectName)) ASC"
         const [rows] = await db.query(sql)
 
         return res.status(200).json(rows);
