@@ -5,6 +5,9 @@ import SideNav from './components/common/SideNav'
 import Header from './components/common/Header'
 import Projects from './pages/project/Projects'
 import ProjectCreate from './components/models/ProjectCreate'
+import Footer from './components/common/Footer'
+import Vendors from './pages/vendors/Vendors'
+import VendorCreate from './components/models/VendorCreate'
 
 const App = () => {
   return (
@@ -19,9 +22,13 @@ const App = () => {
             <Route path='/' element={<Dashboard />} />
             <Route path='/projects' element={<Projects />} />
             <Route path='/create-project' element={<ProjectCreate />} />
+            <Route path='/vendors' element={<Vendors />} />
+            <Route path='/create-vendor' element={<VendorCreate />} />
           </Routes>
         </div>
       </div>
+
+      <Footer />
 
     </div>
   )
