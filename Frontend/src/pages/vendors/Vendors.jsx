@@ -16,12 +16,13 @@ const Vendors = () => {
         setIsModelOpen(false)
     }
 
-    const openView = (Vendor) => {
+    const openView = (vendor) => {
         setIsViewModelOpen(true)
-        setSelectedVendors(Vendor)
+        setSelectedVendors(vendor)
     }
 
     const closeView = () => {
+        setSelectedVendors(null)
         setIsViewModelOpen(false)
     }
 
@@ -89,7 +90,7 @@ const Vendors = () => {
                 <VendorCreate isOpen={isModelOpen} onClose={closeModel} refreshVendors={fetchVendors} />
 
                 {isViewModelOpen && (
-                    <VendorView vendor={selectedVendors} onClose={closeView} />
+                    <VendorView vendor={selectedVendors} onClose={closeView} refreshVendors={fetchVendors} />
                 )}
 
             </div>
