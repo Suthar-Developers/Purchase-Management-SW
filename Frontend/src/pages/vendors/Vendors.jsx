@@ -9,15 +9,18 @@ const Vendors = () => {
     const [vendors, setVendors] = useState([])
     const [selectedVendors, setSelectedVendors] = useState(null)
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
+    const [startEditing, setStartEditing] = useState(false)
     const openModel = () => {
         setIsModelOpen(true)
     }
     const closeModel = () => {
         setIsModelOpen(false)
+        setIsViewModelOpen(false)
     }
 
     const openView = (vendor) => {
         setIsViewModelOpen(true)
+        setStartEditing(false)
         setSelectedVendors(vendor)
     }
 
@@ -25,6 +28,12 @@ const Vendors = () => {
         setSelectedVendors(null)
         setIsViewModelOpen(false)
     }
+
+    const handleEdit = (vendor) => {
+    setSelectedVendors(vendor)
+    setStartEditing(true)
+    setIsViewModelOpen(true)
+}
 
     const formatDate = (dateStr) => {
         const date = new Date(dateStr);
@@ -71,7 +80,7 @@ const Vendors = () => {
                     </div>
 
                     {vendors.map((vendor, index) => (
-                        <div key={vendor.id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
+                        <div key={vendor.vendor_id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
                             <div className='w-1/8 text-center'>{index + 1}</div>
                             <div className='w-1/4 text-center'>{vendor.vendorName}</div>
                             <div className='w-1/4 text-center'>{vendor.vendorType}</div>
@@ -80,8 +89,8 @@ const Vendors = () => {
                             <div className='w-1/4 text-center'>{vendor.status}</div>
                             <div className='w-1/4 text-center'>{formatDate(vendor.updated_at)}</div>
                             <div className='w-1/4 text-center'>
-                                <button onClick={() => openView(vendor)}><i className="fa-notdog fa-solid fa-eye mr-2"></i></button>
-                                <button><i className="fa-solid fa-pen-to-square ml-2"></i></button>
+                                <button onClick={() => openView(vendor)} className="text-blue-700"><i className="fa-notdog fa-solid fa-eye mr-3 hover:cursor-pointer"></i></button>
+                                <button onClick={() => handleEdit(vendor)} className="text-green-600"><i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i></button>
                             </div>
                         </div>
                     ))}
@@ -90,7 +99,7 @@ const Vendors = () => {
                 <VendorCreate isOpen={isModelOpen} onClose={closeModel} refreshVendors={fetchVendors} />
 
                 {isViewModelOpen && (
-                    <VendorView vendor={selectedVendors} onClose={closeView} refreshVendors={fetchVendors} />
+                    <VendorView vendor={selectedVendors} onClose={closeView} refreshVendors={fetchVendors} startEditing={startEditing} />
                 )}
 
             </div>

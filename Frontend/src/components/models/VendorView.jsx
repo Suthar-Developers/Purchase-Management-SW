@@ -55,16 +55,17 @@ const Field = ({ label, name, value, isEditing, handleChange, options }) => {
 }
 
 
-const VendorView = ({ vendor, onClose, refreshVendors }) => {
+const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
 
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState({})
 
-    useEffect(() => {
-        if (vendor) {
-            setFormData(vendor)
-        }
-    }, [vendor])
+   useEffect(() => {
+    if (vendor) {
+        setFormData(vendor)
+        setIsEditing(startEditing)   // start edit mode if requested
+    }
+}, [vendor, startEditing])
 
     if (!vendor) return null
 
