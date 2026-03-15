@@ -1,17 +1,145 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
+import axios from "axios"
+import Button from "../common/Button"
 
-const ProjectView = ({ project, onClose }) => {
+/* Reusable Field Component */
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ""
+
+  const date = new Date(dateStr)
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+
+  return `${year}-${month}-${day}`
+}
+
+const Field = ({ label, name, value, isEditing, handleChange, options, type }) => {
+
+  const boxStyle = "bg-gray-100 p-4 rounded-lg"
+  const inputStyle =
+    "w-full border border-gray-300 rounded-lg px-2 py-1 mt-1"
+
+  return (
+    <div className={boxStyle}>
+
+      <p className="text-gray-500 text-sm">{label}</p>
+
+      {isEditing ? (
+
+        options ? (
+
+          <select
+            name={name}
+            value={value || ""}
+            onChange={handleChange}
+            className={inputStyle}
+          >
+            {options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+
+        ) : type === "date" ? (
+
+          <input
+            type="date"
+            name={name}
+            value={value ? value.split("T")[0] : ""}
+            onChange={handleChange}
+            className={inputStyle}
+          />
+
+        ) : (
+
+          <input
+            name={name}
+            value={value || ""}
+            onChange={handleChange}
+            className={inputStyle}
+          />
+
+        )
+
+      ) : (
+
+        type === "date"
+          ? <p className="font-semibold text-gray-800">{formatDate(value)}</p>
+          : <p className="font-semibold text-gray-800">{value}</p>
+
+      )}
+
+    </div>
+  )
+}
+
+const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
 
   if (!project) return null
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+  const [isEditing, setIsEditing] = useState(false)
+  const [formData, setFormData] = useState({})
+
+  useEffect(() => {
+  if (project) {
+    setFormData({
+      ...project,
+      startDate: formatDate(project.startDate),
+      endDate: formatDate(project.endDate)
+    })
+
+    setIsEditing(startEditing)
+  }
+}, [project, startEditing])
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
     })
   }
+
+  const handleUpdate = async () => {
+
+    try {
+
+      const res = await axios.put(
+        `http://localhost:3000/api/projects/${formData.project_id}`,
+        formData
+      )
+
+      alert(res.data.message || "Project updated successfully")
+      await refreshProjects()
+      setIsEditing(false)
+      onClose()
+    } catch (error) {
+      console.error("Error updating project:", error);
+      alert("Failed to update project");
+    }
+  }
+
+  /* Field Configuration */
+
+  const fields = [
+    { label: "Project Name", name: "projectName" },
+    { label: "Project Code", name: "projectCode" },
+    { label: "Client Name", name: "clientName" },
+    { label: "Project Area SQFT", name: "projectAreaSqft" },
+    { label: "Scope of Work", name: "scopeOfWork" },
+    { label: "Start Date", name: "startDate", type: "date" },
+    { label: "End Date", name: "endDate", type: "date" },
+    { label: "Contact Person Name", name: "contactPersonName" },
+    { label: "Contact Person Number", name: "contactPersonNumber" },
+    { label: "Contact Person Email", name: "contactPersonEmail" },
+    { label: "Status", name: "status", options: ["Active", "Planned", "Completed"] },
+    { label: "Budget", name: "budget" },
+    { label: "Address", name: "address" },
+    { label: "Description", name: "description" }
+  ]
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
@@ -31,86 +159,28 @@ const ProjectView = ({ project, onClose }) => {
           Project Details
         </h2>
 
-        {/* Content Grid */}
+        {/* Fields Grid */}
+
         <div className="grid grid-cols-3 gap-3 text-lg">
 
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Project Name</p>
-            <p className="font-semibold text-gray-800">{project.projectName}</p>
-          </div>
+          {fields.map((field) => (
 
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Projects Code</p>
-            <p className="font-semibold text-gray-800">{project.projectCode}</p>
-          </div>
+            <Field
+              key={field.name}
+              label={field.label}
+              name={field.name}
+              value={formData[field.name]}
+              isEditing={isEditing}
+              handleChange={handleChange}
+              options={field.options}
+              type={field.type}
+            />
 
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Client Name</p>
-            <p className="font-semibold text-gray-800">{project.clientName}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Project Area Sqft</p>
-            <p className="font-semibold text-gray-800">{project.projectAreaSqft}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Scope of Work</p>
-            <p className="font-semibold text-gray-800">{project.scopeOfWork}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Start Date</p>
-            <p className="font-semibold text-gray-800">
-              {formatDate(project.startDate)}
-            </p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">End Date</p>
-            <p className="font-semibold text-gray-800">
-              {formatDate(project.endDate)}
-            </p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Contact Person Name</p>
-            <p className="font-semibold text-gray-800">{project.contactPersonName}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Contact Person Number</p>
-            <p className="font-semibold text-gray-800">{project.contactPersonNumber}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Contact Person Email</p>
-            <p className="font-semibold text-gray-800">{project.contactPersonEmail}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Status</p>
-            <p className="font-semibold text-gray-800">{project.status}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Budget</p>
-            <p className="font-semibold text-gray-800">{project.budget}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Address</p>
-            <p className="font-semibold text-gray-800">{project.address}</p>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="text-gray-500 text-sm">Description</p>
-            <p className="font-semibold text-gray-800">{project.description}</p>
-          </div>
-
+          ))}
         </div>
 
-        {/* Footer Buttons */}
+        {/* Buttons */}
+
         <div className="flex justify-end mt-8 gap-4">
 
           <button
@@ -120,9 +190,20 @@ const ProjectView = ({ project, onClose }) => {
             Close
           </button>
 
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Edit Project
-          </button>
+          {isEditing ? (
+
+            <button
+              onClick={handleUpdate}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Save
+            </button>
+
+          ) : (
+
+            <Button lable='Edit Project' onClick={() => setIsEditing(true)} />
+
+          )}
 
         </div>
 

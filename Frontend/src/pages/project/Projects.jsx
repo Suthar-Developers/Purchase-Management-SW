@@ -9,20 +9,31 @@ const Projects = () => {
     const [projects, setProjects] = useState([])
     const [selectedProject, setSelectedProject] = useState(null)
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
+    const [startEditing, setStartEditing] = useState(false)
+
     const openModel = () => {
         setIsModelOpen(true)
     }
     const closeModel = () => {
         setIsModelOpen(false)
+        setIsViewModelOpen(false)
     }
 
     const openView = (Project) => {
         setIsViewModelOpen(true)
+        setStartEditing(false)
         setSelectedProject(Project)
     }
 
     const closeView = () => {
+        setSelectedProject(null)
         setIsViewModelOpen(false)
+    }
+
+    const handleEdit = (project) => {
+        setSelectedProjects(project)
+        setStartEditing(true)
+        setIsViewModelOpen(true)
     }
 
     const formatDate = (dateStr) => {
@@ -59,26 +70,30 @@ const Projects = () => {
 
                 <div className='flex flex-col gap-3 w-full overflow-auto rounded-3xl'>
                     <div className='flex justify-around text-xl font-bold bg-slate-200 py-3 mx-2'>
-                        <div className='w-1/12 text-center'>#</div>
+                        <div className='w-1/8 text-center'>#</div>
                         <div className='w-1/4 text-center'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
                         <div className='w-1/4 text-center'>Client Name</div>
                         <div className='w-1/4 text-center'>Start Date</div>
                         <div className='w-1/4 text-center'>End Date</div>
+                        <div className='w-1/4 text-center'>Status</div>
+                        <div className='w-1/4 text-center'>Updated On</div>
                         <div className='w-1/4 text-center'>Action</div>
                     </div>
 
                     {projects.map((project, index) => (
-                        <div key={project.id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
+                        <div key={project.project_id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
                             <div className='w-1/8 text-center'>{index + 1}</div>
                             <div className='w-1/4 text-center'>{project.projectName}</div>
                             <div className='w-1/4 text-center'>{project.projectCode}</div>
                             <div className='w-1/4 text-center'>{project.clientName}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.startDate)}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.endDate)}</div>
+                            <div className='w-1/4 text-center'>{project.status}</div>
+                            <div className='w-1/4 text-center'>{formatDate(project.updated_at)}</div>
                             <div className='w-1/4 text-center'>
-                                <button onClick={() => openView(project)}><i className="fa-notdog fa-solid fa-eye mr-2"></i></button>
-                                <button><i className="fa-solid fa-pen-to-square ml-2"></i></button>
+                                <button onClick={() => openView(project)} className="text-blue-700"><i className="fa-notdog fa-solid fa-eye mr-3 hover:cursor-pointer"></i></button>
+                                <button onClick={() => handleEdit(project)} className="text-green-600"><i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i></button>
                             </div>
                         </div>
                     ))}
@@ -87,7 +102,7 @@ const Projects = () => {
                 <ProjectCreate isOpen={isModelOpen} onClose={closeModel} refreshProjects={fetchProjects} />
 
                 {isViewModelOpen && (
-                    <ProjectView project={selectedProject} onClose={closeView} />
+                    <ProjectView project={selectedProject} onClose={closeView} refreshProjects={fetchProjects} startEditing={startEditing} />
                 )}
 
             </div>
