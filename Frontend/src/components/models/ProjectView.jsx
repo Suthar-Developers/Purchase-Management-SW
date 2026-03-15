@@ -135,7 +135,7 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
     { label: "Contact Person Name", name: "contactPersonName" },
     { label: "Contact Person Number", name: "contactPersonNumber" },
     { label: "Contact Person Email", name: "contactPersonEmail" },
-    { label: "Status", name: "status", options: ["Active", "Planned", "Completed"] },
+    { label: "Status", name: "status", options: ["Started", "Planned", "Completed", "Hold"] },
     { label: "Budget", name: "budget" },
     { label: "Address", name: "address" },
     { label: "Description", name: "description" }

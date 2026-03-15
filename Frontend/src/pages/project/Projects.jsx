@@ -31,7 +31,7 @@ const Projects = () => {
     }
 
     const handleEdit = (project) => {
-        setSelectedProjects(project)
+        setSelectedProject(project)
         setStartEditing(true)
         setIsViewModelOpen(true)
     }
