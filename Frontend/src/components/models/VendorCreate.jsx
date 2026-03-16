@@ -125,7 +125,6 @@ const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
                                     value={formData.vendorPortal}
                                     onChange={handleChange}
                                     className={inputStyle}
-                                    required
                                 />
 
                                 <input

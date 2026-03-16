@@ -4,7 +4,7 @@ const newVendor = async (req, res) => {
     try {
         const { vendorName, vendorEmail, vendorContactNumber, vendorPortal, vendorType, vendorTag, pan, gst, msme, status, accountHolderName, accountNumber, ifsc, bankName, location } = req.body
 
-        if (!vendorName || !location) {
+        if (!vendorName || !vendorType) {
             return res.status(400).json({ message: "Required field is missing.." })
         }
 
@@ -13,7 +13,7 @@ const newVendor = async (req, res) => {
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const values = [vendorName, vendorEmail, vendorContactNumber, vendorPortal, vendorType, vendorTag, pan, gst, msme, status, accountHolderName, accountNumber, ifsc, bankName, location]
+        const values = [vendorName, vendorEmail || null, vendorContactNumber || null, vendorPortal || null, vendorType, vendorTag, pan || null, gst || null, msme || null, status, accountHolderName || null, accountNumber || null, ifsc || null, bankName || null, location || null]
 
         const [result] = await db.query(sql, values);
 
@@ -47,7 +47,7 @@ const updateVendor = async (req, res) => {
         WHERE vendor_id=?`
 
         const [rows] = await db.query(sql,
-            [data.vendorName, data.vendorEmail, data.vendorContactNumber, data.vendorPortal, data.vendorType, data.vendorTag, data.pan, data.gst, data.msme, data.status, data.accountHolderName, data.accountNumber, data.ifsc, data.bankName, data.location, id])
+            [data.vendorName, data.vendorEmail || null, data.vendorContactNumber || null, data.vendorPortal || null, data.vendorType, data.vendorTag, data.pan || null, data.gst || null, data.msme || null, data.status, data.accountHolderName || null, data.accountNumber || null, data.ifsc || null, data.bankName || null, data.location || null, id])
 
             return res.status(200).json(rows);
     } catch (error) {
