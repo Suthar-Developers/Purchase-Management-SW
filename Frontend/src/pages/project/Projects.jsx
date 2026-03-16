@@ -10,6 +10,7 @@ const Projects = () => {
     const [selectedProject, setSelectedProject] = useState(null)
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
     const [startEditing, setStartEditing] = useState(false)
+    const [searchProject, setSearchProject] = useState('');
 
     const openModel = () => {
         setIsModelOpen(true)
@@ -54,6 +55,14 @@ const Projects = () => {
         }
     }
 
+    const filteredProjects = projects.filter((project) => {
+        return (
+            project.projectName?.toLowerCase().includes(searchProject.toLowerCase()) ||
+            project.projectCode?.toLowerCase().includes(searchProject.toLocaleLowerCase()) ||
+            project.clientName?.toLowerCase().includes(searchProject.toLocaleLowerCase())
+        )
+    })
+
     useEffect(() => {
         fetchProjects()
     }, [])
@@ -64,7 +73,14 @@ const Projects = () => {
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-2xl font-bold p-6'>All Projects</h1>
                 <div className='flex justify-around w-full px-15 text-center mb-5'>
-                    <input className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5' type="search" name="ProjectSearch" placeholder='Search projects...' id="" />
+                    <input
+                        className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5'
+                        type="search"
+                        name="ProjectSearch"
+                        placeholder='Search projects...'
+                        value={searchProject}
+                        onChange={(e) => setSearchProject(e.target.value)}
+                    />
                     <Button lable='Add' onClick={openModel} />
                 </div>
 
@@ -81,7 +97,7 @@ const Projects = () => {
                         <div className='w-1/4 text-center'>Action</div>
                     </div>
 
-                    {projects.map((project, index) => (
+                    {filteredProjects.map((project, index) => (
                         <div key={project.project_id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
                             <div className='w-1/8 text-center'>{index + 1}</div>
                             <div className='w-1/4 text-center'>{project.projectName}</div>
