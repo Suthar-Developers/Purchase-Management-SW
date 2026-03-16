@@ -4,7 +4,7 @@ const newProject = async (req, res)=>{
     try{
         const {projectName, projectCode, clientName, projectAreaSqft, scopeOfWork, address, startDate, endDate, contactPersonName, contactPersonNumber, contactPersonEmail, status, budget, description} = req.body
 
-        if(!projectName || !address ){
+        if(!projectName || !projectCode ){
             return res.status(400).json({message: "Required field is missing.."})
         }
 
@@ -13,7 +13,7 @@ const newProject = async (req, res)=>{
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const values = [projectName, projectCode, clientName, projectAreaSqft, scopeOfWork, address, startDate, endDate, contactPersonName, contactPersonNumber, contactPersonEmail, status, budget, description]
+        const values = [projectName, projectCode, clientName || null, projectAreaSqft || null, scopeOfWork || null, address || null, startDate, endDate, contactPersonName || null, contactPersonNumber || null, contactPersonEmail || null, status, budget || null, description || null]
 
         const [result] = await db.query(sql, values);
 
