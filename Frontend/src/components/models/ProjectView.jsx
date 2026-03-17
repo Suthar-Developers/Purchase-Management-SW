@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import axios from "axios"
+import { State, City } from "country-state-city"
 import Button from "../common/Button"
 
 /* Reusable Field Component */
@@ -16,7 +17,7 @@ const formatDate = (dateStr) => {
   return `${year}-${month}-${day}`
 }
 
-const Field = ({ label, name, value, isEditing, handleChange, options, type }) => {
+const Field = ({ label, name, value, isEditing, handleChange, options, type, formData, setFormData }) => {
 
   const boxStyle = "bg-gray-100 p-4 rounded-lg"
   const inputStyle =
@@ -29,41 +30,89 @@ const Field = ({ label, name, value, isEditing, handleChange, options, type }) =
 
       {isEditing ? (
 
-        options ? (
-
+        type === "state" ? (
           <select
-            name={name}
             value={value || ""}
-            onChange={handleChange}
+            onChange={(e) => {
+              const selectedState = State.getStatesOfCountry("IN").find(
+                (s) => s.name === e.target.value
+              )
+
+              setFormData({
+                ...formData,
+                state: selectedState.name,
+                stateCode: selectedState.isoCode, // 🔥 needed for city
+                city: "" // reset city
+              })
+            }}
             className={inputStyle}
           >
-            {options.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
+            <option value="">Select State</option>
+
+            {State.getStatesOfCountry("IN").map((state) => (
+              <option key={state.isoCode} value={state.name}>
+                {state.name}
               </option>
             ))}
           </select>
-
-        ) : type === "date" ? (
-
-          <input
-            type="date"
-            name={name}
-            value={value ? value.split("T")[0] : ""}
-            onChange={handleChange}
-            className={inputStyle}
-          />
-
-        ) : (
-
-          <input
-            name={name}
-            value={value || ""}
-            onChange={handleChange}
-            className={inputStyle}
-          />
-
         )
+
+          /* ✅ CITY DROPDOWN */
+          : type === "city" ? (
+            <select
+              value={value || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, city: e.target.value })
+              }
+              className={inputStyle}
+              disabled={!formData.stateCode}
+            >
+              <option value="">Select City</option>
+
+              {formData.stateCode &&
+                City.getCitiesOfState("IN", formData.stateCode).map((city) => (
+                  <option key={city.name} value={city.name}>
+                    {city.name}
+                  </option>
+                ))}
+            </select>
+          ) :
+
+            options ? (
+
+              <select
+                name={name}
+                value={value || ""}
+                onChange={handleChange}
+                className={inputStyle}
+              >
+                {options.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+
+            ) : type === "date" ? (
+
+              <input
+                type="date"
+                name={name}
+                value={value ? value.split("T")[0] : ""}
+                onChange={handleChange}
+                className={inputStyle}
+              />
+
+            ) : (
+
+              <input
+                name={name}
+                value={value || ""}
+                onChange={handleChange}
+                className={inputStyle}
+              />
+
+            )
 
       ) : (
 
@@ -85,16 +134,22 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
   const [formData, setFormData] = useState({})
 
   useEffect(() => {
-  if (project) {
-    setFormData({
-      ...project,
-      startDate: formatDate(project.startDate),
-      endDate: formatDate(project.endDate)
-    })
+    if (project) {
 
-    setIsEditing(startEditing)
-  }
-}, [project, startEditing])
+      const stateObj = State.getStatesOfCountry("IN").find(
+        (s) => s.name === project.state
+      )
+
+      setFormData({
+        ...project,
+        startDate: formatDate(project.startDate),
+        endDate: formatDate(project.endDate),
+        stateCode: stateObj?.isoCode || ""
+      })
+
+      setIsEditing(startEditing)
+    }
+  }, [project, startEditing])
 
   const handleChange = (e) => {
     setFormData({
@@ -137,6 +192,8 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
     { label: "Contact Person Email", name: "contactPersonEmail" },
     { label: "Status", name: "status", options: ["Started", "Planned", "Completed", "Hold"] },
     { label: "Budget", name: "budget" },
+    { label: "State", name: "state", type: "state" },
+    { label: "City", name: "city", type: "city" },
     { label: "Address", name: "address" },
     { label: "Description", name: "description" }
   ]
@@ -174,6 +231,8 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
               handleChange={handleChange}
               options={field.options}
               type={field.type}
+              formData={formData}
+              setFormData={setFormData}
             />
 
           ))}
