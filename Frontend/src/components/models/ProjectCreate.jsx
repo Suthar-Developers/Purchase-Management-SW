@@ -1,7 +1,8 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { State, City } from "country-state-city"
+
 
 const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
     if (!isOpen) return null
@@ -29,6 +30,39 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    const generateProjectCode = (stateCode, projectName) => {
+        if (!stateCode || !projectName) return ""
+
+        // Company → remove spaces & uppercase
+        const companyPart = "JRC";
+
+        // Year → last 2 digits
+        const yearPart = new Date().getFullYear().toString().slice(-2)
+
+        // Project → first letters
+        const projectPart = projectName
+            .trim()
+            .split(" ")
+            .filter(word => word.length > 0)
+            .map(word => word[0])
+            .join("")
+            .toUpperCase()
+
+        return `${companyPart}-${stateCode}-${yearPart}-${projectPart}`
+    }
+
+    useEffect(() => {
+    const code = generateProjectCode(
+        formData.stateCode,
+        formData.projectName
+    )
+
+    setFormData((prev) => ({
+        ...prev,
+        projectCode: code
+    }))
+}, [formData.stateCode, formData.projectName])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -109,9 +143,10 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                                     type="text"
                                     name="projectCode"
                                     placeholder="Project Code"
-                                    value={formData.projectCode}
+                                    value={formData.projectCode || ""}
                                     onChange={handleChange}
                                     className={inputStyle}
+                                    readOnly
                                     required
                                 />
 

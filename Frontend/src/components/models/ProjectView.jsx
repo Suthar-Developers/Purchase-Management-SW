@@ -103,6 +103,14 @@ const Field = ({ label, name, value, isEditing, handleChange, options, type, for
                 className={inputStyle}
               />
 
+            ) : name === "projectCode" ? (
+
+              <input
+                value={value || ""}
+                className={inputStyle}
+                readOnly
+              />
+
             ) : (
 
               <input
