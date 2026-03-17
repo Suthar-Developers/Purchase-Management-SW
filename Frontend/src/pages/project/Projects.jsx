@@ -85,10 +85,12 @@ const Projects = () => {
                 </div>
 
                 <div className='flex flex-col gap-3 w-full overflow-auto rounded-3xl'>
-                    <div className='flex justify-around text-xl font-bold bg-slate-200 py-3 mx-2'>
+                    <div className='flex justify-around text-lg font-bold bg-slate-200 py-3 mx-2'>
                         <div className='w-1/8 text-center'>#</div>
-                        <div className='w-1/4 text-center'>Project Name</div>
+                        <div className='w-1/4'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
+                        <div className='w-1/4 text-center'>State</div>
+                        <div className='w-1/4 text-center'>City</div>
                         <div className='w-1/4 text-center'>Client Name</div>
                         <div className='w-1/4 text-center'>Start Date</div>
                         <div className='w-1/4 text-center'>End Date</div>
@@ -98,10 +100,12 @@ const Projects = () => {
                     </div>
 
                     {filteredProjects.map((project, index) => (
-                        <div key={project.project_id} className='flex justify-around items-center pb-2 text-lg border-b border-slate-300'>
+                        <div key={project.project_id} className='flex justify-around items-center pb-2 text-ms border-b border-slate-300'>
                             <div className='w-1/8 text-center'>{index + 1}</div>
-                            <div className='w-1/4 text-center'>{project.projectName}</div>
+                            <div className='w-1/4'>{project.projectName}</div>
                             <div className='w-1/4 text-center'>{project.projectCode}</div>
+                            <div className='w-1/4 text-center'>{project.state}</div>
+                            <div className='w-1/4 text-center'>{project.city}</div>
                             <div className='w-1/4 text-center'>{project.clientName}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.startDate)}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.endDate)}</div>

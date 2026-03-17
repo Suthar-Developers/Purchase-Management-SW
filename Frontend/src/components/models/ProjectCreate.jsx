@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState } from 'react'
 import axios from 'axios'
+import { State, City } from "country-state-city"
 
 const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
     if (!isOpen) return null
@@ -11,6 +12,9 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
         clientName: "",
         projectAreaSqft: "",
         scopeOfWork: "",
+        state: "",
+        stateCode: "",
+        city: "",
         address: "",
         startDate: "",
         endDate: "",
@@ -43,6 +47,9 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                 clientName: "",
                 projectAreaSqft: "",
                 scopeOfWork: "",
+                state: "",
+                stateCode: "",
+                city: "",
                 address: "",
                 startDate: "",
                 endDate: "",
@@ -194,9 +201,53 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                                     onChange={handleChange}
                                     className={inputStyle}
                                 >
-                                    <option>Planned</option>
-                                    <option>Active</option>
                                     <option>Completed</option>
+                                    <option>Hold</option>
+                                    <option>Planned</option>
+                                    <option>Started</option>
+                                </select>
+
+                                <select
+                                    value={formData.state}
+                                    onChange={(e) => {
+                                        const selectedState = State.getStatesOfCountry("IN").find(
+                                            (s) => s.name === e.target.value
+                                        )
+
+                                        setFormData({
+                                            ...formData,
+                                            state: selectedState.name,
+                                            stateCode: selectedState.isoCode, // 🔥 store this
+                                            city: "" // reset city
+                                        })
+                                    }}
+                                    className={inputStyle}
+                                >
+                                    <option value="">Select State</option>
+
+                                    {State.getStatesOfCountry("IN").map((state) => (
+                                        <option key={state.isoCode} value={state.name}>
+                                            {state.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    value={formData.city}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, city: e.target.value })
+                                    }
+                                    disabled={!formData.stateCode}
+                                    className={inputStyle}
+                                >
+                                    <option value="">Select City</option>
+
+                                    {formData.stateCode &&
+                                        City.getCitiesOfState("IN", formData.stateCode).map((city) => (
+                                            <option key={city.name} value={city.name}>
+                                                {city.name}
+                                            </option>
+                                        ))}
                                 </select>
                             </div>
 
