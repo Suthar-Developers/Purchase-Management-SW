@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import Button from "../common/Button"
 
 const AddMaterials = ({ onClose, onSave }) => {
 
@@ -11,9 +12,9 @@ const AddMaterials = ({ onClose, onSave }) => {
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
 
-      <div className="bg-white w-[700px] rounded shadow-lg">
+      <div className="bg-white w-175 rounded-2xl shadow-lg">
 
-        <div className="border-b px-5 py-3 font-semibold">
+        <div className="border-b px-5 py-5 font-semibold">
           Add Material
         </div>
 
@@ -55,9 +56,9 @@ const AddMaterials = ({ onClose, onSave }) => {
 
         </div>
 
-        <div className="flex justify-end gap-3 p-4 border-t">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-200">Cancel</button>
-          <button onClick={onSave} className="px-4 py-2 bg-[#4b5ea3] text-white">Add</button>
+        <div className="flex justify-end gap-3 p-4">
+          <button onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+          <Button onClick={onSave} lable={'Add'} />
         </div>
 
       </div>
