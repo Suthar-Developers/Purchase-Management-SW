@@ -21,3 +21,15 @@
 .scroller::-webkit-scrollbar{
     display: none;
 }
+
+.input-line {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 6px 2px;
+  outline: none;
+}
+
+.input-line:focus {
+  border-bottom: 2px solid #4b5ea3;
+}

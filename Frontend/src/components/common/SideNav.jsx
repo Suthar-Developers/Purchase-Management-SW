@@ -11,9 +11,9 @@ const SideNav = () => {
 
             <div className='pb-4 mb-3'>
                 <Link to={'/'}>
-                <NavButtons
-                    icon={<i className="fa-notdog fa-solid fa-house fa-lg"></i>}
-                    text="Dashboard"> </NavButtons>
+                    <NavButtons
+                        icon={<i className="fa-notdog fa-solid fa-house fa-lg"></i>}
+                        text="Dashboard"> </NavButtons>
                 </Link>
 
                 <Link to={'/projects'}>
@@ -23,16 +23,18 @@ const SideNav = () => {
                 </Link>
 
                 <Link to={'/vendors'}>
-                <NavButtons
-                    icon={<i className="fa-solid fa-users-between-lines fa-lg"></i>}
-                    text="Vendors"> </NavButtons>
-                    </Link>
+                    <NavButtons
+                        icon={<i className="fa-solid fa-users-between-lines fa-lg"></i>}
+                        text="Vendors"> </NavButtons>
+                </Link>
             </div>
 
             <div className='pb-4 mb-3'>
-                <NavButtons
-                    icon={<i className="fa-solid fa-list-check fa-lg"></i>}
-                    text="Purchase Request"> </NavButtons>
+                <Link to={'/purchase-requests'}>
+                    <NavButtons
+                        icon={<i className="fa-solid fa-list-check fa-lg"></i>}
+                        text="Purchase Requests"> </NavButtons>
+                </Link>
 
                 <NavButtons
                     icon={<i className="fa-solid fa-check-to-slot fa-lg"></i>}

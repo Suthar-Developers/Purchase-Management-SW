@@ -1,0 +1,68 @@
+import React, { useState } from "react"
+
+const AddMaterials = ({ onClose, onSave }) => {
+
+  const [form, setForm] = useState({})
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
+
+      <div className="bg-white w-[700px] rounded shadow-lg">
+
+        <div className="border-b px-5 py-3 font-semibold">
+          Add Material
+        </div>
+
+        <div className="p-5 grid grid-cols-2 gap-4">
+
+          <input name="material" placeholder="Material" className="input-line" />
+          <input name="specification" placeholder="Specification" className="input-line" />
+          <input name="make" placeholder="Make" className="input-line" />
+          <input name="size" placeholder="Size" className="input-line" />
+          <input name="thickness" placeholder="Thickness" className="input-line" />
+          <input name="qtyReq" placeholder="Qty Required" className="input-line" />
+          <input name="unit" placeholder="Unit" className="input-line" />
+          <div>
+            <label className="text-xs text-blue-700 font-semibold" htmlFor="isNtItem">Is NT Item</label>
+            <select className="input-line" name="isNtItem" id="">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <input name="boqRefNo" placeholder="Select BOQ Reference No" className="input-line" />
+          <div>
+            <label className="text-xs text-blue-700 font-semibold" htmlFor="scope">Scope</label>
+            <select className="input-line" name="scope" id="">
+              <option value="Our Scope">Our Scope</option>
+              <option value="Client Scope">Client Scope</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-blue-700 font-semibold" htmlFor="category">Category</label>
+            <select className="input-line" name="category" id="">
+              <option value="Ply Board">Ply Board</option>
+              <option value="Screw">Screw</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-blue-700 font-semibold" htmlFor="deliveryDate">Deliver Before</label>
+            <input type="date" name="deliveryDate" className="input-line" />
+          </div>
+
+        </div>
+
+        <div className="flex justify-end gap-3 p-4 border-t">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-200">Cancel</button>
+          <button onClick={onSave} className="px-4 py-2 bg-[#4b5ea3] text-white">Add</button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+export default AddMaterials
