@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import axios from "axios"
+import { updateProject } from "../../api/projectApi"
 import { State, City } from "country-state-city"
 import Button from "../common/Button"
 
@@ -167,21 +168,19 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
   }
 
   const handleUpdate = async () => {
-
     try {
+      const res = await updateProject(formData.project_id, formData)
 
-      const res = await axios.put(
-        `http://localhost:3000/api/projects/${formData.project_id}`,
-        formData
-      )
+      alert(res?.message || "Project updated successfully")
 
-      alert(res.data.message || "Project updated successfully")
       await refreshProjects()
       setIsEditing(false)
       onClose()
+
     } catch (error) {
-      console.error("Error updating project:", error);
-      alert("Failed to update project");
+      alert(
+        error.response?.data?.message || "Failed to update project"
+      )
     }
   }
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
+import { fetchProjects } from '../../api/projectApi'
 import Button from '../../components/common/Button'
 import ProjectCreate from '../../components/models/ProjectCreate'
 import ProjectView from '../../components/models/ProjectView'
-import axios from 'axios'
 
 const Projects = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -11,6 +11,19 @@ const Projects = () => {
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
     const [startEditing, setStartEditing] = useState(false)
     const [searchProject, setSearchProject] = useState('');
+
+    const getProjects = async()=>{
+        try{
+            const data = await fetchProjects()
+            setProjects(data)
+        } catch(error){
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        getProjects()
+    }, [])
 
     const openModel = () => {
         setIsModelOpen(true)
@@ -46,26 +59,13 @@ const Projects = () => {
         });
     };
 
-    const fetchProjects = async () => {
-        try {
-            const res = await axios.get('http://localhost:3000/api/projects')
-            setProjects(res.data)
-        } catch (error) {
-            console.error("Error fetching projects : ", error)
-        }
-    }
-
-    const filteredProjects = projects.filter((project) => {
+    const filteredProjects = (projects || []).filter((project) => {
         return (
             project.projectName?.toLowerCase().includes(searchProject.toLowerCase()) ||
             project.projectCode?.toLowerCase().includes(searchProject.toLocaleLowerCase()) ||
             project.clientName?.toLowerCase().includes(searchProject.toLocaleLowerCase())
         )
     })
-
-    useEffect(() => {
-        fetchProjects()
-    }, [])
 
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
@@ -119,10 +119,10 @@ const Projects = () => {
                     ))}
                 </div>
 
-                <ProjectCreate isOpen={isModelOpen} onClose={closeModel} refreshProjects={fetchProjects} />
+                <ProjectCreate isOpen={isModelOpen} onClose={closeModel} refreshProjects={getProjects} />
 
                 {isViewModelOpen && (
-                    <ProjectView project={selectedProject} onClose={closeView} refreshProjects={fetchProjects} startEditing={startEditing} />
+                    <ProjectView project={selectedProject} onClose={closeView} refreshProjects={getProjects} startEditing={startEditing} />
                 )}
 
             </div>
