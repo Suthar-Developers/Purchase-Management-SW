@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
 import { updateProject } from "../../api/projectApi"
 import { State, City } from "country-state-city"
 import Button from "../common/Button"

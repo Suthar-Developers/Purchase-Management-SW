@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
+import { fetchVendors } from '../../api/vendorApi'
 import Button from '../../components/common/Button'
 import VendorCreate from '../../components/models/VendorCreate'
 import VendorView from '../../components/models/VendorView'
-import axios from 'axios'
 
 const Vendors = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -11,6 +11,19 @@ const Vendors = () => {
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
     const [startEditing, setStartEditing] = useState(false)
     const [searchVendor, setSearchVendor] = useState('')
+
+    const getVendors = async() => {
+        try {
+            const data = await fetchVendors()
+            setVendors(data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        getVendors()
+    }, [])
 
     const openModel = () => {
         setIsModelOpen(true)
@@ -32,10 +45,10 @@ const Vendors = () => {
     }
 
     const handleEdit = (vendor) => {
-    setSelectedVendors(vendor)
-    setStartEditing(true)
-    setIsViewModelOpen(true)
-}
+        setSelectedVendors(vendor)
+        setStartEditing(true)
+        setIsViewModelOpen(true)
+    }
 
     const formatDate = (dateStr) => {
         const date = new Date(dateStr);
@@ -46,26 +59,13 @@ const Vendors = () => {
         });
     };
 
-    const fetchVendors = async () => {
-        try {
-            const res = await axios.get('http://localhost:3000/api/vendors')
-            setVendors(res.data)
-        } catch (error) {
-            console.error("Error fetching vendors : ", error)
-        }
-    }
-
-    const filteredVendors = vendors.filter((vendor)=>{
-        return(
+    const filteredVendors = (vendors || []).filter((vendor) => {
+        return (
             vendor.vendorName?.toLowerCase().includes(searchVendor.toLowerCase()) ||
             vendor.vendorType?.toLowerCase().includes(searchVendor.toLowerCase()) ||
             vendor.vendorTag?.toLowerCase().includes(searchVendor.toLowerCase())
         )
     })
-
-    useEffect(() => {
-        fetchVendors()
-    }, [])
 
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
@@ -73,13 +73,13 @@ const Vendors = () => {
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-2xl font-bold p-6'>All Projects</h1>
                 <div className='flex justify-around w-full px-15 text-center mb-5'>
-                    <input 
-                    className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5' 
-                    type="search" 
-                    name="ProjectSearch" 
-                    placeholder='Search projects...' 
-                    value={searchVendor}
-                    onChange={(e)=> setSearchVendor(e.target.value)}
+                    <input
+                        className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5'
+                        type="search"
+                        name="ProjectSearch"
+                        placeholder='Search projects...'
+                        value={searchVendor}
+                        onChange={(e) => setSearchVendor(e.target.value)}
                     />
                     <Button lable='Add' onClick={openModel} />
                 </div>
@@ -113,10 +113,10 @@ const Vendors = () => {
                     ))}
                 </div>
 
-                <VendorCreate isOpen={isModelOpen} onClose={closeModel} refreshVendors={fetchVendors} />
+                <VendorCreate isOpen={isModelOpen} onClose={closeModel} refreshVendors={getVendors} />
 
                 {isViewModelOpen && (
-                    <VendorView vendor={selectedVendors} onClose={closeView} refreshVendors={fetchVendors} startEditing={startEditing} />
+                    <VendorView vendor={selectedVendors} onClose={closeView} refreshVendors={getVendors} startEditing={startEditing} />
                 )}
 
             </div>

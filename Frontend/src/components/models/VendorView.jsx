@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
 import Button from "../common/Button"
+import { updateVendor } from "../../api/vendorApi"
 
 
 /* Reusable Field Component */
@@ -60,12 +60,12 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState({})
 
-   useEffect(() => {
-    if (vendor) {
-        setFormData(vendor)
-        setIsEditing(startEditing)   // start edit mode if requested
-    }
-}, [vendor, startEditing])
+    useEffect(() => {
+        if (vendor) {
+            setFormData(vendor)
+            setIsEditing(startEditing)
+        }
+    }, [vendor, startEditing])
 
     if (!vendor) return null
 
@@ -80,18 +80,16 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
 
         try {
 
-            const res = await axios.put(
-                `http://localhost:3000/api/vendors/${formData.vendor_id}`,
-                formData
-            )
+            const res = await updateVendor(formData.vendor_id, formData)
 
-            alert(res.data.message || "Vendor updated successfully")
+            alert(res?.message || "Project updated successfully")
             await refreshVendors()
             setIsEditing(false)
             onClose()
         } catch (error) {
-            console.error("Error updating vendor:", error);
-            alert("Failed to update vendor");
+            alert(
+                error.response?.data?.message || "Failed to update project"
+            )
         }
     }
 
