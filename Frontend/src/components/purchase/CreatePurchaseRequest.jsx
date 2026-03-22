@@ -1,10 +1,26 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
+import { fetchProjects } from "../../api/projectApi"
 import AddMaterials from "./AddMaterials"
 
 const CreatePurchaseRequest = ({ onBack }) => {
 
   const [materials, setMaterials] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [projects, setProjects] = useState([])
+
+  const getProjects = async () => {
+    try {
+      const data = await fetchProjects();
+
+      setProjects(data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    getProjects()
+  }, [])
 
   return (
     <div className="w-full h-full bg-slate-200 p-4">
@@ -24,7 +40,11 @@ const CreatePurchaseRequest = ({ onBack }) => {
 
           <div>
             <label className="text-sm text-gray-500">Project</label>
-            <input className="input-line" placeholder="Select Project" />
+            <select className="input-line">
+              {projects.map((project) => {
+                return <option key={project.project_id} value={project.projectName}>{project.projectName}</option>
+              })}
+            </select>
           </div>
 
           <div>
