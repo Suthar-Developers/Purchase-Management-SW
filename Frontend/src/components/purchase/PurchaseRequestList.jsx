@@ -1,6 +1,7 @@
-import React from "react"
+import React, { useState } from "react"
 
 const StatusBadge = ({ status }) => {
+
   const styles = {
     Active: "bg-green-100 text-green-700",
     Reject: "bg-red-100 text-red-700",
@@ -14,7 +15,7 @@ const StatusBadge = ({ status }) => {
   )
 }
 
-const PurchaseRequestList = ({ onCreate }) => {
+const PurchaseRequestList = ({ onCreate, data = [] }) => {
 
   return (
     <div className="w-full h-full bg-slate-200 p-4">
@@ -48,22 +49,26 @@ const PurchaseRequestList = ({ onCreate }) => {
               </tr>
             </thead>
 
-            <tbody className="divide-y">
-
-              <tr className="hover:bg-gray-50 transition border-b">
-                <td className="p-4 font-medium">MR-001</td>
-                <td className="p-4">Steel</td>
-                <td className="p-4">Fe500</td>
-                <td className="p-4">Pune Site</td>
-                <td className="p-4">Admin</td>
-                <td className="p-4"><StatusBadge status="Active" /></td>
-                <td className="p-4 text-center space-x-2">
-                  <button className="text-green-600 hover:underline">Active</button>
-                  <button className="text-red-600 hover:underline">Reject</button>
-                  <button className="text-yellow-600 hover:underline">Hold</button>
-                </td>
-              </tr>
-
+            <tbody>
+              {data.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center p-6 text-gray-400">
+                    No requests yet
+                  </td>
+                </tr>
+              ) : (
+                data.map((req, index) => (
+                  <tr key={index}>
+                    <td>MR-{index + 1}</td>
+                    <td>{req.materials?.[0]?.material}</td>
+                    <td>{req.materials?.[0]?.specification}</td>
+                    <td>{req.sendTo}</td>
+                    <td>{req.contactPerson}</td>
+                    <td>Active</td>
+                    <td>...</td>
+                  </tr>
+                ))
+              )}
             </tbody>
 
           </table>

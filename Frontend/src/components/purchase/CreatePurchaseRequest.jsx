@@ -2,11 +2,17 @@ import React, { useEffect, useState } from "react"
 import { fetchProjects } from "../../api/projectApi"
 import AddMaterials from "./AddMaterials"
 
-const CreatePurchaseRequest = ({ onBack }) => {
+const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
   const [materials, setMaterials] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [projects, setProjects] = useState([])
+  const [form, setForm] = useState({
+    project: "",
+    sendTo: "",
+    contactPerson: "",
+    contactInfo: "",
+  });
 
   const getProjects = async () => {
     try {
@@ -17,6 +23,10 @@ const CreatePurchaseRequest = ({ onBack }) => {
       console.error(error)
     }
   }
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   useEffect(() => {
     getProjects()
@@ -40,29 +50,46 @@ const CreatePurchaseRequest = ({ onBack }) => {
 
           <div>
             <label className="text-sm text-gray-500">Project</label>
-            <select className="input-line">
-              {projects.map((project) => {
-                return <option key={project.project_id} value={project.projectName}>{project.projectName}</option>
-              })}
+            <select
+              name="project"
+              className="input-line"
+              onChange={handleChange}
+              value={form.project}
+            >
+
+              <option value="" disabled>Select Project</option>
+
+              {projects.map((project) => (
+                <option key={project.project_id} value={project.projectName}>
+                  {project.projectName}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
             <label className="text-sm text-gray-500">Send To</label>
-            <select className="input-line">
-              <option>Head Office</option>
-              <option>Factory</option>
+            <select
+              name="sendTo"
+              className="input-line"
+              onChange={handleChange}
+              value={form.sendTo}
+            >
+
+              <option value="" disabled>Select Location</option>
+              <option value="Head Office">Head Office</option>
+              <option value="Factory">Factory</option>
             </select>
           </div>
 
           <div>
             <label className="text-sm text-gray-500">Contact Person</label>
-            <input className="input-line" />
+            <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} />
           </div>
 
           <div>
             <label className="text-sm text-gray-500">Contact No./Email</label>
-            <input className="input-line" />
+            <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} />
           </div>
 
         </div>
@@ -102,20 +129,22 @@ const CreatePurchaseRequest = ({ onBack }) => {
                   </td>
                 </tr>
               ) : (
-                materials.map((m, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    <td className="p-3">{i + 1}</td>
-                    <td className="p-3">{m.material}</td>
-                    <td className="p-3">{m.specification}</td>
-                    <td className="p-3">{m.deliveryDate}</td>
-                    <td className="p-3">{m.make}</td>
-                    <td className="p-3">{m.qty}</td>
-                    <td className="p-3">{m.ntItem}</td>
-                    <td className="p-3">{m.boq}</td>
-                    <td className="p-3">{m.category}</td>
-                    <td className="p-3">📎</td>
-                  </tr>
-                ))
+                materials.map((m, i) => {
+                  return (
+                    <tr key={i} className="border-b hover:bg-gray-50">
+                      <td className="p-3">{i + 1}</td>
+                      <td className="p-3">{m.material}</td>
+                      <td className="p-3">{m.specification}</td>
+                      <td className="p-3">{m.deliveryDate}</td>
+                      <td className="p-3">{m.make}</td>
+                      <td className="p-3">{m.qtyReq}</td>
+                      <td className="p-3">{m.isNtItem}</td>
+                      <td className="p-3">{m.boqRefNo}</td>
+                      <td className="p-3">{m.category}</td>
+                      <td className="p-3">📎</td>
+                    </tr>
+                  )
+                })
               )}
 
             </tbody>
@@ -130,7 +159,7 @@ const CreatePurchaseRequest = ({ onBack }) => {
           <button onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#4b5ea3] text-white rounded-lg hover:bg-[#354684]">Add Material</button>
 
           <div className="space-x-3">
-            <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save</button>
+            <button onClick={() => onSave({ ...form, materials })} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save</button>
 
             <button onClick={onBack} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Back</button>
           </div>
@@ -143,7 +172,7 @@ const CreatePurchaseRequest = ({ onBack }) => {
         <AddMaterials
           onClose={() => setIsModalOpen(false)}
           onSave={(data) => {
-            setMaterials([...materials, data])
+            setMaterials((prev) => [...prev, data])
             setIsModalOpen(false)
           }}
         />
