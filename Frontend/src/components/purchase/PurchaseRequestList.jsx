@@ -44,6 +44,7 @@ const PurchaseRequestList = ({ onCreate, data = [] }) => {
                 <th className="p-4 text-left">Specification</th>
                 <th className="p-4 text-left">Send To</th>
                 <th className="p-4 text-left">Initiator</th>
+                <th className="p-4 text-left">Contact Info</th>
                 <th className="p-4 text-left">Status</th>
                 <th className="p-4 text-center">Action</th>
               </tr>
@@ -64,6 +65,7 @@ const PurchaseRequestList = ({ onCreate, data = [] }) => {
                     <td>{req.materials?.[0]?.specification}</td>
                     <td>{req.sendTo}</td>
                     <td>{req.contactPerson}</td>
+                    <td>{req.contactInfo}</td>
                     <td>Active</td>
                     <td>...</td>
                   </tr>
