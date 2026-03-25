@@ -84,8 +84,8 @@ const Projects = () => {
                     <Button lable='Add' onClick={openModel} />
                 </div>
 
-                <div className='flex flex-col gap-3 w-full overflow-auto rounded-3xl'>
-                    <div className='flex justify-around text-lg font-bold bg-slate-200 py-3 mx-2'>
+                <div className='flex flex-col gap-3 w-full overflow-auto rounded-lg'>
+                    <div className='flex justify-around rounded-t-lg text-ms font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
                         <div className='w-1/8 text-center'>#</div>
                         <div className='w-1/4'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
