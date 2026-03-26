@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { fetchProjects } from "../../api/projectApi"
 import { createPurchaseRequest } from "../../api/purchaseRequestApi"
 import AddMaterials from "./AddMaterials"
@@ -81,8 +81,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
           <div className="px-6 py-4 grid grid-cols-4 gap-6">
 
-
-
             <div>
               <label className="text-sm text-gray-500">Project</label>
               <select
@@ -157,9 +155,7 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                       <div className="flex flex-col items-center gap-2">
                         📦
                         <p>No materials added</p>
-                        <p className="text-xs">
-                          Click "Add Material" to start
-                        </p>
+                        <p className="text-xs">Click "Add Material" to add</p>
                       </div>
                     </td>
                   </tr>
