@@ -12,10 +12,10 @@ const createPurchaseRequest = async (req, res) => {
             `INSERT INTO purchase_request (project_id, sendTo, contactPerson, contactInfo)
             VALUES(?, ?, ?, ?)`,
             [
-            project_id,
-            sendTo,
-            contactPerson,
-            contactInfo
+                project_id,
+                sendTo,
+                contactPerson,
+                contactInfo
             ]
         );
 
@@ -26,19 +26,19 @@ const createPurchaseRequest = async (req, res) => {
                 `INSERT INTO materials (request_id, material, specification, make, size, thickness, qty, unit, isNtItem, boqRef, scope, category, deliveryDate)
                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                request_id,
-                m.material,
-                m.specification,
-                m.make || null,
-                m.size || null,
-                m.thickness || null,
-                m.qty,
-                m.unit,
-                m.isNtItem,
-                m.boqRef || null,
-                m.scope,
-                m.category,
-                m.deliveryDate]
+                    request_id,
+                    m.material,
+                    m.specification,
+                    m.make || null,
+                    m.size || null,
+                    m.thickness || null,
+                    m.qty,
+                    m.unit,
+                    m.isNtItem,
+                    m.boqRef || null,
+                    m.scope,
+                    m.category,
+                    m.deliveryDate]
             );
         }
 
@@ -49,4 +49,17 @@ const createPurchaseRequest = async (req, res) => {
     }
 }
 
-module.exports = createPurchaseRequest;
+const fetchPurchaseRequests = async (req, res) => {
+    try {
+        const sql = `SELECT * FROM purchase_request pr INNER JOIN materials m ON pr.request_id = m.request_id`;
+        const [rows] = await db.query(sql);
+
+        return res.status(200).json(rows);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+}
+
+module.exports = {createPurchaseRequest, fetchPurchaseRequests};

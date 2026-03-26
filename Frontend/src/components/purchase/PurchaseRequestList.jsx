@@ -1,4 +1,6 @@
-import React, { useState } from "react"
+import { useState, useEffect } from "react"
+import { fetchPurchaseRequests } from "../../api/purchaseRequestApi"
+import Button from "../common/Button"
 
 const StatusBadge = ({ status }) => {
 
@@ -15,21 +17,34 @@ const StatusBadge = ({ status }) => {
   )
 }
 
-const PurchaseRequestList = ({ onCreate, data = [] }) => {
+const PurchaseRequestList = ({ onCreate}) => {
+
+  const [purchaseRequest, setPurchaseRequest] = useState([])
+
+  const getPurchaseRequests = async () => {
+    try{
+      const data = await fetchPurchaseRequests()
+      
+      setPurchaseRequest(data)
+    }catch(error){
+      console.error(error)
+    }
+  }
+
+  useEffect(()=>{
+    getPurchaseRequests()
+  }, [])
 
   return (
     <div className="w-full h-full bg-slate-200 p-4">
       <div className="bg-white rounded-2xl shadow-2xl h-full flex flex-col p-6">
 
         {/* Header */}
-        <div className="px-6 py-4 flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-gray-700">
+        <div className="px-6 flex justify-between items-center">
+          <h1 className="text-2xl font-bold pb-6">
             Purchase Requests
           </h1>
-
-          <button onClick={onCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow">
-            + New Request
-          </button>
+          <Button lable={"+ New Request"} onClick={onCreate} />
         </div>
 
         {/* Table Card */}
@@ -39,35 +54,35 @@ const PurchaseRequestList = ({ onCreate, data = [] }) => {
 
             <thead className="bg-[#4b5ea3] text-white">
               <tr>
-                <th className="p-4 text-left">MR No</th>
-                <th className="p-4 text-left">Material</th>
-                <th className="p-4 text-left">Specification</th>
-                <th className="p-4 text-left">Send To</th>
-                <th className="p-4 text-left">Initiator</th>
-                <th className="p-4 text-left">Contact Info</th>
-                <th className="p-4 text-left">Status</th>
+                <th className="p-4 text-center">MR No</th>
+                <th className="p-4 text-center">Material</th>
+                <th className="p-4 text-center">Specification</th>
+                <th className="p-4 text-center">Send To</th>
+                <th className="p-4 text-center">Initiator</th>
+                <th className="p-4 text-center">Contact Info</th>
+                <th className="p-4 text-center">Status</th>
                 <th className="p-4 text-center">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {data.length === 0 ? (
+              {purchaseRequest.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center p-6 text-gray-400">
+                  <td colSpan="8" className="text-center p-6 text-gray-400">
                     No requests yet
                   </td>
                 </tr>
               ) : (
-                data.map((req, index) => (
-                  <tr key={index}>
-                    <td>MR-{index + 1}</td>
-                    <td>{req.materials?.[0]?.material}</td>
-                    <td>{req.materials?.[0]?.specification}</td>
-                    <td>{req.sendTo}</td>
-                    <td>{req.contactPerson}</td>
-                    <td>{req.contactInfo}</td>
-                    <td>Active</td>
-                    <td>...</td>
+                purchaseRequest.map((req, index) => (
+                  <tr className="border border-b-gray-300 border-x-gray-100" key={index}>
+                    <td className="py-2 text-center">MR-{index + 1}</td>
+                    <td className="py-2 text-center">{req.material}</td>
+                    <td className="py-2 text-center">{req.specification}</td>
+                    <td className="py-2 text-center">{req.sendTo}</td>
+                    <td className="py-2 text-center">{req.contactPerson}</td>
+                    <td className="py-2 text-center">{req.contactInfo}</td>
+                    <td className="py-2 text-center">Active</td>
+                    <td className="py-2 text-center">...</td>
                   </tr>
                 ))
               )}

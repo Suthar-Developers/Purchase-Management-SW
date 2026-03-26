@@ -52,6 +52,7 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
         contactInfo: ""
       });
       setMaterials([]);
+      onBack()
 
     } catch (error) {
       console.error(error)
@@ -107,6 +108,7 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                 className="input-line"
                 onChange={handleChange}
                 value={form.sendTo}
+                required
               >
 
                 <option value="" disabled>Select Location</option>
@@ -117,12 +119,12 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
             <div>
               <label className="text-sm text-gray-500">Contact Person</label>
-              <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} />
+              <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} required />
             </div>
 
             <div>
               <label className="text-sm text-gray-500">Contact No./Email</label>
-              <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} />
+              <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} required />
             </div>
 
           </div>
