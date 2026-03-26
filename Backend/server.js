@@ -3,6 +3,7 @@ const cors = require('cors')
 const db = require('./config/db')
 const projectRoute = require('./routes/projectRoute')
 const vendorRoute = require('./routes/vendorRoute')
+const purchaseRequestRoute = require('./routes/purchaseRequestRoute')
 
 const app = express()
 const port = 3000;
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 
 app.use('/api', projectRoute)
 app.use('/api', vendorRoute)
+app.use('/api', purchaseRequestRoute)
 
 app.listen(port, () => {
     console.log(`Your server is running on ${port}`)

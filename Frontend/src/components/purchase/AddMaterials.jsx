@@ -9,12 +9,12 @@ const AddMaterials = ({ onClose, onSave }) => {
     make: "",
     size: "",
     thickness: "",
-    qtyReq: "",
+    qty: "",
     unit: "",
     isNtItem: "No",
-    boqRefNo: "",
+    boqRef: "",
     scope: "Our Scope",
-    category: "Ply Board",
+    category: "",
     deliveryDate: "",
   });
 
@@ -42,7 +42,7 @@ const AddMaterials = ({ onClose, onSave }) => {
           <input name="make" placeholder="Make" className="input-line" onChange={handleChange}/>
           <input name="size" placeholder="Size" className="input-line" onChange={handleChange}/>
           <input name="thickness" placeholder="Thickness" className="input-line" onChange={handleChange}/>
-          <input name="qtyReq" placeholder="Qty Required" className="input-line" onChange={handleChange}/>
+          <input name="qty" placeholder="Qty Required" className="input-line" onChange={handleChange}/>
           <input name="unit" placeholder="Unit" className="input-line" onChange={handleChange}/>
           <div>
             <label className="text-xs text-blue-700 font-semibold" htmlFor="isNtItem">Is NT Item</label>
@@ -51,7 +51,7 @@ const AddMaterials = ({ onClose, onSave }) => {
               <option value="Yes">Yes</option>
             </select>
           </div>
-          <input name="boqRefNo" placeholder="Select BOQ Reference No" className="input-line" onChange={handleChange}/>
+          <input name="boqRef" placeholder="Select BOQ Reference No" className="input-line" onChange={handleChange}/>
           <div>
             <label className="text-xs text-blue-700 font-semibold" htmlFor="scope">Scope</label>
             <select className="input-line" name="scope" onChange={handleChange}>
@@ -62,6 +62,7 @@ const AddMaterials = ({ onClose, onSave }) => {
           <div>
             <label className="text-xs text-blue-700 font-semibold" htmlFor="category">Category</label>
             <select className="input-line" name="category" onChange={handleChange}>
+              <option>Select Category</option>
               <option value="Ply Board">Ply Board</option>
               <option value="Screw">Screw</option>
             </select>

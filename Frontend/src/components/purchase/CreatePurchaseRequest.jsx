@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { fetchProjects } from "../../api/projectApi"
+import { createPurchaseRequest } from "../../api/purchaseRequestApi"
 import AddMaterials from "./AddMaterials"
 
 const CreatePurchaseRequest = ({ onBack, onSave }) => {
@@ -8,10 +9,10 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [projects, setProjects] = useState([])
   const [form, setForm] = useState({
-    project: "",
+    project_id: "",
     sendTo: "",
     contactPerson: "",
-    contactInfo: "",
+    contactInfo: ""
   });
 
   const getProjects = async () => {
@@ -26,6 +27,36 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.project_id) {
+      return alert("Please select a project");
+    }
+
+    if (materials.length === 0) {
+      return alert("Please add at least one material");
+    }
+
+    try {
+      const data = await createPurchaseRequest({ ...form, materials });
+
+      alert(data.message);
+
+      setForm({
+        project_id: "",
+        sendTo: "",
+        contactPerson: "",
+        contactInfo: ""
+      });
+      setMaterials([]);
+
+    } catch (error) {
+      console.error(error)
+      alert("Error while creating purchase request")
+    }
   };
 
   useEffect(() => {
@@ -46,139 +77,146 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
         </div>
 
         {/* FORM */}
-        <div className="px-6 py-4 grid grid-cols-4 gap-6">
+        <form onSubmit={handleSubmit}>
 
-          <div>
-            <label className="text-sm text-gray-500">Project</label>
-            <select
-              name="project"
-              className="input-line"
-              onChange={handleChange}
-              value={form.project}
-            >
+          <div className="px-6 py-4 grid grid-cols-4 gap-6">
 
-              <option value="" disabled>Select Project</option>
 
-              {projects.map((project) => (
-                <option key={project.project_id} value={project.projectName}>
-                  {project.projectName}
-                </option>
-              ))}
-            </select>
+
+            <div>
+              <label className="text-sm text-gray-500">Project</label>
+              <select
+                name="project_id"
+                className="input-line"
+                onChange={handleChange}
+                value={form.project_id}
+              >
+
+                <option value="" disabled>Select Project</option>
+
+                {projects.map((project) => (
+                  <option key={project.project_id} value={project.project_id}>
+                    {project.projectName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">Send To</label>
+              <select
+                name="sendTo"
+                className="input-line"
+                onChange={handleChange}
+                value={form.sendTo}
+              >
+
+                <option value="" disabled>Select Location</option>
+                <option value="Head Office">Head Office</option>
+                <option value="Factory">Factory</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">Contact Person</label>
+              <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">Contact No./Email</label>
+              <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} />
+            </div>
+
           </div>
 
-          <div>
-            <label className="text-sm text-gray-500">Send To</label>
-            <select
-              name="sendTo"
-              className="input-line"
-              onChange={handleChange}
-              value={form.sendTo}
-            >
+          {/* TABLE */}
+          <div className="flex-1 overflow-auto rounded-lg">
 
-              <option value="" disabled>Select Location</option>
-              <option value="Head Office">Head Office</option>
-              <option value="Factory">Factory</option>
-            </select>
-          </div>
+            <table className="w-full text-sm">
 
-          <div>
-            <label className="text-sm text-gray-500">Contact Person</label>
-            <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-500">Contact No./Email</label>
-            <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} />
-          </div>
-
-        </div>
-
-        {/* TABLE */}
-        <div className="flex-1 overflow-auto rounded-lg">
-
-          <table className="w-full text-sm">
-
-            <thead className="bg-[#4b5ea3] text-white">
-              <tr>
-                <th className="p-3 text-left">#</th>
-                <th className="p-3 text-left">Material</th>
-                <th className="p-3 text-left">Specification</th>
-                <th className="p-3 text-left">Deliver Before</th>
-                <th className="p-3 text-left">Make</th>
-                <th className="p-3 text-left">Qty Required</th>
-                <th className="p-3 text-left">Is NT Item</th>
-                <th className="p-3 text-left">BOQ Ref No</th>
-                <th className="p-3 text-left">Category</th>
-                <th className="p-3 text-left">Attachment</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {materials.length === 0 ? (
+              <thead className="bg-[#4b5ea3] text-white">
                 <tr>
-                  <td colSpan="10" className="text-center py-20 text-gray-400">
-                    <div className="flex flex-col items-center gap-2">
-                      📦
-                      <p>No materials added</p>
-                      <p className="text-xs">
-                        Click "Add Material" to start
-                      </p>
-                    </div>
-                  </td>
+                  <th className="p-3 text-left">#</th>
+                  <th className="p-3 text-left">Material</th>
+                  <th className="p-3 text-left">Specification</th>
+                  <th className="p-3 text-left">Deliver Before</th>
+                  <th className="p-3 text-left">Make</th>
+                  <th className="p-3 text-left">Qty Required</th>
+                  <th className="p-3 text-left">Is NT Item</th>
+                  <th className="p-3 text-left">BOQ Ref No</th>
+                  <th className="p-3 text-left">Category</th>
+                  <th className="p-3 text-left">Attachment</th>
                 </tr>
-              ) : (
-                materials.map((m, i) => {
-                  return (
-                    <tr key={i} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{i + 1}</td>
-                      <td className="p-3">{m.material}</td>
-                      <td className="p-3">{m.specification}</td>
-                      <td className="p-3">{m.deliveryDate}</td>
-                      <td className="p-3">{m.make}</td>
-                      <td className="p-3">{m.qtyReq}</td>
-                      <td className="p-3">{m.isNtItem}</td>
-                      <td className="p-3">{m.boqRefNo}</td>
-                      <td className="p-3">{m.category}</td>
-                      <td className="p-3">📎</td>
-                    </tr>
-                  )
-                })
-              )}
+              </thead>
 
-            </tbody>
+              <tbody>
 
-          </table>
+                {materials.length === 0 ? (
+                  <tr>
+                    <td colSpan="10" className="text-center py-20 text-gray-400">
+                      <div className="flex flex-col items-center gap-2">
+                        📦
+                        <p>No materials added</p>
+                        <p className="text-xs">
+                          Click "Add Material" to start
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  materials.map((m, i) => {
+                    return (
+                      <tr key={i} className="border-b hover:bg-gray-50">
+                        <td className="p-3">{i + 1}</td>
+                        <td className="p-3">{m.material}</td>
+                        <td className="p-3">{m.specification}</td>
+                        <td className="p-3">{m.deliveryDate}</td>
+                        <td className="p-3">{m.make}</td>
+                        <td className="p-3">{m.qty}</td>
+                        <td className="p-3">{m.isNtItem}</td>
+                        <td className="p-3">{m.boqRef}</td>
+                        <td className="p-3">{m.category}</td>
+                        <td className="p-3">📎</td>
+                      </tr>
+                    )
+                  })
+                )}
 
-        </div>
+              </tbody>
+            </table>
 
-        {/* FOOTER */}
-        <div className="px-6 mb-25 py-4 border-t flex justify-between">
-
-          <button onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#4b5ea3] text-white rounded-lg hover:bg-[#354684]">Add Material</button>
-
-          <div className="space-x-3">
-            <button onClick={() => onSave({ ...form, materials })} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save</button>
-
-            <button onClick={onBack} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Back</button>
           </div>
 
-        </div>
+          {/* FOOTER */}
+          <div className="px-6 mb-25 py-4 border-t flex justify-between">
+
+            <button type="button" onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#4b5ea3] text-white rounded-lg hover:bg-[#354684]">Add Material</button>
+
+            <div className="space-x-3">
+              <button type="submit" disabled={materials.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save</button>
+
+              <button type="button" onClick={onBack} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Back</button>
+            </div>
+
+          </div>
+        </form>
       </div>
 
-      {/* MODAL */}
-      {isModalOpen && (
-        <AddMaterials
-          onClose={() => setIsModalOpen(false)}
-          onSave={(data) => {
-            setMaterials((prev) => [...prev, data])
-            setIsModalOpen(false)
-          }}
-        />
-      )}
 
-    </div>
+      {/* MODAL */}
+      {
+        isModalOpen && (
+          <AddMaterials
+            onClose={() => setIsModalOpen(false)}
+            onSave={(data) => {
+              setMaterials((prev) => [...prev, data])
+              setIsModalOpen(false)
+            }}
+          />
+        )
+      }
+
+    </div >
   )
 }
 
