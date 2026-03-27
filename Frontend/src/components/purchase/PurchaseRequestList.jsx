@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { fetchPurchaseRequests } from "../../api/purchaseRequestApi"
 import Button from "../common/Button"
+import PurchaseRequestView from "../models/PurchaseRequestView"
 
 const StatusBadge = ({ status }) => {
 
@@ -17,23 +18,34 @@ const StatusBadge = ({ status }) => {
   )
 }
 
-const PurchaseRequestList = ({ onCreate}) => {
+const PurchaseRequestList = ({ onCreate }) => {
 
   const [purchaseRequest, setPurchaseRequest] = useState([])
+  const [isViewModelOpen, setIsViewModelOpen] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState()
 
   const getPurchaseRequests = async () => {
-    try{
+    try {
       const data = await fetchPurchaseRequests()
-      
+
       setPurchaseRequest(data)
-    }catch(error){
+    } catch (error) {
       console.error(error)
     }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     getPurchaseRequests()
   }, [])
+
+  const openView = (req) => {
+    setIsViewModelOpen(true)
+    setSelectedRequest(req)
+  }
+
+  const closeView = () => {
+    setIsViewModelOpen(false)
+  }
 
   return (
     <div className="w-full h-full bg-slate-200 p-4">
@@ -55,9 +67,7 @@ const PurchaseRequestList = ({ onCreate}) => {
             <thead className="bg-[#4b5ea3] text-white">
               <tr>
                 <th className="p-4 text-center">MR No</th>
-                <th className="p-4 text-center">Material</th>
-                <th className="p-4 text-center">Specification</th>
-                <th className="p-4 text-center">Send To</th>
+                <th className="p-4 text-center">Project</th>
                 <th className="p-4 text-center">Initiator</th>
                 <th className="p-4 text-center">Contact Info</th>
                 <th className="p-4 text-center">Status</th>
@@ -68,21 +78,25 @@ const PurchaseRequestList = ({ onCreate}) => {
             <tbody>
               {purchaseRequest.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center p-6 text-gray-400">
+                  <td colSpan="6" className="text-center p-6 text-gray-400">
                     No requests yet
                   </td>
                 </tr>
               ) : (
                 purchaseRequest.map((req, index) => (
                   <tr className="border border-b-gray-300 border-x-gray-100" key={index}>
-                    <td className="py-2 text-center">MR-{index + 1}</td>
-                    <td className="py-2 text-center">{req.material}</td>
-                    <td className="py-2 text-center">{req.specification}</td>
-                    <td className="py-2 text-center">{req.sendTo}</td>
-                    <td className="py-2 text-center">{req.contactPerson}</td>
-                    <td className="py-2 text-center">{req.contactInfo}</td>
-                    <td className="py-2 text-center">Active</td>
-                    <td className="py-2 text-center">...</td>
+                    <td className="py-3 text-center">MR-{req.request_id}</td>
+                    <td className="py-3 text-center">{req.projectName}</td>
+                    <td className="py-3 text-center">{req.contactPerson}</td>
+                    <td className="py-3 text-center">{req.contactInfo}</td>
+
+                    <td className="py-3 text-center">
+                      <StatusBadge status={req.requestStatus} />
+                    </td>
+
+                    <td className="py-3 text-center">
+                      <button onClick={() => openView(req)} className="text-blue-700 hover:text-green-600 hover:scale-120"><i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i></button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -91,6 +105,10 @@ const PurchaseRequestList = ({ onCreate}) => {
           </table>
 
         </div>
+
+        {isViewModelOpen && (
+          <PurchaseRequestView req={selectedRequest} onClose={closeView} refreshRequest={getPurchaseRequests}/>
+        )}
 
       </div>
     </div>

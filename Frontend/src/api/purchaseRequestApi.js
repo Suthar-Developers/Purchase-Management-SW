@@ -19,3 +19,13 @@ export const fetchPurchaseRequests = async () => {
         throw error
     }
 }
+
+export const updateMaterialStatus = async (material_id, materialStatus) => {
+    try {
+        const res = await axios.put("http://localhost:3000/api/update-material-status", {material_id, materialStatus})
+        return res.data
+    } catch (error) {
+        console.error("Error updating material status", error)
+        throw error
+    }
+}

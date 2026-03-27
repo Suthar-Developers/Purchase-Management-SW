@@ -12,7 +12,8 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
     project_id: "",
     sendTo: "",
     contactPerson: "",
-    contactInfo: ""
+    contactInfo: "",
+    requestStatus: "Requested"
   });
 
   const getProjects = async () => {
@@ -49,7 +50,8 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
         project_id: "",
         sendTo: "",
         contactPerson: "",
-        contactInfo: ""
+        contactInfo: "",
+        requestStatus: "Requested"
       });
       setMaterials([]);
       onBack()
@@ -168,7 +170,7 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                         <td className="p-3">{i + 1}</td>
                         <td className="p-3">{m.material}</td>
                         <td className="p-3">{m.specification}</td>
-                        <td className="p-3">{m.deliveryDate}</td>
+                        <td className="p-3">{m.deliverBefore}</td>
                         <td className="p-3">{m.make}</td>
                         <td className="p-3">{m.qty}</td>
                         <td className="p-3">{m.isNtItem}</td>

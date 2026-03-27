@@ -15,7 +15,7 @@ const AddMaterials = ({ onClose, onSave }) => {
     boqRef: "",
     scope: "Our Scope",
     category: "",
-    deliveryDate: "",
+    deliverBefore: "",
   });
 
   const handleChange = (e) => {
@@ -69,7 +69,7 @@ const AddMaterials = ({ onClose, onSave }) => {
           </div>
           <div>
             <label className="text-xs text-blue-700 font-semibold" htmlFor="deliveryDate">Deliver Before</label>
-            <input type="date" name="deliveryDate" className="input-line" onChange={handleChange}/>
+            <input type="date" name="deliverBefore" className="input-line" onChange={handleChange}/>
           </div>
 
         </div>
