@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { fetchPurchaseRequests } from "../../api/purchaseRequestApi"
 import Button from "../common/Button"
-import PurchaseRequestView from "../models/PurchaseRequestView"
+import PurchaseRequestView from "./PurchaseRequestView"
 
 const StatusBadge = ({ status }) => {
 

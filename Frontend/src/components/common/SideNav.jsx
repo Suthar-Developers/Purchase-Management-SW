@@ -36,9 +36,11 @@ const SideNav = () => {
                         text="Purchase Requests"> </NavButtons>
                 </Link>
 
-                <NavButtons
-                    icon={<i className="fa-solid fa-check-to-slot fa-lg"></i>}
-                    text="Purchase Orders"> </NavButtons>
+                <Link to={'/purchase-orders'}>
+                    <NavButtons
+                        icon={<i className="fa-solid fa-check-to-slot fa-lg"></i>}
+                        text="Purchase Orders"> </NavButtons>
+                </Link>
 
                 <NavButtons
                     icon={<i className="fa-solid fa-receipt fa-lg"></i>}
@@ -65,7 +67,7 @@ const SideNav = () => {
                     text="Setting"> </NavButtons>
             </div>
 
-        </div>
+        </div >
     )
 }
 

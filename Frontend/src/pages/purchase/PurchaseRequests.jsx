@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import PurchaseRequestList from "../../components/Purchase/PurchaseRequestList";
-import CreatePurchaseRequest from "../../components/Purchase/CreatePurchaseRequest";
+import PurchaseRequestList from "../../components/models/PurchaseRequestList";
+import CreatePurchaseRequest from "../../components/models/CreatePurchaseRequest";
 
 const PurchaseRequests = () => {
   const [view, setView] = useState("list");
-  const [requests, setRequests] = useState([]); // ✅ shared state
+  const [requests, setRequests] = useState([]);
 
   return (
     <div className="w-full h-full bg-slate-200">
@@ -12,7 +12,7 @@ const PurchaseRequests = () => {
       {view === "list" && (
         <PurchaseRequestList
           onCreate={() => setView("create")}
-          data={requests}   // ✅ pass data
+          data={requests}
         />
       )}
 
@@ -20,8 +20,8 @@ const PurchaseRequests = () => {
         <CreatePurchaseRequest
           onBack={() => setView("list")}
           onSave={(data) => {
-            setRequests((prev) => [...prev, data]); // ✅ save data
-            setView("list"); // ✅ go back to list
+            setRequests((prev) => [...prev, data]);
+            setView("list");
           }}
         />
       )}

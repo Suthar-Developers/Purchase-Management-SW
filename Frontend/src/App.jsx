@@ -9,6 +9,7 @@ import Footer from './components/common/Footer'
 import Vendors from './pages/vendors/Vendors'
 import VendorCreate from './components/models/VendorCreate'
 import PurchaseRequests from './pages/purchase/PurchaseRequests'
+import PurchaseOrders from './pages/purchase/PurchaseOrders'
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
             <Route path='/vendors' element={<Vendors />} />
             <Route path='/create-vendor' element={<VendorCreate />} />
             <Route path='/purchase-requests' element={<PurchaseRequests />} />
+            <Route path='/purchase-orders' element={<PurchaseOrders />} />
           </Routes>
         </div>
       </div>
