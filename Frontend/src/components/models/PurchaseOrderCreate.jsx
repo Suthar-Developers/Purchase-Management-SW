@@ -1,223 +1,252 @@
 import React, { useState, useEffect, useRef } from "react"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
+import { fetchVendors } from "../../api/vendorApi"
 
 const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
-  const pdfRef = useRef()
+    const [vendorList, setVendorList] = useState([])
 
-  const approvedMaterials =
-    selectedRequest?.materials?.filter(
-      (m) => m.materialStatus === "Approved"
-    ) || []
+    const pdfRef = useRef()
 
-  const [materials, setMaterials] = useState([])
+    const getVendors = async () => {
+        try {
+          const data = await fetchVendors();
+    
+          setVendorList(data)
+        } catch (error) {
+          console.error(error)
+        }
+      }
 
-  const [vendor, setVendor] = useState("")
-  const [contactPerson, setContactPerson] = useState("")
+      useEffect(()=>{
+          getVendors()
+        }, [])
+        
+    const approvedMaterials =
+        selectedRequest?.materials?.filter(
+            (m) => m.materialStatus === "Approved"
+        ) || []
 
-  useEffect(() => {
-    const formatted = approvedMaterials.map((m) => ({
-      ...m,
-      rate: "",
-      gst: "",
-      discount: "",
-      total: 0
-    }))
+    const [materials, setMaterials] = useState([])
 
-    setMaterials(formatted)
-  }, [selectedRequest])
+    const [vendor, setVendor] = useState("")
+    const [contactPerson, setContactPerson] = useState("")
 
-  // 🧮 CALCULATION
-  const handleChange = (index, field, value) => {
-    const updated = [...materials]
+    useEffect(() => {
+        const formatted = approvedMaterials.map((m) => ({
+            ...m,
+            rate: "",
+            gst: "",
+            discount: "",
+            total: 0
+        }))
 
-    updated[index][field] = value
+        setMaterials(formatted)
+    }, [selectedRequest])
 
-    const qty = Number(updated[index].qty || 0)
-    const rate = Number(updated[index].rate || 0)
-    const gst = Number(updated[index].gst || 0)
-    const discount = Number(updated[index].discount || 0)
+    // 🧮 CALCULATION
+    const handleChange = (index, field, value) => {
+        const updated = [...materials]
 
-    let total = qty * rate
+        updated[index][field] = value
 
-    const gstAmount = (total * gst) / 100
-    total += gstAmount
-    total -= discount
+        const qty = Number(updated[index].qty || 0)
+        const rate = Number(updated[index].rate || 0)
+        const gst = Number(updated[index].gst || 0)
+        const discount = Number(updated[index].discount || 0)
 
-    updated[index].total = total
+        let total = qty * rate
 
-    setMaterials(updated)
-  }
+        const gstAmount = (total * gst) / 100
+        total += gstAmount
+        total -= discount
 
-  // TOTALS
-  const subtotal = materials.reduce((sum, m) => sum + (m.qty * (m.rate || 0)), 0)
-  const gstTotal = materials.reduce((sum, m) => sum + ((m.qty * (m.rate || 0) * (m.gst || 0)) / 100), 0)
-  const discountTotal = materials.reduce((sum, m) => sum + (m.discount || 0), 0)
+        updated[index].total = total
 
-  const grandTotal = subtotal + gstTotal - discountTotal
+        setMaterials(updated)
+    }
 
-  // 📄 PDF DOWNLOAD
-  const downloadPDF = async () => {
-    const canvas = await html2canvas(pdfRef.current)
-    const imgData = canvas.toDataURL("image/png")
+    // TOTALS
+    const subtotal = materials.reduce((sum, m) => sum + (m.qty * (m.rate || 0)), 0)
+    const gstTotal = materials.reduce((sum, m) => sum + ((m.qty * (m.rate || 0) * (m.gst || 0)) / 100), 0)
+    const discountTotal = materials.reduce((sum, m) => sum + (m.discount || 0), 0)
 
-    const pdf = new jsPDF("p", "mm", "a4")
-    const imgWidth = 210
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
+    const grandTotal = subtotal + gstTotal - discountTotal
 
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
-    pdf.save("Purchase_Order.pdf")
-  }
+    // 📄 PDF DOWNLOAD
+    const downloadPDF = async () => {
+        const canvas = await html2canvas(pdfRef.current)
+        const imgData = canvas.toDataURL("image/png")
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+        const pdf = new jsPDF("p", "mm", "a4")
+        const imgWidth = 210
+        const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      <div className="bg-white w-[85%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
+        pdf.save("Purchase_Order.pdf")
+    }
 
-        {/* HEADER */}
-        <div className="flex justify-between mb-4">
-          <h2 className="text-2xl font-bold">Purchase Order</h2>
-          <button onClick={onClose}>✕</button>
+    return (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+
+            <div className="bg-white w-[85%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
+
+                {/* HEADER */}
+                <div className="flex justify-between mb-4">
+                    <h2 className="text-2xl font-bold">Purchase Order</h2>
+                    <button onClick={onClose}>✕</button>
+                </div>
+
+                {/* PDF AREA */}
+                <div ref={pdfRef} className="p-4 bg-white">
+
+                    {/* COMPANY */}
+                    <div className="text-center border-b pb-2 mb-4">
+                        <h1 className="text-xl font-bold">JRC Interiors</h1>
+                        <p className="text-sm text-gray-500">Purchase Order</p>
+                    </div>
+
+                    {/* DETAILS */}
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+
+                        <div>
+                            <p className="text-sm text-gray-500">Project</p>
+                            <p className="input-line font-semibold">{selectedRequest?.projectName}</p>
+                        </div>
+
+                        <div>
+                            <label className="text-sm text-gray-500">Vendors</label>
+                            <select
+                                name="vendor_id"
+                                className="input-line"
+                                onChange={(e) => setVendor(e.target.value)}
+                                value={vendor}
+                            >
+                                <option value="" disabled>Select Vendor</option>
+
+                                {vendorList.map((vendor) => (
+                                    <option key={vendor.vendor_id} value={vendor.vendor_id}>
+                                        {vendor.vendorName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <p className="text-sm text-gray-500">Contact</p>
+                            <input
+                                value={contactPerson}
+                                onChange={(e) => setContactPerson(e.target.value)}
+                                className="input-line"
+                            />
+                        </div>
+
+                    </div>
+
+                    {/* TABLE */}
+                    <table className="w-full text-sm">
+
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="p-4 text-center">Material</th>
+                                <th className="p-4 text-center">Qty</th>
+                                <th className="p-4 text-center">Rate</th>
+                                <th className="p-4 text-center">GST %</th>
+                                <th className="p-4 text-center">Discount</th>
+                                <th className="p-4 text-center">Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {materials.map((m, i) => (
+                                <tr key={i} className="border border-b-gray-300 border-x-gray-100">
+
+                                    <td className="py-3 text-center">{m.material}</td>
+                                    <td className="py-3 text-center">{m.qty}</td>
+
+                                    <td className="py-3 text-center">
+                                        <input
+                                            placeholder="Enter Rate"
+                                            className="border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-center"
+                                            onChange={(e) => handleChange(i, "rate", e.target.value)}
+                                        />
+                                    </td>
+
+                                    <td className="py-3 text-center">
+                                        <input
+                                            placeholder="Enter GST"
+                                            className="border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-center"
+                                            onChange={(e) => handleChange(i, "gst", e.target.value)}
+                                        />
+                                    </td>
+
+                                    <td className="py-3 text-center">
+                                        <input
+                                            placeholder="Enter Discount"
+                                            className="border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-center"
+                                            onChange={(e) => handleChange(i, "discount", e.target.value)}
+                                        />
+                                    </td>
+
+                                    <td className="py-3 text-center">₹ {m.total.toFixed(2)}</td>
+
+                                </tr>
+                            ))}
+                        </tbody>
+
+                    </table>
+
+                    {/* TOTAL */}
+                    <div className="flex justify-end mt-4">
+                        <div className="w-64 space-y-2">
+
+                            <div className="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>₹ {subtotal.toFixed(2)}</span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span>GST</span>
+                                <span>₹ {gstTotal.toFixed(2)}</span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span>Discount</span>
+                                <span>₹ {discountTotal.toFixed(2)}</span>
+                            </div>
+
+                            <div className="flex justify-between font-bold border-t pt-2">
+                                <span>Total</span>
+                                <span>₹ {grandTotal.toFixed(2)}</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* ACTIONS */}
+                <div className="flex justify-end gap-3 mt-4">
+                    <button
+                        onClick={downloadPDF}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                    >
+                        Download PDF
+                    </button>
+
+                    <button
+                        onClick={onClose}
+                        className="bg-gray-300 px-4 py-2 rounded-lg"
+                    >
+                        Close
+                    </button>
+                </div>
+
+            </div>
+
         </div>
-
-        {/* PDF AREA */}
-        <div ref={pdfRef} className="p-4 bg-white">
-
-          {/* COMPANY */}
-          <div className="text-center border-b pb-2 mb-4">
-            <h1 className="text-xl font-bold">Your Company Name</h1>
-            <p className="text-sm text-gray-500">Purchase Order</p>
-          </div>
-
-          {/* DETAILS */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-
-            <div>
-              <p className="text-sm text-gray-500">Project</p>
-              <p className="font-semibold">{selectedRequest?.projectName}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Vendor</p>
-              <input
-                value={vendor}
-                onChange={(e) => setVendor(e.target.value)}
-                className="border px-2 py-1 w-full"
-              />
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Contact</p>
-              <input
-                value={contactPerson}
-                onChange={(e) => setContactPerson(e.target.value)}
-                className="border px-2 py-1 w-full"
-              />
-            </div>
-
-          </div>
-
-          {/* TABLE */}
-          <table className="w-full text-sm border">
-
-            <thead className="bg-gray-100">
-              <tr>
-                <th>Material</th>
-                <th>Qty</th>
-                <th>Rate</th>
-                <th>GST %</th>
-                <th>Discount</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {materials.map((m, i) => (
-                <tr key={i} className="text-center border-t">
-
-                  <td>{m.material}</td>
-                  <td>{m.qty}</td>
-
-                  <td>
-                    <input
-                      className="w-20 border"
-                      onChange={(e) => handleChange(i, "rate", e.target.value)}
-                    />
-                  </td>
-
-                  <td>
-                    <input
-                      className="w-16 border"
-                      onChange={(e) => handleChange(i, "gst", e.target.value)}
-                    />
-                  </td>
-
-                  <td>
-                    <input
-                      className="w-16 border"
-                      onChange={(e) => handleChange(i, "discount", e.target.value)}
-                    />
-                  </td>
-
-                  <td>₹ {m.total.toFixed(2)}</td>
-
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-
-          {/* TOTAL */}
-          <div className="flex justify-end mt-4">
-            <div className="w-64 space-y-2">
-
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>₹ {subtotal.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>GST</span>
-                <span>₹ {gstTotal.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Discount</span>
-                <span>₹ {discountTotal.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between font-bold border-t pt-2">
-                <span>Total</span>
-                <span>₹ {grandTotal.toFixed(2)}</span>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-3 mt-4">
-          <button
-            onClick={downloadPDF}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg"
-          >
-            Download PDF
-          </button>
-
-          <button
-            onClick={onClose}
-            className="bg-gray-300 px-4 py-2 rounded-lg"
-          >
-            Close
-          </button>
-        </div>
-
-      </div>
-
-    </div>
-  )
+    )
 }
 
 export default PurchaseOrderCreate
