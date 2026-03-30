@@ -20,6 +20,8 @@ const fetchApprovedPR = async (req, res) => {
                     request_id: row.request_id,
                     projectName: row.projectName,
                     requestStatus: row.requestStatus,
+                    deliverBefore: row.deliverBefore,
+                    created_pr_at: row.created_pr_at,
                     materials: []
                 }
             }

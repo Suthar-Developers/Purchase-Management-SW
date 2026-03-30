@@ -2,20 +2,20 @@ const db = require('../config/db')
 
 const createPurchaseRequest = async (req, res) => {
     try {
-        const { project_id, sendTo, contactPerson, contactInfo, requestStatus, materials } = req.body
+        const { project_id, contactPerson, contactInfo, deliverBefore, requestStatus, materials } = req.body
 
         if (!project_id) {
             return res.status(400).json({ message: "Project is required" });
         }
 
         const [result] = await db.query(
-            `INSERT INTO purchase_request (project_id, sendTo, contactPerson, contactInfo, requestStatus)
+            `INSERT INTO purchase_request (project_id, contactPerson, contactInfo, deliverBefore, requestStatus)
             VALUES(?, ?, ?, ?, ?)`,
             [
                 project_id,
-                sendTo,
                 contactPerson,
                 contactInfo,
+                deliverBefore,
                 requestStatus
             ]
         );
@@ -24,8 +24,8 @@ const createPurchaseRequest = async (req, res) => {
 
         for (const m of materials) {
             await db.query(
-                `INSERT INTO materials (request_id, material, specification, make, size, thickness, qty, unit, isNtItem, boqRef, scope, category, deliverBefore, materialStatus)
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO materials (request_id, material, specification, make, size, thickness, qty, unit, isNtItem, boqRef, scope, category, materialStatus)
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     request_id,
                     m.material,
@@ -39,7 +39,6 @@ const createPurchaseRequest = async (req, res) => {
                     m.boqRef || null,
                     m.scope,
                     m.category,
-                    m.deliverBefore,
                     m.materialStatus || 'Pending']
             );
         }
@@ -64,7 +63,7 @@ const fetchPurchaseRequests = async (req, res) => {
                     request_id: row.request_id,
                     project_id: row.project_id,
                     projectName: row.projectName,
-                    sendTo: row.sendTo,
+                    deliverBefore: row.deliverBefore,
                     contactPerson: row.contactPerson,
                     contactInfo: row.contactInfo,
                     requestStatus: row.requestStatus,
@@ -85,7 +84,6 @@ const fetchPurchaseRequests = async (req, res) => {
                 boqRef: row.boqRef,
                 scope: row.scope,
                 category: row.category,
-                deliverBefore: row.deliverBefore,
                 materialStatus: row.materialStatus
             });
         });

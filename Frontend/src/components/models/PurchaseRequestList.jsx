@@ -66,7 +66,7 @@ const PurchaseRequestList = ({ onCreate }) => {
 
             <thead className="bg-[#4b5ea3] text-white">
               <tr>
-                <th className="p-4 text-center">MR No</th>
+                <th className="p-4 text-center">PR No</th>
                 <th className="p-4 text-center">Project</th>
                 <th className="p-4 text-center">Initiator</th>
                 <th className="p-4 text-center">Contact Info</th>
@@ -85,7 +85,7 @@ const PurchaseRequestList = ({ onCreate }) => {
               ) : (
                 purchaseRequest.map((req, index) => (
                   <tr className="border border-b-gray-300 border-x-gray-100" key={index}>
-                    <td className="py-3 text-center">MR-{req.request_id}</td>
+                    <td className="py-3 text-center">PR-{req.request_id}</td>
                     <td className="py-3 text-center">{req.projectName}</td>
                     <td className="py-3 text-center">{req.contactPerson}</td>
                     <td className="py-3 text-center">{req.contactInfo}</td>

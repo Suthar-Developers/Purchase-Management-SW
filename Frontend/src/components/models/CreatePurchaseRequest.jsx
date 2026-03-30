@@ -10,9 +10,9 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
   const [projects, setProjects] = useState([])
   const [form, setForm] = useState({
     project_id: "",
-    sendTo: "",
     contactPerson: "",
     contactInfo: "",
+    deliverBefore: "",
     requestStatus: "Requested"
   });
 
@@ -48,9 +48,9 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
       setForm({
         project_id: "",
-        sendTo: "",
         contactPerson: "",
         contactInfo: "",
+        deliverBefore: "",
         requestStatus: "Requested"
       });
       setMaterials([]);
@@ -104,22 +104,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Send To</label>
-              <select
-                name="sendTo"
-                className="input-line"
-                onChange={handleChange}
-                value={form.sendTo}
-                required
-              >
-
-                <option value="" disabled>Select Location</option>
-                <option value="Head Office">Head Office</option>
-                <option value="Factory">Factory</option>
-              </select>
-            </div>
-
-            <div>
               <label className="text-sm text-gray-500">Contact Person</label>
               <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} required />
             </div>
@@ -127,6 +111,12 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
             <div>
               <label className="text-sm text-gray-500">Contact No./Email</label>
               <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} required />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">Deliver Before</label>
+              <input className="input-line" type="date" name="deliverBefore" value={form.deliverBefore} onChange={handleChange} required />
+
             </div>
 
           </div>
@@ -141,7 +131,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                   <th className="p-3 text-left">#</th>
                   <th className="p-3 text-left">Material</th>
                   <th className="p-3 text-left">Specification</th>
-                  <th className="p-3 text-left">Deliver Before</th>
                   <th className="p-3 text-left">Make</th>
                   <th className="p-3 text-left">Qty Required</th>
                   <th className="p-3 text-left">Is NT Item</th>
@@ -155,7 +144,7 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
                 {materials.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-20 text-gray-400">
+                    <td colSpan="9" className="text-center py-20 text-gray-400">
                       <div className="flex flex-col items-center gap-2">
                         📦
                         <p>No materials added</p>
@@ -170,7 +159,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                         <td className="p-3">{i + 1}</td>
                         <td className="p-3">{m.material}</td>
                         <td className="p-3">{m.specification}</td>
-                        <td className="p-3">{m.deliverBefore}</td>
                         <td className="p-3">{m.make}</td>
                         <td className="p-3">{m.qty}</td>
                         <td className="p-3">{m.isNtItem}</td>

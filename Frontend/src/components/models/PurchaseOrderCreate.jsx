@@ -2,48 +2,91 @@ import React, { useState, useEffect, useRef } from "react"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { fetchVendors } from "../../api/vendorApi"
+import { fetchProjects } from "../../api/projectApi"
 
 const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
     const [vendorList, setVendorList] = useState([])
+    const [projectList, setProjectList] = useState([])
 
     const pdfRef = useRef()
 
     const getVendors = async () => {
         try {
-          const data = await fetchVendors();
-    
-          setVendorList(data)
+            const data = await fetchVendors();
+            setVendorList(data.data || data);
         } catch (error) {
-          console.error(error)
+            console.error(error)
         }
-      }
+    }
 
-      useEffect(()=>{
-          getVendors()
-        }, [])
-        
+    const getProjects = async () => {
+        try {
+            const data = await fetchProjects();
+            setProjectList(data.data || data);
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        getVendors()
+        getProjects()
+    }, [])
+
     const approvedMaterials =
         selectedRequest?.materials?.filter(
             (m) => m.materialStatus === "Approved"
-        ) || []
+        ) || [];
 
     const [materials, setMaterials] = useState([])
 
     const [vendor, setVendor] = useState("")
+    const [project, setProject] = useState("")
     const [contactPerson, setContactPerson] = useState("")
 
-    useEffect(() => {
-        const formatted = approvedMaterials.map((m) => ({
-            ...m,
-            rate: "",
-            gst: "",
-            discount: "",
-            total: 0
-        }))
+    const handleAddRow = () => {
+        setMaterials((prev) => [
+            ...prev,
+            {
+                material: "",
+                qty: "",
+                rate: "",
+                gst: "",
+                discount: "",
+                total: 0
+            }
+        ]);
+    };
 
-        setMaterials(formatted)
-    }, [selectedRequest])
+    const handleDeleteRow = (index) => {
+        setMaterials((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    useEffect(() => {
+        if (selectedRequest) {
+            const formatted = approvedMaterials.map((m) => ({
+                ...m,
+                rate: "",
+                gst: "",
+                discount: "",
+                total: 0
+            }));
+
+            setMaterials(formatted);
+        } else {
+            setMaterials([
+                {
+                    material: "",
+                    qty: "",
+                    rate: "",
+                    gst: "",
+                    discount: "",
+                    total: 0
+                }
+            ]);
+        }
+    }, [selectedRequest]);
 
     // 🧮 CALCULATION
     const handleChange = (index, field, value) => {
@@ -58,9 +101,10 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
         let total = qty * rate
 
+        const discountAmount = (total * discount) / 100
         const gstAmount = (total * gst) / 100
+        total -= discountAmount
         total += gstAmount
-        total -= discount
 
         updated[index].total = total
 
@@ -70,7 +114,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     // TOTALS
     const subtotal = materials.reduce((sum, m) => sum + (m.qty * (m.rate || 0)), 0)
     const gstTotal = materials.reduce((sum, m) => sum + ((m.qty * (m.rate || 0) * (m.gst || 0)) / 100), 0)
-    const discountTotal = materials.reduce((sum, m) => sum + (m.discount || 0), 0)
+    const discountTotal = materials.reduce((sum, m) => sum + ((m.qty * (m.rate || 0) * (m.discount || 0)) / 100), 0)
 
     const grandTotal = subtotal + gstTotal - discountTotal
 
@@ -112,7 +156,24 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                         <div>
                             <p className="text-sm text-gray-500">Project</p>
-                            <p className="input-line font-semibold">{selectedRequest?.projectName}</p>
+                            {selectedRequest ? (
+                                selectedRequest.projectName
+                            ) : (
+                                <select
+                                    name="project_id"
+                                    className="input-line"
+                                    onChange={(e) => setProject(e.target.value)}
+                                    value={project}
+                                >
+                                    <option value="" disabled>Select Project</option>
+
+                                    {projectList.map((p) => (
+                                        <option key={p.project_id} value={p.project_id}>
+                                            {p.projectName}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         <div>
@@ -125,9 +186,9 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                             >
                                 <option value="" disabled>Select Vendor</option>
 
-                                {vendorList.map((vendor) => (
-                                    <option key={vendor.vendor_id} value={vendor.vendor_id}>
-                                        {vendor.vendorName}
+                                {vendorList.map((v) => (
+                                    <option key={v.vendor_id} value={v.vendor_id}>
+                                        {v.vendorName}
                                     </option>
                                 ))}
                             </select>
@@ -155,6 +216,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                 <th className="p-4 text-center">GST %</th>
                                 <th className="p-4 text-center">Discount</th>
                                 <th className="p-4 text-center">Total</th>
+                                <th className="p-4 text-center">Action</th>
                             </tr>
                         </thead>
 
@@ -162,8 +224,29 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                             {materials.map((m, i) => (
                                 <tr key={i} className="border border-b-gray-300 border-x-gray-100">
 
-                                    <td className="py-3 text-center">{m.material}</td>
-                                    <td className="py-3 text-center">{m.qty}</td>
+                                    <td className="py-3 text-center">
+                                        {selectedRequest ? (
+                                            m.material
+                                        ) : (
+                                            <input
+                                                placeholder="Enter Material"
+                                                className="border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-center"
+                                                onChange={(e) => handleChange(i, "material", e.target.value)}
+                                            />
+                                        )}
+                                    </td>
+
+                                    <td className="py-3 text-center">
+                                        {selectedRequest ? (
+                                            m.qty
+                                        ) : (
+                                            <input
+                                                placeholder="Enter Quantity"
+                                                className="border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-center"
+                                                onChange={(e) => handleChange(i, "qty", e.target.value)}
+                                            />
+                                        )}
+                                    </td>
 
                                     <td className="py-3 text-center">
                                         <input
@@ -191,6 +274,17 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                                     <td className="py-3 text-center">₹ {m.total.toFixed(2)}</td>
 
+                                    <td className="flex justify-center py-5 items-center">
+                                        {!selectedRequest && (
+                                            <button
+                                                onClick={() => handleDeleteRow(i)}
+                                                className="text-red-600 rounded-lg"
+                                            >
+                                                <i className="fa-solid fa-xmark fa-2xl"></i>
+                                            </button>
+                                        )}
+                                    </td>
+
                                 </tr>
                             ))}
                         </tbody>
@@ -199,6 +293,18 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                     {/* TOTAL */}
                     <div className="flex justify-end mt-4">
+                        {!selectedRequest && (
+                            <div className="flex justify-center items-center w-full">
+                                <button
+                                    onClick={handleAddRow}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                                >
+                                    + Add New Material Row
+                                </button>
+                            </div>
+                        )}
+
+
                         <div className="w-64 space-y-2">
 
                             <div className="flex justify-between">
