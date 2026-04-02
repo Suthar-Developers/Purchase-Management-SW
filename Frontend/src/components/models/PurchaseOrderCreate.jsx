@@ -68,18 +68,22 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
         const qty = Number(updated[index].qty || 0)
         const rate = Number(updated[index].rate || 0)
-        const gst = Number(updated[index].gst || 0)
         const discount = Number(updated[index].discount || 0)
 
         const base = qty * rate
         const discountAmount = (base * discount) / 100
-        const taxable = base - discountAmount
-        const gstAmount = (taxable * gst) / 100
 
-        updated[index].total = taxable + gstAmount
+        updated[index].amount = base
+        updated[index].discountAmount = discountAmount
 
         setMaterials(updated)
     }
+
+    const extraBase = Number(extraCharge?.amount || 0)
+    const extraGst = Number(extraCharge?.gst || 0)
+
+    const extraGstAmount = (extraBase * extraGst) / 100
+    const extraTotal = extraBase + extraGstAmount
 
     const handleAddRow = () => {
         setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
@@ -97,21 +101,51 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
             const gst = Number(m.gst || 0)
             const discount = Number(m.discount || 0)
 
-            const base = qty * rate
-            const discountAmount = (base * discount) / 100
-            const taxable = base - discountAmount
+            const amount = qty * rate
+            const discountAmount = (amount * discount) / 100
+            const taxable = amount - discountAmount
             const gstAmount = (taxable * gst) / 100
 
-            acc.subtotal += base
+            acc.amount += amount
             acc.discount += discountAmount
-            acc.taxable += taxable
-            acc.gst += gstAmount
-            acc.total += taxable + gstAmount
+            acc.subtotal += taxable
+            acc.totalGst += gstAmount
+
+            // GST GROUPING
+            if (!acc.gstGroups[gst]) {
+                acc.gstGroups[gst] = {
+                    taxable: 0,
+                    gstAmount: 0
+                }
+            }
+
+            acc.gstGroups[gst].taxable += taxable
+            acc.gstGroups[gst].gstAmount += gstAmount
 
             return acc
         },
-        { subtotal: 0, discount: 0, taxable: 0, gst: 0, total: 0 }
+        { amount: 0, discount: 0, subtotal: 0, totalGst: 0, gstGroups: {} }
     )
+
+    if (extraCharge) {
+        const gst = Number(extraCharge.gst || 0)
+        const amount = Number(extraCharge.amount || 0)
+
+        const gstAmount = (amount * gst) / 100
+
+        if (!totals.gstGroups[gst]) {
+            totals.gstGroups[gst] = {
+                taxable: 0,
+                gstAmount: 0
+            }
+        }
+
+        totals.gstGroups[gst].taxable += amount
+        totals.gstGroups[gst].gstAmount += gstAmount
+
+        totals.totalGst += gstAmount
+        totals.subtotal += amount // include in taxable
+    }
 
     // ✅ EXTRA CHARGE (MODAL CALCULATION)
     const modalBase = Number(extraCharges.extraChargeAmount || 0)
@@ -130,15 +164,15 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     }
 
     // ✅ EXTRA FINAL CALC
-    const extraBase = extraCharge?.amount || 0
-    const extraGst = extraCharge?.gst || 0
 
-    const extraGstAmount = (extraBase * extraGst) / 100
-    const extraTotal = extraBase + extraGstAmount
 
-    // ✅ FINAL TOTALS
-    const totalGst = totals.gst + extraGstAmount
-    const grandTotal = totals.total + extraTotal
+    const taxableAmount = totals.subtotal
+
+    const totalGst = totals.totalGst + extraGstAmount
+    const cgst = totalGst / 2
+    const sgst = totalGst / 2
+
+    const grandTotal = taxableAmount + totalGst
 
     // 📄 PDF DOWNLOAD
     const downloadPDF = async () => {
@@ -440,7 +474,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         />
                                     </td>
 
-                                    <td className="py-3 w-[8.33%] text-center">₹ {m.total.toFixed(2)}</td>
+                                    <td className="py-3 w-[8.33%] text-center">₹ {m.amount}</td>
 
 
                                     {!selectedRequest && (
@@ -490,19 +524,32 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                 </button>
                             )}
 
+                            {/* EXTRA CHARGE DISPLAY */}
                             <div className="flex justify-between mt-3">
-                                <span>Subtotal</span>
-                                <span>₹ {totals.subtotal.toFixed(2)}</span>
+                                <span>Total Amount</span>
+                                <span>₹ {totals.amount.toFixed(2)}</span>
                             </div>
 
                             <div className="flex justify-between">
-                                <span>Discount</span>
+                                <span>Total Discount</span>
                                 <span>- ₹ {totals.discount.toFixed(2)}</span>
                             </div>
 
                             <div className="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>₹ {totals.subtotal.toFixed(2)}</span>
+                            </div>
+
+                            {extraCharge && (
+                                <div className="flex justify-between">
+                                    <span>{extraCharge.category}</span>
+                                    <span>₹ {extraBase.toFixed(2)}</span>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between">
                                 <span>Taxable Amount</span>
-                                <span>₹ {totals.taxable.toFixed(2)}</span>
+                                <span>₹ {taxableAmount.toFixed(2)}</span>
                             </div>
 
                             <div className="flex justify-between">
@@ -515,31 +562,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                 <span>₹ {(totalGst / 2).toFixed(2)}</span>
                             </div>
 
-                            {/* EXTRA CHARGE DISPLAY */}
-                            {extraCharge && (
-                                <>
-                                    <hr />
-                                    <div className="border-t pt-2 font-semibold text-center">
-                                        {extraCharge.category?.toUpperCase()}
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span>Amount</span>
-                                        <span>₹ {extraBase}</span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span>CGST</span>
-                                        <span>₹ {(extraGstAmount / 2).toFixed(2)}</span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span>SGST</span>
-                                        <span>₹ {(extraGstAmount / 2).toFixed(2)}</span>
-                                    </div>
-                                </>
-                            )}
-
                             <div className="flex justify-between font-bold border-t pt-2 text-sm">
                                 <span>Total</span>
                                 <span>₹ {grandTotal.toFixed(2)}</span>
@@ -551,6 +573,82 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     {/* AMOUNT IN WORDS */}
                     <div className="mt-4 text-xs">
                         <p><b>Amount in Words:</b> {grandTotal} Rupees Only</p>
+                    </div>
+
+                    <div className="mt-4 text-xs border-t pt-3">
+
+                        <p className="font-bold mb-2">Taxable Value Breakdown:</p>
+
+                        <table className="w-full border text-center text-xs">
+                            <thead>
+                                <tr className="bg-gray-200">
+                                    <th className="border p-1">Taxable Value</th>
+                                    <th className="border p-1">CGST %</th>
+                                    <th className="border p-1">CGST Amt</th>
+                                    <th className="border p-1">SGST %</th>
+                                    <th className="border p-1">SGST Amt</th>
+                                    <th className="border p-1">Total GST</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {Object.entries(totals.gstGroups).map(([gst, val], i) => {
+                                    const cgstRate = Number(gst) / 2
+                                    const sgstRate = Number(gst) / 2
+
+                                    const cgstAmt = val.gstAmount / 2
+                                    const sgstAmt = val.gstAmount / 2
+
+                                    return (
+                                        <tr key={i}>
+                                            <td className="border p-1">
+                                                ₹ {val.taxable.toFixed(2)}
+                                            </td>
+
+                                            <td className="border p-1">
+                                                {cgstRate}%
+                                            </td>
+
+                                            <td className="border p-1">
+                                                ₹ {cgstAmt.toFixed(2)}
+                                            </td>
+
+                                            <td className="border p-1">
+                                                {sgstRate}%
+                                            </td>
+
+                                            <td className="border p-1">
+                                                ₹ {sgstAmt.toFixed(2)}
+                                            </td>
+
+                                            <td className="border p-1">
+                                                ₹ {val.gstAmount.toFixed(2)}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+
+                            <tfoot>
+                                <tr className="font-bold bg-gray-100">
+                                    <td className="border p-1">
+                                        ₹ {taxableAmount.toFixed(2)}
+                                    </td>
+                                    <td className="border p-1">—</td>
+                                    <td className="border p-1">
+                                        ₹ {(totalGst / 2).toFixed(2)}
+                                    </td>
+                                    <td className="border p-1">—</td>
+                                    <td className="border p-1">
+                                        ₹ {(totalGst / 2).toFixed(2)}
+                                    </td>
+                                    <td className="border p-1">
+                                        ₹ {totalGst}
+                                    </td>
+                                </tr>
+                            </tfoot>
+
+                        </table>
                     </div>
 
                     {/* TERMS */}
