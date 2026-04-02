@@ -29,6 +29,7 @@ const fetchApprovedPR = async (req, res) => {
             grouped[row.request_id].materials.push({
                 material_id: row.material_id,
                 material: row.material,
+                unit: row.unit,
                 qty: row.qty,
                 specification: row.specification,
                 materialStatus: row.materialStatus
