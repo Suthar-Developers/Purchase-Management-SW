@@ -43,11 +43,11 @@ const updateProject = async (req, res) => {
 
     try {
         const sql = `UPDATE projects 
-        SET projectName=?, clientName=?, projectAreaSqft=?, scopeOfWork=?, state=?, city=?, address=?, startDate=?, endDate=?, contactPersonName=?, contactPersonEmail=?, status=?, budget=?, description=?
+        SET projectName=?, clientName=?, projectAreaSqft=?, scopeOfWork=?, state=?, city=?, address=?, startDate=?, endDate=?, contactPersonName=?, contactPersonNumber=?, contactPersonEmail=?, status=?, budget=?, description=?
         WHERE project_id=?`
 
         const [rows] = await db.query(sql,
-            [data.projectName, data.clientName || null, data.projectAreaSqft || null, data.scopeOfWork || null, data.state, data.city, data.address || null, data.startDate, data.endDate, data.contactPersonName || null, data.contactPersonEmail || null, data.status, data.budget || null, data.description || null, id])
+            [data.projectName, data.clientName || null, data.projectAreaSqft || null, data.scopeOfWork || null, data.state, data.city, data.address || null, data.startDate, data.endDate, data.contactPersonName || null, data.contactPersonNumber || null, data.contactPersonEmail || null, data.status, data.budget || null, data.description || null, id])
 
             return res.status(200).json(rows);
     } catch (error) {

@@ -25,8 +25,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
     const [vendor, setVendor] = useState("")
     const [project, setProject] = useState("")
-    const [contactPerson, setContactPerson] = useState("")
-    const [contactPersonNumber, setContactPersonNumber] = useState("")
 
     const projectData = projectList.find((p) =>
         selectedRequest
@@ -83,7 +81,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     const extraGst = Number(extraCharge?.gst || 0)
 
     const extraGstAmount = (extraBase * extraGst) / 100
-    const extraTotal = extraBase + extraGstAmount
 
     const handleAddRow = () => {
         setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
@@ -169,8 +166,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     const taxableAmount = totals.subtotal
 
     const totalGst = totals.totalGst + extraGstAmount
-    const cgst = totalGst / 2
-    const sgst = totalGst / 2
 
     const grandTotal = taxableAmount + totalGst
 
@@ -219,7 +214,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                 </div>
 
                 {/* PDF AREA */}
-                <div ref={pdfRef} className="p-6 bg-white text-sm">
+                <div ref={pdfRef} className="py-6 bg-white text-sm border">
 
                     {/* HEADER */}
                     <div className="border-b pb-3 mb-4">
@@ -237,7 +232,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     {/* TOP INFO */}
                     <div className="grid grid-cols-2 mb-4 text-xs">
 
-                        <div className="flex flex-col border">
+                        <div className="flex flex-col border-y">
                             <div>
                                 <label className="text-sm text-gray-500 px-2">To</label>
                                 <select
@@ -267,7 +262,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                             </div>
                         </div>
 
-                        <div className="flex border">
+                        <div className="flex border-y border-l">
 
 
                             <div className="w-[50%] border-r">
@@ -297,21 +292,11 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                 </div>
 
                                 <div className="border-b p-1">
-                                    <input
-                                        value={contactPerson}
-                                        onChange={(e) => setContactPerson(e.target.value)}
-                                        className="w-3/4 outline-none text-red-500 font-bold"
-                                        placeholder="Enter Contact Person Name"
-                                    />
+                                    <p>{projectData?.contactPersonName || "N/A"}</p>
                                 </div>
 
                                 <div className="p-1">
-                                    <input
-                                        value={contactPersonNumber}
-                                        onChange={(e) => setContactPersonNumber(e.target.value)}
-                                        className="w-3/4 outline-none text-red-500 font-bold"
-                                        placeholder="Enter Contact Person Name"
-                                    />
+                                   <p>{projectData?.contactPersonNumber || "N/A"}</p>
                                 </div>
                             </div>
 
@@ -322,7 +307,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     {/* ADDRESS */}
                     <div className="grid grid-cols-2 mb-4 text-xs">
 
-                        <div className="flex flex-col pt-2 border">
+                        <div className="flex flex-col pt-2 border-y">
                             <div className="border-b">
                                 <p className="font-bold px-2">Billing Address :</p>
                                 <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
@@ -339,7 +324,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                             </div>
 
                             <div className="flex">
-                                <p className="border-r w-[15%] font-bold pl-2 py-1">Email :</p>
+                                <p className="border-r w-[15%] font-bold pl-2 py-2.5">Email :</p>
                                 <p className="w-[85%] pl-5 py-1"></p>
                             </div>
 
@@ -347,7 +332,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
 
 
-                        <div className="flex flex-col gap-2 pt-2 border">
+                        <div className="flex flex-col gap-2 pt-2 border-y border-l">
 
                             <div className="border-b pb-16.5">
                                 <p className="font-bold px-2">Delivery Address</p>
@@ -384,11 +369,11 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     </div>
 
                     {/* TABLE */}
-                    <table className="w-full border text-sm">
+                    <table className="w-full border-y text-sm">
 
                         <thead>
                             <tr className="bg-gray-200">
-                                <th className="border p-2">S.No</th>
+                                <th className="border-y p-2">S.No</th>
                                 <th className="border p-2">Description</th>
                                 <th className="border p-2">Unit</th>
                                 <th className="border p-2">Qty</th>
@@ -474,7 +459,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         />
                                     </td>
 
-                                    <td className="py-3 w-[8.33%] text-center">₹ {m.amount}</td>
+                                    <td className="py-3 w-[8.33%] text-center">₹ {(m.amount || 0).toFixed(2)}</td>
 
 
                                     {!selectedRequest && (
@@ -513,7 +498,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                         {/* TOTAL */}
 
-                        <div className="w-72 space-y-2 text-xs">
+                        <div className="w-72 space-y-2 pr-5 text-xs">
 
                             {!extraCharge && (
                                 <button
@@ -571,23 +556,23 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     </div>
 
                     {/* AMOUNT IN WORDS */}
-                    <div className="mt-4 text-xs">
+                    <div className="mt-4 text-xs px-3">
                         <p><b>Amount in Words:</b> {grandTotal} Rupees Only</p>
                     </div>
 
                     <div className="mt-4 text-xs border-t pt-3">
 
-                        <p className="font-bold mb-2">Taxable Value Breakdown:</p>
+                        <p className="font-bold mb-2 px-3">Taxable Value Breakdown:</p>
 
-                        <table className="w-full border text-center text-xs">
+                        <table className="w-full text-center text-xs">
                             <thead>
                                 <tr className="bg-gray-200">
-                                    <th className="border p-1">Taxable Value</th>
+                                    <th className="border-y p-1">Taxable Value</th>
                                     <th className="border p-1">CGST %</th>
                                     <th className="border p-1">CGST Amt</th>
                                     <th className="border p-1">SGST %</th>
                                     <th className="border p-1">SGST Amt</th>
-                                    <th className="border p-1">Total GST</th>
+                                    <th className="border-y p-1">Total GST</th>
                                 </tr>
                             </thead>
 
@@ -601,7 +586,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                                     return (
                                         <tr key={i}>
-                                            <td className="border p-1">
+                                            <td className="border-y p-1">
                                                 ₹ {val.taxable.toFixed(2)}
                                             </td>
 
@@ -621,7 +606,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                                 ₹ {sgstAmt.toFixed(2)}
                                             </td>
 
-                                            <td className="border p-1">
+                                            <td className="border-y p-1">
                                                 ₹ {val.gstAmount.toFixed(2)}
                                             </td>
                                         </tr>
@@ -631,7 +616,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                             <tfoot>
                                 <tr className="font-bold bg-gray-100">
-                                    <td className="border p-1">
+                                    <td className="border-y p-1">
                                         ₹ {taxableAmount.toFixed(2)}
                                     </td>
                                     <td className="border p-1">—</td>
@@ -642,7 +627,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                     <td className="border p-1">
                                         ₹ {(totalGst / 2).toFixed(2)}
                                     </td>
-                                    <td className="border p-1">
+                                    <td className="border-y p-1">
                                         ₹ {totalGst}
                                     </td>
                                 </tr>
@@ -652,12 +637,13 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     </div>
 
                     {/* TERMS */}
-                    <div className="mt-4 text-xs">
+                    <div className="mt-4 px-3 text-xs">
                         <p className="font-bold">Terms of Delivery:</p>
-                        <ul className="list-disc ml-5">
-                            <li>Attach PO copy with invoice</li>
-                            <li>Deliver material at site ASAP</li>
-                            <li>Mention site name in challan</li>
+                        <ul className="list-decimal ml-5">
+                            <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
+                            <li>Please deliver above material at above given site address asap.</li>
+                            <li>Kindly mention proper site name and address in your challan.</li>
+                            <li>E-way Bill Applicable.</li>
                         </ul>
                     </div>
 
@@ -665,17 +651,17 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     <div className="grid grid-cols-3 mt-8 text-xs text-center">
                         <div>
                             <p>Prepared By</p>
-                            <p className="mt-6">____________</p>
+                            <p className="mt-6">____________________</p>
                         </div>
 
                         <div>
                             <p>Checked By</p>
-                            <p className="mt-6">____________</p>
+                            <p className="mt-6">____________________</p>
                         </div>
 
                         <div>
                             <p>Approved By</p>
-                            <p className="mt-6">____________</p>
+                            <p className="mt-6">____________________</p>
                         </div>
                     </div>
 
