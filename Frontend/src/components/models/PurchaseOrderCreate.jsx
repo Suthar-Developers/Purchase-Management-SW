@@ -1,36 +1,32 @@
 import React, { useState, useEffect, useRef } from "react"
-import jsPDF from "jspdf"
-import html2canvas from "html2canvas"
+import { newPurchaseOrder } from "../../api/purchaseOrderApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 
 const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
-    const [vendorList, setVendorList] = useState([])
-    const [projectList, setProjectList] = useState([])
-
     const pdfRef = useRef()
 
-    useEffect(() => {
-        fetchVendors().then(res => setVendorList(res.data || res))
-        fetchProjects().then(res => setProjectList(res.data || res))
-    }, [])
-
-    const approvedMaterials =
-        selectedRequest?.materials?.filter(
-            (m) => m.materialStatus === "Approved"
-        ) || [];
-
+    const [vendorList, setVendorList] = useState([])
+    const [projectList, setProjectList] = useState([])
     const [materials, setMaterials] = useState([])
+    const [form, setForm] = useState({
+        po_number: "JRC/PO/001",
+        vendor_id: "",
+        project_id: "",
+        order_date: new Date().toISOString().split('T')[0],
+        order_placed_by: "Shyam",
+        billing_address: "JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013",
+        delivery_address: "",
+        billing_gst: "27AAGFJ5194C1ZC",
+        billing_contact_number: "",
+        billing_contact_email: "",
+        initiator: "",
+        initiator_number: "",
+        po_status: "Draft"
+    });
 
-    const [vendor, setVendor] = useState("")
-    const [project, setProject] = useState("")
-
-    const projectData = projectList.find((p) =>
-        selectedRequest
-            ? p.projectName === selectedRequest.projectName
-            : p.project_id === Number(project)
-    );
+    const [extraCharge, setExtraCharge] = useState(null)
 
     const [extraCharges, setExtraCharges] = useState({
         extraChargeCategory: "",
@@ -38,113 +34,197 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
         extraChargeGst: ""
     })
 
-    const [extraCharge, setExtraCharge] = useState(null)
     const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false)
 
+    const approvedMaterials =
+        selectedRequest?.materials?.filter(
+            (m) => m.materialStatus === "Approved"
+        ) || [];
+
     useEffect(() => {
-        if (selectedRequest) {
-            setMaterials(
-                approvedMaterials.map((m) => ({
-                    ...m,
+        fetchVendors().then(res => setVendorList(res.data || res))
+        fetchProjects().then(res => setProjectList(res.data || res))
+    }, [])
+
+    useEffect(() => {
+        if (selectedRequest?.materials) {
+            const approved = selectedRequest.materials
+                .filter(m => m.materialStatus === "Approved")
+                .map(m => ({
+                    material: m.material,
+                    unit: m.unit || "",
+                    qty: m.qty || 0,
                     rate: "",
                     gst: "",
                     discount: "",
                     total: 0
-                }))
-            )
+                }));
+            setMaterials(approved);
         } else {
-            setMaterials([
-                { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }
-            ])
+            setMaterials([{ material: "", unit: "", qty: "", rate: "", gst: "", discount: "", total: 0 }]);
         }
-    }, [selectedRequest])
+    }, [selectedRequest]);
 
-    // ✅ ROW CALCULATION
-    const handleChange = (index, field, value) => {
+    useEffect(() => {
+        if (selectedRequest && projectList.length > 0 & vendorList.length > 0) {
+
+            const project = projectList.find(
+                (p) => p.projectName === selectedRequest.projectName
+            );
+
+            const vendor = vendorList.find(
+                (v) => v.vendorName === selectedRequest.vendorName
+            );
+
+            setForm(prev => ({
+                ...prev,
+                project_id: project?.project_id || "",
+                vendor_id: selectedRequest.vendor_id || ""
+            }));
+        }
+    }, [selectedRequest, projectList, vendorList]);
+
+    const handleMaterialChange = (index, field, value) => {
         const updated = [...materials]
         updated[index][field] = value
 
         const qty = Number(updated[index].qty || 0)
         const rate = Number(updated[index].rate || 0)
-        const discount = Number(updated[index].discount || 0)
+        const discPercent = Number(updated[index].discount || 0)
 
         const base = qty * rate
-        const discountAmount = (base * discount) / 100
+        const discountAmt = (base * discPercent) / 100
 
-        updated[index].amount = base
-        updated[index].discountAmount = discountAmount
+        updated[index].total = base - discountAmt
+        updated[index].amount = base;
 
         setMaterials(updated)
     }
 
-    const extraBase = Number(extraCharge?.amount || 0)
-    const extraGst = Number(extraCharge?.gst || 0)
+    const handleFormChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
 
-    const extraGstAmount = (extraBase * extraGst) / 100
+    // Calculate Totals
+    const totals = materials.reduce((acc, m) => {
+        const qty = Number(m.qty || 0);
+        const rate = Number(m.rate || 0);
+        const discPercent = Number(m.discount || 0);
+        const gstPercent = Number(m.gst || 0);
 
-    const handleAddRow = () => {
-        setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
-    }
+        const rowAmount = qty * rate;
+        const rowDiscount = (rowAmount * discPercent) / 100;
+        const taxable = rowAmount - rowDiscount;
+        const gstAmt = (taxable * gstPercent) / 100;
 
-    const handleDeleteRow = (index) => {
-        setMaterials(prev => prev.filter((_, i) => i !== index))
-    }
+        acc.amount += rowAmount;       // Gross Total
+        acc.discount += rowDiscount;   // Total Discount
+        acc.subtotal += taxable;       // Total Taxable
+        acc.totalGst += gstAmt;
 
-    // ✅ TOTALS
-    const totals = materials.reduce(
-        (acc, m) => {
-            const qty = Number(m.qty || 0)
-            const rate = Number(m.rate || 0)
-            const gst = Number(m.gst || 0)
-            const discount = Number(m.discount || 0)
+        // GST Grouping logic stays the same
+        if (!acc.gstGroups[gstPercent]) acc.gstGroups[gstPercent] = { taxable: 0, gstAmount: 0 };
+        acc.gstGroups[gstPercent].taxable += taxable;
+        acc.gstGroups[gstPercent].gstAmount += gstAmt;
 
-            const amount = qty * rate
-            const discountAmount = (amount * discount) / 100
-            const taxable = amount - discountAmount
-            const gstAmount = (taxable * gst) / 100
+        return acc;
+    }, { amount: 0, discount: 0, subtotal: 0, totalGst: 0, gstGroups: {} });
 
-            acc.amount += amount
-            acc.discount += discountAmount
-            acc.subtotal += taxable
-            acc.totalGst += gstAmount
-
-            // GST GROUPING
-            if (!acc.gstGroups[gst]) {
-                acc.gstGroups[gst] = {
-                    taxable: 0,
-                    gstAmount: 0
-                }
-            }
-
-            acc.gstGroups[gst].taxable += taxable
-            acc.gstGroups[gst].gstAmount += gstAmount
-
-            return acc
-        },
-        { amount: 0, discount: 0, subtotal: 0, totalGst: 0, gstGroups: {} }
-    )
-
+    // Add Extra Charge to Totals
     if (extraCharge) {
-        const gst = Number(extraCharge.gst || 0)
-        const amount = Number(extraCharge.amount || 0)
+        const eAmount = Number(extraCharge.amount || 0);
+        const eGstPercent = Number(extraCharge.gst || 0);
+        const eGstAmt = (eAmount * eGstPercent) / 100;
 
-        const gstAmount = (amount * gst) / 100
+        totals.subtotal += eAmount;
+        totals.totalGst += eGstAmt;
+    }
 
-        if (!totals.gstGroups[gst]) {
-            totals.gstGroups[gst] = {
-                taxable: 0,
-                gstAmount: 0
-            }
+    const grandTotal = totals.subtotal + totals.totalGst;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!form.project_id) return alert("Please select a project");
+        if (!form.vendor_id) return alert("Please select a vendor");
+        if (!form.po_number || !form.order_date || !form.order_placed_by)
+            return alert("Please fill all required PO details");
+
+        if (materials.length === 0) {
+            return alert("Please add at least one material");
         }
 
-        totals.gstGroups[gst].taxable += amount
-        totals.gstGroups[gst].gstAmount += gstAmount
+        const isValid = materials.every(
+            (m) => m.material?.trim() && Number(m.qty) > 0 && Number(m.rate) > 0
+        );
 
-        totals.totalGst += gstAmount
-        totals.subtotal += amount // include in taxable
-    }
+        if (!isValid) return alert("Fill all material fields");
+
+
+        const selectedProject = projectList.find(p => p.project_id === Number(form.project_id));
+
+        const payload = {
+            ...form,
+            delivery_address: selectedProject?.address || "",
+            billing_contact_number: selectedProject?.contactPersonNumber || "",
+            billing_contact_email: selectedProject?.contactPersonEmail || "",
+            materials,
+            extraCharge,
+            total_amount: totals.amount,
+            total_discount: totals.discount,
+            subtotal: totals.subtotal,
+            taxable_amount: totals.subtotal,
+            total_gst: totals.totalGst,
+            grand_total: grandTotal,
+            amount_in_words: `${grandTotal.toFixed(2)} Rupees Only`
+        };
+
+        try {
+            const res = await newPurchaseOrder(payload);
+
+            setForm({
+                po_number: "",
+                vendor_id: "",
+                project_id: "",
+                order_date: "",
+                order_placed_by: "",
+                billing_address: "",
+                delivery_address: "",
+                billing_gst: "",
+                billing_contact_number: "",
+                billing_contact_email: "",
+                initiator: "",
+                initiator_number: "",
+                po_status: "Draft",
+            });
+            setMaterials([]);
+
+            setExtraCharge(null);
+            setExtraCharges({
+                extraChargeCategory: "",
+                extraChargeAmount: "",
+                extraChargeGst: ""
+            });
+
+            alert(res?.data?.message || res?.message || "PO Created successfully");
+            console.log("Data :", res.data)
+
+            onClose()
+
+        } catch (error) {
+            console.error(error);
+            alert(error?.response?.data?.message || "Error while creating purchase order");
+        }
+    };
+
+    const projectData = projectList.find((p) =>
+        selectedRequest
+            ? p.projectName === selectedRequest.projectName
+            : p.project_id === Number(form.project_id)
+    );
 
     // ✅ EXTRA CHARGE (MODAL CALCULATION)
+    const extraBase = Number(extraCharge?.amount || 0)
     const modalBase = Number(extraCharges.extraChargeAmount || 0)
     const modalGst = Number(extraCharges.extraChargeGst || 0)
 
@@ -161,45 +241,15 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     }
 
     // ✅ EXTRA FINAL CALC
-
-
     const taxableAmount = totals.subtotal
+    const totalGst = totals.totalGst;
 
-    const totalGst = totals.totalGst + extraGstAmount
+    const handleAddRow = () => {
+        setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
+    }
 
-    const grandTotal = taxableAmount + totalGst
-
-    // 📄 PDF DOWNLOAD
-    const downloadPDF = async () => {
-        const canvas = await html2canvas(pdfRef.current, {
-            onclone: (doc) => {
-                const all = doc.querySelectorAll("*")
-
-                all.forEach(el => {
-                    const style = window.getComputedStyle(el)
-
-                    // Replace oklch colors with safe fallback
-                    if (style.color.includes("oklch")) {
-                        el.style.color = "#000"
-                    }
-                    if (style.backgroundColor.includes("oklch")) {
-                        el.style.backgroundColor = "#fff"
-                    }
-                    if (style.borderColor.includes("oklch")) {
-                        el.style.borderColor = "#ccc"
-                    }
-                })
-            }
-        })
-
-        const imgData = canvas.toDataURL("image/png")
-
-        const pdf = new jsPDF("p", "mm", "a4")
-        const imgWidth = 210
-        const imgHeight = (canvas.height * imgWidth) / canvas.width
-
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
-        pdf.save("Purchase_Order.pdf")
+    const handleDeleteRow = (index) => {
+        setMaterials(prev => prev.filter((_, i) => i !== index))
     }
 
     return (
@@ -213,476 +263,478 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                     <button onClick={onClose} className="text-2xl font-bold hover:cursor-pointer">✕</button>
                 </div>
 
-                {/* PDF AREA */}
-                <div ref={pdfRef} className="py-6 bg-white text-sm border">
+                <form onSubmit={handleSubmit}>
 
-                    {/* HEADER */}
-                    <div className="border-b pb-3 mb-4">
-                        <h1 className="text-xl font-bold text-center">JRC INTERIORS</h1>
-                        <p className="text-center text-xs">
-                            Kanhaiya Industrial Estate, Vasai, Palghar - 401208
-                        </p>
-                        <p className="text-center text-xs">GSTIN: 27AAGFJ5194C1ZC</p>
+                    {/* PDF AREA */}
+                    <div ref={pdfRef} className="py-6 bg-white text-sm border">
 
-                        <h2 className="text-center font-bold text-lg mt-2">
-                            PURCHASE ORDER
-                        </h2>
-                    </div>
+                        {/* HEADER */}
+                        <div className="border-b pb-3 mb-4">
+                            <h1 className="text-xl font-bold text-center">JRC INTERIORS</h1>
+                            <p className="text-center text-xs">
+                                Kanhaiya Industrial Estate, Vasai, Palghar - 401208
+                            </p>
+                            <p className="text-center text-xs">GSTIN: 27AAGFJ5194C1ZC</p>
 
-                    {/* TOP INFO */}
-                    <div className="grid grid-cols-2 mb-4 text-xs">
-
-                        <div className="flex flex-col border-y">
-                            <div>
-                                <label className="text-sm text-gray-500 px-2">To</label>
-                                <select
-                                    name="vendor_id"
-                                    className="input-line text-red-500 font-bold"
-                                    onChange={(e) => setVendor(e.target.value)}
-                                    value={vendor}
-                                >
-                                    <option value="" disabled>Select Vendor</option>
-
-                                    {vendorList.map((v) => (
-                                        <option key={v.vendor_id} value={v.vendor_id}>
-                                            {v.vendorName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="p-2">
-                                <p>
-                                    {
-                                        vendorList.find(
-                                            (v) => v.vendor_id === Number(vendor)
-                                        )?.location || "N/A"
-                                    }
-                                </p>
-                            </div>
+                            <h2 className="text-center font-bold text-lg mt-2">
+                                PURCHASE ORDER
+                            </h2>
                         </div>
 
-                        <div className="flex border-y border-l">
+                        {/* TOP INFO */}
+                        <div className="grid grid-cols-2 mb-4 text-xs">
 
-
-                            <div className="w-[50%] border-r">
-                                <div className="border-b">
-                                    <p className="font-bold p-1 border-b border-b-gray-400">Purchase Order Number :</p>
-                                    <p className="p-1">JRC/PO/001</p>
-                                </div>
-
-                                <div className="border-b p-1">
-                                    <p className="text-ms font-bold">Contact Person</p>
-                                </div>
-
-                                <div className="p-1">
-                                    <p className="text-ms font-bold">Contact Person Number</p>
-                                </div>
-                            </div>
-
-                            <div className="w-[50%]">
-                                <div className="flex border-b">
-                                    <p className="w-[50%] border-r p-1 font-bold">Dated :</p>
-                                    <p className="w-[50%] p-1">{new Date().toLocaleDateString()}</p>
-                                </div>
-
-                                <div className="flex border-b">
-                                    <p className="w-[50%] border-r p-1 font-bold">Order Placed By :</p>
-                                    <p className="w-[50%] p-1">Shyam</p>
-                                </div>
-
-                                <div className="border-b p-1">
-                                    <p>{projectData?.contactPersonName || "N/A"}</p>
-                                </div>
-
-                                <div className="p-1">
-                                   <p>{projectData?.contactPersonNumber || "N/A"}</p>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    {/* ADDRESS */}
-                    <div className="grid grid-cols-2 mb-4 text-xs">
-
-                        <div className="flex flex-col pt-2 border-y">
-                            <div className="border-b">
-                                <p className="font-bold px-2">Billing Address :</p>
-                                <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
-                            </div>
-
-                            <div className="flex border-b">
-                                <p className="border-r w-[15%] font-bold pl-2 py-1">PH :</p>
-                                <p className="w-[85%] pl-5 py-1"></p>
-                            </div>
-
-                            <div className="flex border-b">
-                                <p className="border-r w-[15%] font-bold pl-2 py-1">GSTIN/UIN :</p>
-                                <p className="w-[85%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
-                            </div>
-
-                            <div className="flex">
-                                <p className="border-r w-[15%] font-bold pl-2 py-2.5">Email :</p>
-                                <p className="w-[85%] pl-5 py-1"></p>
-                            </div>
-
-                        </div>
-
-
-
-                        <div className="flex flex-col gap-2 pt-2 border-y border-l">
-
-                            <div className="border-b pb-16.5">
-                                <p className="font-bold px-2">Delivery Address</p>
-                                <p className="px-2">
-                                    {projectData?.address || "N/A"}
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <p className="text-sm font-bold p-1">Project :</p>
-                                <p>
-                                    {selectedRequest ? (
-                                        selectedRequest.projectName
-                                    ) : (
-                                        <select
-                                            name="project_id"
-                                            className="w-3/2 outline-none text-red-500 font-bold"
-                                            onChange={(e) => setProject(e.target.value)}
-                                            value={project}
-                                        >
-                                            <option value="" disabled>Select Project</option>
-
-                                            {projectList.map((p) => (
-                                                <option key={p.project_id} value={p.project_id}>
-                                                    {p.projectName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {/* TABLE */}
-                    <table className="w-full border-y text-sm">
-
-                        <thead>
-                            <tr className="bg-gray-200">
-                                <th className="border-y p-2">S.No</th>
-                                <th className="border p-2">Description</th>
-                                <th className="border p-2">Unit</th>
-                                <th className="border p-2">Qty</th>
-                                <th className="border p-2">Rate</th>
-                                <th className="border p-2">Disc %</th>
-                                <th className="border p-2">GST %</th>
-                                <th className="border p-2">Amount</th>
-
-
-                                {!selectedRequest && (
-                                    <th className="flex justify-center p-5 items-center">
-                                        <i className="fa-solid fa-ellipsis"></i>
-                                    </th>
-                                )}
-
-
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {materials.map((m, i) => (
-                                <tr key={i} className="border border-b-gray-300 border-x-gray-100">
-
-                                    <td className="py-3 w-[5%] text-center">{i + 1}</td>
-
-                                    <td className="py-3 w-[45%] text-center">
-                                        {selectedRequest ? (
-                                            m.material
-                                        ) : (
-                                            <input
-                                                placeholder="Enter Material"
-                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                onChange={(e) => handleChange(i, "material", e.target.value)}
-                                            />
-                                        )}
-                                    </td>
-
-                                    <td className="py-3 w-[8.33%] text-center">
-                                        {selectedRequest ? (
-                                            m.unit
-                                        ) : (
-                                            <input
-                                                placeholder="Enter Unit"
-                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                onChange={(e) => handleChange(i, "unit", e.target.value)}
-                                            />
-                                        )}
-                                    </td>
-
-                                    <td className="py-3 w-[8.33%] text-center">
-                                        {selectedRequest ? (
-                                            m.qty
-                                        ) : (
-                                            <input
-                                                placeholder="Enter Quantity"
-                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                onChange={(e) => handleChange(i, "qty", e.target.value)}
-                                            />
-                                        )}
-                                    </td>
-
-                                    <td className="py-3 w-[8.33%] text-center">
-                                        <input
-                                            placeholder="Enter Rate"
-                                            className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                            onChange={(e) => handleChange(i, "rate", e.target.value)}
-                                        />
-                                    </td>
-
-                                    <td className="py-3 w-[8.33%] text-center">
-                                        <input
-                                            placeholder="Enter Discount"
-                                            className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                            onChange={(e) => handleChange(i, "discount", e.target.value)}
-                                        />
-                                    </td>
-
-                                    <td className="py-3 w-[8.33%] text-center">
-                                        <input
-                                            placeholder="Enter GST"
-                                            className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                            onChange={(e) => handleChange(i, "gst", e.target.value)}
-                                        />
-                                    </td>
-
-                                    <td className="py-3 w-[8.33%] text-center">₹ {(m.amount || 0).toFixed(2)}</td>
-
-
-                                    {!selectedRequest && (
-                                        <td className="flex justify-center py-5 items-center">
-                                            <button
-                                                onClick={() => handleDeleteRow(i)}
-                                                className="text-red-600 rounded-lg"
-                                            >
-                                                <i className="fa-solid fa-xmark fa-2xl"></i>
-                                            </button>
-                                        </td>
-                                    )}
-
-
-                                </tr>
-                            ))}
-                        </tbody>
-
-                    </table>
-
-                    <div className="flex justify-between mt-4 text-xs">
-                        <div className="flex w-full justify-around">
-                            {!selectedRequest && (
-                                <div className="flex justify-center items-center w-full">
-                                    <button
-                                        onClick={handleAddRow}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                            <div className="flex flex-col border-y">
+                                <div>
+                                    <label className="text-sm text-gray-500 px-2">To</label>
+                                    <select
+                                        name="vendor_id"
+                                        className="input-line text-red-500 font-bold"
+                                        onChange={handleFormChange}
+                                        value={form.vendor_id || ""}
                                     >
-                                        + Add New Row
-                                    </button>
-                                </div>
-                            )}
+                                        <option value="" disabled>Select Vendor</option>
 
+                                        {vendorList.map((v) => (
+                                            <option key={v.vendor_id} value={v.vendor_id}>
+                                                {v.vendorName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="p-2">
+                                    <p>
+                                        {
+                                            vendorList.find(
+                                                (v) => v.vendor_id === Number(form.vendor_id || "")
+                                            )?.location || "N/A"
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex border-y border-l">
+
+                                <div className="w-[50%] border-r">
+                                    <div className="border-b">
+                                        <p className="font-bold p-1 border-b border-b-gray-400">Purchase Order Number :</p>
+                                        <p className="p-1">JRC/PO/001</p>
+                                    </div>
+
+                                    <div className="border-b p-1">
+                                        <p className="text-ms font-bold">Contact Person</p>
+                                    </div>
+
+                                    <div className="p-1">
+                                        <p className="text-ms font-bold">Contact Person Number</p>
+                                    </div>
+                                </div>
+
+                                <div className="w-[50%]">
+                                    <div className="flex border-b">
+                                        <p className="w-[50%] border-r p-1 font-bold">Dated :</p>
+                                        <p className="w-[50%] p-1">{new Date().toLocaleDateString()}</p>
+                                    </div>
+
+                                    <div className="flex border-b">
+                                        <p className="w-[50%] border-r p-1 font-bold">Order Placed By :</p>
+                                        <p className="w-[50%] p-1">Shyam</p>
+                                    </div>
+
+                                    <div className="border-b p-1">
+                                        <p>{projectData?.contactPersonName || "N/A"}</p>
+                                    </div>
+
+                                    <div className="p-1">
+                                        <p>{projectData?.contactPersonNumber || "N/A"}</p>
+                                    </div>
+                                </div>
+
+                            </div>
 
                         </div>
 
-                        {/* TOTAL */}
+                        {/* ADDRESS */}
+                        <div className="grid grid-cols-2 mb-4 text-xs">
 
-                        <div className="w-72 space-y-2 pr-5 text-xs">
-
-                            {!extraCharge && (
-                                <button
-                                    onClick={() => setOpenExtraChargeModel(true)}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
-                                >
-                                    + Add Other Charge
-                                </button>
-                            )}
-
-                            {/* EXTRA CHARGE DISPLAY */}
-                            <div className="flex justify-between mt-3">
-                                <span>Total Amount</span>
-                                <span>₹ {totals.amount.toFixed(2)}</span>
-                            </div>
-
-                            <div className="flex justify-between">
-                                <span>Total Discount</span>
-                                <span>- ₹ {totals.discount.toFixed(2)}</span>
-                            </div>
-
-                            <div className="flex justify-between">
-                                <span>Subtotal</span>
-                                <span>₹ {totals.subtotal.toFixed(2)}</span>
-                            </div>
-
-                            {extraCharge && (
-                                <div className="flex justify-between">
-                                    <span>{extraCharge.category}</span>
-                                    <span>₹ {extraBase.toFixed(2)}</span>
+                            <div className="flex flex-col pt-2 border-y">
+                                <div className="border-b">
+                                    <p className="font-bold px-2">Billing Address :</p>
+                                    <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
                                 </div>
-                            )}
 
-                            <div className="flex justify-between">
-                                <span>Taxable Amount</span>
-                                <span>₹ {taxableAmount.toFixed(2)}</span>
+                                <div className="flex border-b">
+                                    <p className="border-r w-[15%] font-bold pl-2 py-1">PH :</p>
+                                    <p className="w-[85%] pl-5 py-1"></p>
+                                </div>
+
+                                <div className="flex border-b">
+                                    <p className="border-r w-[15%] font-bold pl-2 py-1">GSTIN/UIN :</p>
+                                    <p className="w-[85%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
+                                </div>
+
+                                <div className="flex">
+                                    <p className="border-r w-[15%] font-bold pl-2 py-2.5">Email :</p>
+                                    <p className="w-[85%] pl-5 py-1"></p>
+                                </div>
+
                             </div>
 
-                            <div className="flex justify-between">
-                                <span>CGST</span>
-                                <span>₹ {(totalGst / 2).toFixed(2)}</span>
-                            </div>
+                            <div className="flex flex-col gap-2 pt-2 border-y border-l">
 
-                            <div className="flex justify-between">
-                                <span>SGST</span>
-                                <span>₹ {(totalGst / 2).toFixed(2)}</span>
-                            </div>
+                                <div className="border-b pb-16.5">
+                                    <p className="font-bold px-2">Delivery Address</p>
+                                    <p className="px-2">
+                                        {projectData?.address || "N/A"}
+                                    </p>
+                                </div>
 
-                            <div className="flex justify-between font-bold border-t pt-2 text-sm">
-                                <span>Total</span>
-                                <span>₹ {grandTotal.toFixed(2)}</span>
-                            </div>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-sm font-bold p-1">Project :</p>
+                                    <p>
+                                        {selectedRequest ? (
+                                            selectedRequest.projectName
+                                        ) : (
+                                            <select
+                                                name="project_id"
+                                                className="w-3/2 outline-none text-red-500 font-bold"
+                                                onChange={handleFormChange}
+                                                value={form.project_id || ""}
+                                            >
+                                                <option value="" disabled>Select Project</option>
 
+                                                {projectList.map((p) => (
+                                                    <option key={p.project_id} value={p.project_id}>
+                                                        {p.projectName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* AMOUNT IN WORDS */}
-                    <div className="mt-4 text-xs px-3">
-                        <p><b>Amount in Words:</b> {grandTotal} Rupees Only</p>
-                    </div>
+                        {/* TABLE */}
+                        <table className="w-full border-y text-sm">
 
-                    <div className="mt-4 text-xs border-t pt-3">
-
-                        <p className="font-bold mb-2 px-3">Taxable Value Breakdown:</p>
-
-                        <table className="w-full text-center text-xs">
                             <thead>
                                 <tr className="bg-gray-200">
-                                    <th className="border-y p-1">Taxable Value</th>
-                                    <th className="border p-1">CGST %</th>
-                                    <th className="border p-1">CGST Amt</th>
-                                    <th className="border p-1">SGST %</th>
-                                    <th className="border p-1">SGST Amt</th>
-                                    <th className="border-y p-1">Total GST</th>
+                                    <th className="border-y p-2">S.No</th>
+                                    <th className="border p-2">Description</th>
+                                    <th className="border p-2">Unit</th>
+                                    <th className="border p-2">Qty</th>
+                                    <th className="border p-2">Rate</th>
+                                    <th className="border p-2">Disc %</th>
+                                    <th className="border p-2">GST %</th>
+                                    <th className="border p-2">Amount</th>
+
+                                    {!selectedRequest && (
+                                        <th className="flex justify-center p-5 items-center">
+                                            <i className="fa-solid fa-ellipsis"></i>
+                                        </th>
+                                    )}
+
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {Object.entries(totals.gstGroups).map(([gst, val], i) => {
-                                    const cgstRate = Number(gst) / 2
-                                    const sgstRate = Number(gst) / 2
+                                {materials.map((m, i) => (
+                                    <tr key={i} className="border border-b-gray-300 border-x-gray-100">
 
-                                    const cgstAmt = val.gstAmount / 2
-                                    const sgstAmt = val.gstAmount / 2
+                                        <td className="py-3 w-[5%] text-center">{i + 1}</td>
 
-                                    return (
-                                        <tr key={i}>
-                                            <td className="border-y p-1">
-                                                ₹ {val.taxable.toFixed(2)}
+                                        <td className="py-3 w-[45%] text-center">
+                                            {selectedRequest ? (
+                                                m.material
+                                            ) : (
+                                                <input
+                                                    placeholder="Enter Material"
+                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
+                                                />
+                                            )}
+                                        </td>
+
+                                        <td className="py-3 w-[8.33%] text-center">
+                                            {selectedRequest ? (
+                                                m.unit
+                                            ) : (
+                                                <input
+                                                    placeholder="Enter Unit"
+                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
+                                                />
+                                            )}
+                                        </td>
+
+                                        <td className="py-3 w-[8.33%] text-center">
+                                            {selectedRequest ? (
+                                                m.qty
+                                            ) : (
+                                                <input
+                                                    placeholder="Enter Quantity"
+                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
+                                                />
+                                            )}
+                                        </td>
+
+                                        <td className="py-3 w-[8.33%] text-center">
+                                            <input
+                                                placeholder="Enter Rate"
+                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
+                                            />
+                                        </td>
+
+                                        <td className="py-3 w-[8.33%] text-center">
+                                            <input
+                                                placeholder="Enter Discount"
+                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
+                                            />
+                                        </td>
+
+                                        <td className="py-3 w-[8.33%] text-center">
+                                            <input
+                                                placeholder="Enter GST"
+                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
+                                            />
+                                        </td>
+
+                                        <td className="py-3 w-[8.33%] text-center">₹ {(m.total || 0).toFixed(2)}</td>
+
+
+                                        {!selectedRequest && (
+                                            <td className="flex justify-center py-5 items-center">
+                                                <button
+                                                    onClick={() => handleDeleteRow(i)}
+                                                    className="text-red-600 rounded-lg"
+                                                >
+                                                    <i className="fa-solid fa-xmark fa-2xl"></i>
+                                                </button>
                                             </td>
+                                        )}
 
-                                            <td className="border p-1">
-                                                {cgstRate}%
-                                            </td>
 
-                                            <td className="border p-1">
-                                                ₹ {cgstAmt.toFixed(2)}
-                                            </td>
-
-                                            <td className="border p-1">
-                                                {sgstRate}%
-                                            </td>
-
-                                            <td className="border p-1">
-                                                ₹ {sgstAmt.toFixed(2)}
-                                            </td>
-
-                                            <td className="border-y p-1">
-                                                ₹ {val.gstAmount.toFixed(2)}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
+                                    </tr>
+                                ))}
                             </tbody>
 
-                            <tfoot>
-                                <tr className="font-bold bg-gray-100">
-                                    <td className="border-y p-1">
-                                        ₹ {taxableAmount.toFixed(2)}
-                                    </td>
-                                    <td className="border p-1">—</td>
-                                    <td className="border p-1">
-                                        ₹ {(totalGst / 2).toFixed(2)}
-                                    </td>
-                                    <td className="border p-1">—</td>
-                                    <td className="border p-1">
-                                        ₹ {(totalGst / 2).toFixed(2)}
-                                    </td>
-                                    <td className="border-y p-1">
-                                        ₹ {totalGst}
-                                    </td>
-                                </tr>
-                            </tfoot>
-
                         </table>
-                    </div>
 
-                    {/* TERMS */}
-                    <div className="mt-4 px-3 text-xs">
-                        <p className="font-bold">Terms of Delivery:</p>
-                        <ul className="list-decimal ml-5">
-                            <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
-                            <li>Please deliver above material at above given site address asap.</li>
-                            <li>Kindly mention proper site name and address in your challan.</li>
-                            <li>E-way Bill Applicable.</li>
-                        </ul>
-                    </div>
+                        <div className="flex justify-between mt-4 text-xs">
+                            <div className="flex w-full justify-around">
+                                {!selectedRequest && (
+                                    <div className="flex justify-center items-center w-full">
+                                        <button
+                                            type="button"
+                                            onClick={handleAddRow}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                                        >
+                                            + Add New Row
+                                        </button>
+                                    </div>
+                                )}
 
-                    {/* SIGNATURE */}
-                    <div className="grid grid-cols-3 mt-8 text-xs text-center">
-                        <div>
-                            <p>Prepared By</p>
-                            <p className="mt-6">____________________</p>
+
+                            </div>
+
+                            {/* TOTAL */}
+
+                            <div className="w-72 space-y-2 pr-5 text-xs">
+
+                                {!extraCharge && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenExtraChargeModel(true)}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
+                                    >
+                                        + Add Other Charge
+                                    </button>
+                                )}
+
+                                {/* EXTRA CHARGE DISPLAY */}
+                                <div className="flex justify-between mt-3">
+                                    <span>Total Amount</span>
+                                    <span>₹ {totals.amount.toFixed(2)}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span>Total Discount</span>
+                                    <span>- ₹ {totals.discount.toFixed(2)}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>₹ {totals.subtotal.toFixed(2)}</span>
+                                </div>
+
+                                {extraCharge && (
+                                    <div className="flex justify-between">
+                                        <span>{extraCharge.category}</span>
+                                        <span>₹ {extraBase.toFixed(2)}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-between">
+                                    <span>Taxable Amount</span>
+                                    <span>₹ {taxableAmount.toFixed(2)}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span>CGST</span>
+                                    <span>₹ {(totalGst / 2).toFixed(2)}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span>SGST</span>
+                                    <span>₹ {(totalGst / 2).toFixed(2)}</span>
+                                </div>
+
+                                <div className="flex justify-between font-bold border-t pt-2 text-sm">
+                                    <span>Total</span>
+                                    <span>₹ {grandTotal.toFixed(2)}</span>
+                                </div>
+
+                            </div>
                         </div>
 
-                        <div>
-                            <p>Checked By</p>
-                            <p className="mt-6">____________________</p>
+                        {/* AMOUNT IN WORDS */}
+                        <div className="mt-4 text-xs px-3">
+                            <p><b>Amount in Words:</b> {grandTotal} Rupees Only</p>
                         </div>
 
-                        <div>
-                            <p>Approved By</p>
-                            <p className="mt-6">____________________</p>
+                        <div className="mt-4 text-xs border-t pt-3">
+
+                            <p className="font-bold mb-2 px-3">Taxable Value Breakdown:</p>
+
+                            <table className="w-full text-center text-xs">
+                                <thead>
+                                    <tr className="bg-gray-200">
+                                        <th className="border-y p-1">Taxable Value</th>
+                                        <th className="border p-1">CGST %</th>
+                                        <th className="border p-1">CGST Amt</th>
+                                        <th className="border p-1">SGST %</th>
+                                        <th className="border p-1">SGST Amt</th>
+                                        <th className="border-y p-1">Total GST</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {Object.entries(totals.gstGroups).map(([gst, val], i) => {
+                                        const cgstRate = Number(gst) / 2
+                                        const sgstRate = Number(gst) / 2
+
+                                        const cgstAmt = val.gstAmount / 2
+                                        const sgstAmt = val.gstAmount / 2
+
+                                        return (
+                                            <tr key={i}>
+                                                <td className="border-y p-1">
+                                                    ₹ {val.taxable.toFixed(2)}
+                                                </td>
+
+                                                <td className="border p-1">
+                                                    {cgstRate}%
+                                                </td>
+
+                                                <td className="border p-1">
+                                                    ₹ {cgstAmt.toFixed(2)}
+                                                </td>
+
+                                                <td className="border p-1">
+                                                    {sgstRate}%
+                                                </td>
+
+                                                <td className="border p-1">
+                                                    ₹ {sgstAmt.toFixed(2)}
+                                                </td>
+
+                                                <td className="border-y p-1">
+                                                    ₹ {val.gstAmount.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+
+                                <tfoot>
+                                    <tr className="font-bold bg-gray-100">
+                                        <td className="border-y p-1">
+                                            ₹ {taxableAmount.toFixed(2)}
+                                        </td>
+                                        <td className="border p-1">—</td>
+                                        <td className="border p-1">
+                                            ₹ {(totalGst / 2).toFixed(2)}
+                                        </td>
+                                        <td className="border p-1">—</td>
+                                        <td className="border p-1">
+                                            ₹ {(totalGst / 2).toFixed(2)}
+                                        </td>
+                                        <td className="border-y p-1">
+                                            ₹ {totalGst}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+
+                            </table>
                         </div>
+
+                        {/* TERMS */}
+                        <div className="mt-4 px-3 text-xs">
+                            <p className="font-bold">Terms of Delivery:</p>
+                            <ul className="list-decimal ml-5">
+                                <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
+                                <li>Please deliver above material at above given site address asap.</li>
+                                <li>Kindly mention proper site name and address in your challan.</li>
+                                <li>E-way Bill Applicable.</li>
+                            </ul>
+                        </div>
+
+                        {/* SIGNATURE */}
+                        <div className="grid grid-cols-3 mt-8 text-xs text-center">
+                            <div>
+                                <p>Prepared By</p>
+                                <p className="mt-6">____________________</p>
+                            </div>
+
+                            <div>
+                                <p>Checked By</p>
+                                <p className="mt-6">____________________</p>
+                            </div>
+
+                            <div>
+                                <p>Approved By</p>
+                                <p className="mt-6">____________________</p>
+                            </div>
+                        </div>
+
+
                     </div>
 
-                </div>
 
-                {/* ACTIONS */}
-                <div className="flex justify-end gap-3 mt-4">
-                    <button
-                        onClick={downloadPDF}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                    >
-                        Download PDF
-                    </button>
+                    {/* ACTIONS */}
+                    <div className="flex justify-end gap-3 mt-4">
+                        <button
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                        >
+                            Create PO
+                        </button>
 
-                    <button
-                        onClick={onClose}
-                        className="bg-gray-300 px-4 py-2 rounded-lg"
-                    >
-                        Close
-                    </button>
-                </div>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="bg-gray-300 px-4 py-2 rounded-lg"
+                        >
+                            Close
+                        </button>
+                    </div>
+
+                </form>
 
             </div>
 
@@ -739,7 +791,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                         </div>
 
                         <div className="flex justify-end">
-                            <button onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition">Add Charge</button>
+                            <button type="button" onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition">Add Charge</button>
                         </div>
 
                     </div>
