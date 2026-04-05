@@ -114,33 +114,45 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
         const rowAmount = qty * rate;
         const rowDiscount = (rowAmount * discPercent) / 100;
-        const taxable = rowAmount - rowDiscount;
-        const gstAmt = (taxable * gstPercent) / 100;
+        const rowTaxable = rowAmount - rowDiscount;
+        const rowGstAmt = (rowTaxable * gstPercent) / 100;
 
+        acc.taxable += rowTaxable;
         acc.amount += rowAmount;       // Gross Total
         acc.discount += rowDiscount;   // Total Discount
-        acc.subtotal += taxable;       // Total Taxable
-        acc.totalGst += gstAmt;
+        acc.totalGst += rowGstAmt;
 
         // GST Grouping logic stays the same
-        if (!acc.gstGroups[gstPercent]) acc.gstGroups[gstPercent] = { taxable: 0, gstAmount: 0 };
-        acc.gstGroups[gstPercent].taxable += taxable;
-        acc.gstGroups[gstPercent].gstAmount += gstAmt;
+        if (!acc.gstGroups[gstPercent]) {
+            acc.gstGroups[gstPercent] = { taxable: 0, gstAmount: 0 };
+        }
+        acc.gstGroups[gstPercent].taxable += rowTaxable;
+        acc.gstGroups[gstPercent].gstAmount += rowGstAmt;
 
         return acc;
     }, { amount: 0, discount: 0, subtotal: 0, totalGst: 0, gstGroups: {} });
 
     // Add Extra Charge to Totals
-    if (extraCharge) {
-        const eAmount = Number(extraCharge.amount || 0);
-        const eGstPercent = Number(extraCharge.gst || 0);
-        const eGstAmt = (eAmount * eGstPercent) / 100;
 
-        totals.subtotal += eAmount;
-        totals.totalGst += eGstAmt;
+    const eAmount = Number(extraCharge?.amount || 0);
+    const eGstPercent = Number(extraCharge?.gst || 0);
+    const eGstAmt = (eAmount * eGstPercent) / 100;
+
+    if (eAmount > 0) {
+        if (!totals.gstGroups[eGstPercent]) {
+            totals.gstGroups[eGstPercent] = { taxable: 0, gstAmount: 0 };
+        }
+        // Add the extra charge taxable amount and its GST to the grouping
+        totals.gstGroups[eGstPercent].taxable += eAmount;
+        totals.gstGroups[eGstPercent].gstAmount += eGstAmt;
     }
 
-    const grandTotal = totals.subtotal + totals.totalGst;
+    const subtotal = totals.amount - totals.discount;
+    const taxableAmount = subtotal + eAmount;
+    const totalGst = totals.totalGst + eGstAmt;
+    const grandTotal = taxableAmount + totalGst;
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -166,15 +178,15 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
         const payload = {
             ...form,
             delivery_address: selectedProject?.address || "",
-            billing_contact_number: selectedProject?.contactPersonNumber || "",
-            billing_contact_email: selectedProject?.contactPersonEmail || "",
+            initiator: selectedProject?.contactPersonName || "",
+            initiator_number: selectedProject?.contactPersonNumber || "",
             materials,
             extraCharge,
             total_amount: totals.amount,
             total_discount: totals.discount,
-            subtotal: totals.subtotal,
-            taxable_amount: totals.subtotal,
-            total_gst: totals.totalGst,
+            subtotal: subtotal,
+            taxable_amount: taxableAmount,
+            total_gst: totalGst,
             grand_total: grandTotal,
             amount_in_words: `${grandTotal.toFixed(2)} Rupees Only`
         };
@@ -239,10 +251,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
         })
         setOpenExtraChargeModel(false)
     }
-
-    // ✅ EXTRA FINAL CALC
-    const taxableAmount = totals.subtotal
-    const totalGst = totals.totalGst;
 
     const handleAddRow = () => {
         setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
@@ -570,7 +578,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                                 <div className="flex justify-between">
                                     <span>Subtotal</span>
-                                    <span>₹ {totals.subtotal.toFixed(2)}</span>
+                                    <span>₹ {subtotal.toFixed(2)}</span>
                                 </div>
 
                                 {extraCharge && (
@@ -597,7 +605,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                                 <div className="flex justify-between font-bold border-t pt-2 text-sm">
                                     <span>Total</span>
-                                    <span>₹ {grandTotal.toFixed(2)}</span>
+                                    <span>₹ {grandTotal}</span>
                                 </div>
 
                             </div>
