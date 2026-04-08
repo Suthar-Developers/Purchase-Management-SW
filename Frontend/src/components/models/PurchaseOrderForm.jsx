@@ -1,15 +1,26 @@
 import React, { useState, useEffect, useRef } from "react"
-import { newPurchaseOrder } from "../../api/purchaseOrderApi"
+import { newPurchaseOrder, updatePOStatus, fetchPurchaseOrderById } from "../../api/purchaseOrderApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 
-const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
+const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, onStatusUpdate }) => {
 
     const pdfRef = useRef()
 
     const [vendorList, setVendorList] = useState([])
     const [projectList, setProjectList] = useState([])
     const [materials, setMaterials] = useState([])
+    const [extraCharge, setExtraCharge] = useState(null)
+    const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false)
+    const [extraCharges, setExtraCharges] = useState({
+        extraChargeCategory: "",
+        extraChargeAmount: "",
+        extraChargeGst: ""
+    })
+
+    const [loading, setLoading] = useState(false);
+    const [isLoadingPO, setIsLoadingPO] = useState(false);
+
     const [form, setForm] = useState({
         po_number: "JRC/PO/001",
         vendor_id: "",
@@ -26,28 +37,65 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
         po_status: "Draft"
     });
 
-    const [extraCharge, setExtraCharge] = useState(null)
-
-    const [extraCharges, setExtraCharges] = useState({
-        extraChargeCategory: "",
-        extraChargeAmount: "",
-        extraChargeGst: ""
-    })
-
-    const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false)
-
-    const approvedMaterials =
-        selectedRequest?.materials?.filter(
-            (m) => m.materialStatus === "Approved"
-        ) || [];
-
     useEffect(() => {
         fetchVendors().then(res => setVendorList(res.data || res))
         fetchProjects().then(res => setProjectList(res.data || res))
     }, [])
 
+    // --- Loading existing PO data when in view mode ---
     useEffect(() => {
-        if (selectedRequest?.materials) {
+        if (mode === "view" && poData) {
+            if (poData.materials && poData.vendor_id) {
+                populateFormWithPOData(poData);
+            } else if (poData.po_id || poData.id) {
+                setIsLoadingPO(true);
+                const poId = poData.po_id || poData.id;
+                fetchPurchaseOrderById(poId).then(fullPO => {
+                    populateFormWithPOData(fullPO);
+                }).catch(err => console.error("Failed to fetch PO", err)).finally(() => setIsLoadingPO(false));
+            }
+        }
+    }, [mode, poData]);
+
+    const populateFormWithPOData = (po) => {
+        setForm({
+            po_number: po.po_number,
+            vendor_id: po.vendor_id,
+            project_id: po.project_id,
+            order_date: po.order_date,
+            order_placed_by: po.order_placed_by,
+            billing_address: po.billing_address,
+            delivery_address: po.delivery_address,
+            billing_gst: po.billing_gst,
+            billing_contact_number: po.billing_contact_number || "",
+            billing_contact_email: po.billing_contact_email || "",
+            initiator: po.initiator,
+            initiator_number: po.initiator_number,
+            po_status: po.po_status
+        });
+
+        // ✅ Converting material fields to numbers
+        const materialsWithNumbers = (po.materials || []).map(m => ({
+            ...m,
+            qty: Number(m.qty) || 0,
+            rate: Number(m.rate) || 0,
+            discount: Number(m.discount) || 0,
+            gst: Number(m.gst) || 0,
+            total: Number(m.total) || 0,
+            amount: Number(m.amount) || 0
+        }));
+
+        setMaterials(materialsWithNumbers || []);
+
+        setExtraCharge(po.extraCharge ? {
+            ...po.extraCharge,
+            amount: Number(po.extraCharge.amount) || 0,
+            gst: Number(po.extraCharge.gst) || 0
+        } : null);
+    };
+
+    useEffect(() => {
+        if (mode === "create" && selectedRequest?.materials) {
             const approved = selectedRequest.materials
                 .filter(m => m.materialStatus === "Approved")
                 .map(m => ({
@@ -63,10 +111,10 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
         } else {
             setMaterials([{ material: "", unit: "", qty: "", rate: "", gst: "", discount: "", total: 0 }]);
         }
-    }, [selectedRequest]);
+    }, [selectedRequest, mode]);
 
     useEffect(() => {
-        if (selectedRequest && projectList.length > 0 & vendorList.length > 0) {
+        if (mode === "create" && selectedRequest && projectList.length > 0 & vendorList.length > 0) {
 
             const project = projectList.find(
                 (p) => p.projectName === selectedRequest.projectName
@@ -79,10 +127,10 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
             setForm(prev => ({
                 ...prev,
                 project_id: project?.project_id || "",
-                vendor_id: selectedRequest.vendor_id || ""
+                vendor_id: vendor?.vendor_id || ""
             }));
         }
-    }, [selectedRequest, projectList, vendorList]);
+    }, [selectedRequest, projectList, vendorList, mode]);
 
     const handleMaterialChange = (index, field, value) => {
         const updated = [...materials]
@@ -152,9 +200,26 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     const totalGst = totals.totalGst + eGstAmt;
     const grandTotal = taxableAmount + totalGst;
 
-
+    // --- Status update handler for view mode ---
+    const handleStatusUpdate = async (newStatus) => {
+        if (!window.confirm(`Are you sure you want to ${newStatus} this PO?`)) return;
+        setLoading(true);
+        try {
+            const poId = poData.po_id || poData.id;
+            await updatePOStatus(poId, { po_status: newStatus });
+            alert(`PO ${newStatus} successfully`);
+            if (onStatusUpdate) onStatusUpdate();
+            onClose();
+        } catch (error) {
+            console.error(error);
+            alert(`Failed to update status: ${error.response?.data?.message || error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
+        if (mode !== "create") return;
         e.preventDefault();
 
         if (!form.project_id) return alert("Please select a project");
@@ -229,6 +294,9 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
         }
     };
 
+    // Helper to determine if a field should be read-only
+    const isReadOnly = mode === "view";
+
     const projectData = projectList.find((p) =>
         selectedRequest
             ? p.projectName === selectedRequest.projectName
@@ -267,7 +335,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                 {/* HEADER */}
                 <div className="flex justify-between mb-4">
-                    <h2 className="text-2xl font-bold">Purchase Order</h2>
+                    <h2 className="text-2xl font-bold">{mode === "create" ? "Purchase Order" : "Purchase Order Details"}</h2>
                     <button onClick={onClose} className="text-2xl font-bold hover:cursor-pointer">✕</button>
                 </div>
 
@@ -295,20 +363,25 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                             <div className="flex flex-col border-y">
                                 <div>
                                     <label className="text-sm text-gray-500 px-2">To</label>
-                                    <select
-                                        name="vendor_id"
-                                        className="input-line text-red-500 font-bold"
-                                        onChange={handleFormChange}
-                                        value={form.vendor_id || ""}
-                                    >
-                                        <option value="" disabled>Select Vendor</option>
-
-                                        {vendorList.map((v) => (
-                                            <option key={v.vendor_id} value={v.vendor_id}>
-                                                {v.vendorName}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    {isReadOnly ? (
+                                        <p className="font-bold text-gray-800 px-2 pb-2 border-b">
+                                            {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
+                                        </p>
+                                    ) : (
+                                        <select
+                                            name="vendor_id"
+                                            className="input-line text-red-500 font-bold"
+                                            onChange={handleFormChange}
+                                            value={form.vendor_id || ""}
+                                        >
+                                            <option value="" disabled>Select Vendor</option>
+                                            {vendorList.map((v) => (
+                                                <option key={v.vendor_id} value={v.vendor_id}>
+                                                    {v.vendorName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
 
                                 <div className="p-2">
@@ -358,9 +431,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         <p>{projectData?.contactPersonNumber || "N/A"}</p>
                                     </div>
                                 </div>
-
                             </div>
-
                         </div>
 
                         {/* ADDRESS */}
@@ -400,9 +471,11 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                                 <div className="flex items-center gap-3">
                                     <p className="text-sm font-bold p-1">Project :</p>
-                                    <p>
-                                        {selectedRequest ? (
-                                            selectedRequest.projectName
+                                    <div>
+                                        {isReadOnly ? (
+                                            <p className="font-bold text-gray-800">
+                                                {projectData?.projectName || 'N/A'}
+                                            </p>
                                         ) : (
                                             <select
                                                 name="project_id"
@@ -411,7 +484,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                                 value={form.project_id || ""}
                                             >
                                                 <option value="" disabled>Select Project</option>
-
                                                 {projectList.map((p) => (
                                                     <option key={p.project_id} value={p.project_id}>
                                                         {p.projectName}
@@ -419,14 +491,13 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                                 ))}
                                             </select>
                                         )}
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* TABLE */}
                         <table className="w-full border-y text-sm">
-
                             <thead>
                                 <tr className="bg-gray-200">
                                     <th className="border-y p-2">S.No</th>
@@ -438,7 +509,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                     <th className="border p-2">GST %</th>
                                     <th className="border p-2">Amount</th>
 
-                                    {!selectedRequest && (
+                                    {!selectedRequest && !isReadOnly &&(
                                         <th className="flex justify-center p-5 items-center">
                                             <i className="fa-solid fa-ellipsis"></i>
                                         </th>
@@ -454,8 +525,8 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         <td className="py-3 w-[5%] text-center">{i + 1}</td>
 
                                         <td className="py-3 w-[45%] text-center">
-                                            {selectedRequest ? (
-                                                m.material
+                                            {isReadOnly ? (
+                                                <span>{m.material}</span>
                                             ) : (
                                                 <input
                                                     placeholder="Enter Material"
@@ -466,8 +537,8 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {selectedRequest ? (
-                                                m.unit
+                                            {isReadOnly ? (
+                                                <span>{m.unit}</span>
                                             ) : (
                                                 <input
                                                     placeholder="Enter Unit"
@@ -478,8 +549,8 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {selectedRequest ? (
-                                                m.qty
+                                            {isReadOnly ? (
+                                                <span>{m.qty}</span>
                                             ) : (
                                                 <input
                                                     placeholder="Enter Quantity"
@@ -490,33 +561,47 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            <input
-                                                placeholder="Enter Rate"
-                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
-                                            />
+                                            {isReadOnly ? (
+                                                <span>{m.rate}</span>
+                                            ) : (
+                                                <input
+                                                    placeholder="Enter Rate"
+                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
+                                                    disabled={isReadOnly}
+                                                />
+                                            )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            <input
-                                                placeholder="Enter Discount"
-                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
-                                            />
+                                            {isReadOnly ? (
+                                                <span>{m.discount}</span>
+                                            ) : (
+                                                <input
+                                                    placeholder="Enter Discount"
+                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
+                                                    disabled={isReadOnly}
+                                                />
+                                            )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            <input
-                                                placeholder="Enter GST"
-                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
-                                            />
+                                            {isReadOnly ? (
+                                                <span>{m.gst}</span>
+                                            ) : (
+                                                <input
+                                                    placeholder="Enter GST"
+                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
+                                                    disabled={isReadOnly}
+                                                />
+                                            )}
                                         </td>
 
-                                        <td className="py-3 w-[8.33%] text-center">₹ {(m.total || 0).toFixed(2)}</td>
+                                        <td className="py-3 w-[8.33%] text-center">₹ {(Number(m.total) || 0).toFixed(2)}</td>
 
-
-                                        {!selectedRequest && (
+                                        {!selectedRequest && !isReadOnly && (
                                             <td className="flex justify-center py-5 items-center">
                                                 <button
                                                     onClick={() => handleDeleteRow(i)}
@@ -527,7 +612,6 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
                                             </td>
                                         )}
 
-
                                     </tr>
                                 ))}
                             </tbody>
@@ -536,7 +620,7 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                         <div className="flex justify-between mt-4 text-xs">
                             <div className="flex w-full justify-around">
-                                {!selectedRequest && (
+                                {!selectedRequest && !isReadOnly && (
                                     <div className="flex justify-center items-center w-full">
                                         <button
                                             type="button"
@@ -727,11 +811,40 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
 
                     {/* ACTIONS */}
                     <div className="flex justify-end gap-3 mt-4">
-                        <button
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                        >
-                            Create PO
-                        </button>
+                        {mode === "create" ? (
+                            <button
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                            >
+                                Create PO
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => handleStatusUpdate("Approved")}
+                                    className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                                    disabled={loading || form.po_status === "Approved"}
+                                >
+                                    Approve
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleStatusUpdate("Rejected")}
+                                    className="bg-red-600 text-white px-4 py-2 rounded-lg"
+                                    disabled={loading || form.po_status === "Rejected"}
+                                >
+                                    Reject
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleStatusUpdate("Hold")}
+                                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                                    disabled={loading || form.po_status === "Hold"}
+                                >
+                                    Hold
+                                </button>
+                            </>
+                        )}
 
                         <button
                             type="button"
@@ -810,4 +923,4 @@ const PurchaseOrderCreate = ({ selectedRequest, onClose }) => {
     )
 }
 
-export default PurchaseOrderCreate
+export default PurchaseOrderForm

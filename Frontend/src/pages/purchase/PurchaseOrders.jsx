@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import dayjs from 'dayjs';
 import { fetchApprovedPR } from "../../api/purchaseOrderApi";
-import PurchaseOrderCreate from "../../components/models/PurchaseOrderCreate";
+import PurchaseOrderForm from "../../components/models/PurchaseOrderForm";
 import PurchaseRequestView from "../../components/models/PurchaseRequestView";
 
 const PurchaseOrders = () => {
@@ -99,22 +99,19 @@ const PurchaseOrders = () => {
                                                     <i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>
                                                 </button>
                                             </td>
-
                                         </tr>
                                     ))
                                 )}
                             </tbody>
-
                         </table>
 
                     </div>
-
                 </div>
             </div>
 
             {/* 🔷 OPEN PO FORM */}
             {isOpenManualPOForm && (
-                <PurchaseOrderCreate
+                <PurchaseOrderForm
                     selectedRequest={selectedPR} // can be null (manual)
                     onClose={() => {
                         setIsOpenManualPOForm(false);

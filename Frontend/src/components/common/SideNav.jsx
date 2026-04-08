@@ -71,7 +71,7 @@ const SideNav = () => {
                         </div>
                     </Link>
 
-                    <Link to="/purchase-orders/po-requests">
+                    <Link to="/purchase-orders/drafted-purchase-orders">
                         <div className={`btn py-2 px-7 cursor-pointer hover:text-white ${isActive('/purchase-orders/po-requests') ? 'text-white font-semibold bg-gray-800' : ''}`}>
                             <span>PO Requests</span>
                         </div>

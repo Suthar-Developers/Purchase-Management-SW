@@ -136,4 +136,92 @@ const newPurchaseOrder = async (req, res) => {
     }
 }
 
-module.exports = { fetchApprovedPR, newPurchaseOrder }
+const draftedPurchaseOrders = async (req, res) => {
+    try {
+        const sql = `
+            SELECT po.*, 
+                   p.projectName, 
+                   v.vendorName 
+            FROM purchase_orders po
+            LEFT JOIN projects p ON po.project_id = p.project_id
+            LEFT JOIN vendors v ON po.vendor_id = v.vendor_id
+            WHERE po.po_status = 'Draft'
+            ORDER BY po.po_id ASC
+        `
+        const [rows] = await db.query(sql)
+
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+}
+
+const fetchPurchaseOrderById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Fetching main PO details
+        const [poRows] = await db.query(
+            `SELECT * FROM purchase_orders WHERE po_id = ?`,
+            [id]
+        );
+        if (poRows.length === 0) {
+            return res.status(404).json({ message: "PO not found" });
+        }
+        const po = poRows[0];
+
+        // 2. Fetching materials (items)
+        const [items] = await db.query(
+            `SELECT 
+                item_description AS material,
+                unit, qty, rate, discount_percent AS discount,
+                gst_percent AS gst, total_amount AS total
+             FROM purchase_order_items
+             WHERE po_id = ?`,
+            [id]
+        );
+
+        // 3. Fetching extra charge (if any)
+        const [extraRows] = await db.query(
+            `SELECT category, amount, gst_percent AS gst
+             FROM purchase_order_extra_charges
+             WHERE po_id = ?`,
+            [id]
+        );
+        const extraCharge = extraRows[0] || null;
+
+        // 4. Return complete PO object
+        const fullPO = {
+            ...po,
+            materials: items,
+            extraCharge: extraCharge
+        };
+
+        return res.status(200).json(fullPO);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+
+}
+
+const updatePOStatus = async (req, res) => {
+    const { id } = req.params
+    const { po_status } = req.body
+
+    try {
+        const sql = `UPDATE purchase_orders 
+        SET po_status=?
+        WHERE po_id=?`
+
+        const [result] = await db.query(sql, [po_status, id]);
+
+        return res.status(200).json({ message: "Status updated", result });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+}
+
+module.exports = { fetchApprovedPR, newPurchaseOrder, draftedPurchaseOrders, fetchPurchaseOrderById, updatePOStatus }
