@@ -20,6 +20,8 @@ const fetchApprovedPR = async (req, res) => {
                     request_id: row.request_id,
                     projectName: row.projectName,
                     requestStatus: row.requestStatus,
+                    contactPerson: row.contactPerson,
+                    contactInfo: row.contactInfo,
                     deliverBefore: row.deliverBefore,
                     created_pr_at: row.created_pr_at,
                     materials: []
@@ -29,9 +31,15 @@ const fetchApprovedPR = async (req, res) => {
             grouped[row.request_id].materials.push({
                 material_id: row.material_id,
                 material: row.material,
+                make: row.make,
+                size: row.size,
+                thickness: row.thickness,
                 unit: row.unit,
                 qty: row.qty,
                 specification: row.specification,
+                boqRef: row.boqRef,
+                scope: row.scope,
+                category: row.category,
                 materialStatus: row.materialStatus
             })
         })
