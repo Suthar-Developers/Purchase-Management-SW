@@ -54,16 +54,16 @@ const PurchaseOrderRequests = () => {
 
                             <thead className="bg-[#4b5ea3] text-white">
                                 <tr>
-                                    <th className="w-[8%] p-4 text-center">PO No</th>
-                                    <th className="w-[8%] p-4 text-center">PO Date</th>
-                                    <th className="w-[14%] p-4 text-center">Project</th>
-                                    <th className="w-[12%] p-4 text-center">Vendor</th>
-                                    <th className="w-[12%] p-4 text-center">Order Placed By</th>
-                                    <th className="w-[12%] p-4 text-center">Initiator</th>
-                                    <th className="w-[8%] p-4 text-center">Initiator Number</th>
-                                    <th className="w-[8%] p-4 text-center">Total Amount</th>
-                                    <th className="w-[6%] p-4 text-center">PO Status</th>
-                                    <th className="w-[8%] p-4 text-center">Action</th>
+                                    <th className="w-[8%] p-3 text-center">PO No</th>
+                                    <th className="w-[8%] p-3 text-center">PO Date</th>
+                                    <th className="w-[14%] p-3 text-center">Project</th>
+                                    <th className="w-[12%] p-3 text-center">Vendor</th>
+                                    <th className="w-[12%] p-3 text-center">Order Placed By</th>
+                                    <th className="w-[12%] p-3 text-center">Initiator</th>
+                                    <th className="w-[8%] p-3 text-center">Initiator Number</th>
+                                    <th className="w-[8%] p-3 text-center">Total Amount</th>
+                                    <th className="w-[6%] p-3 text-center">PO Status</th>
+                                    <th className="w-[8%] p-3 text-center">Action</th>
                                 </tr>
                             </thead>
 
