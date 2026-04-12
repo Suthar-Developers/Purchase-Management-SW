@@ -52,11 +52,56 @@ const fetchApprovedPR = async (req, res) => {
     }
 }
 
+// Helper to get FY and Next Serial Number
+const getNextSequence = async () => {
+    const now = new Date();
+    const month = now.getMonth() + 1; // Jan is 1
+    const year = now.getFullYear();
+
+    let fy;
+    if (month >= 4) {
+        // From April to Dec: FY 2026-27
+        fy = `${year.toString().slice(-2)}-${(year + 1).toString().slice(-2)}`;
+    } else {
+        // From Jan to March: FY 2025-26
+        fy = `${(year - 1).toString().slice(-2)}-${year.toString().slice(-2)}`;
+    }
+
+    const prefix = `JRC/${fy}/`;
+
+    // Look for the highest number in the CURRENT Financial Year only
+    const [rows] = await db.query(
+        "SELECT po_number FROM purchase_orders WHERE po_number LIKE ? ORDER BY po_id DESC LIMIT 1",
+        [`${prefix}%`]
+    );
+
+    let nextSerial = 1;
+    if (rows.length > 0) {
+        const lastNumber = rows[0].po_number.split('/').pop();
+        nextSerial = parseInt(lastNumber) + 1;
+    }
+
+    return `${prefix}${nextSerial.toString().padStart(4, '0')}`;
+};
+
+// 1. New endpoint to just FETCH the number for display
+const fetchNextPONumber = async (req, res) => {
+    try {
+        const nextPO = await getNextSequence();
+        res.json({ po_number: nextPO });
+    } catch (err) {
+        res.status(500).json({ message: "Error generating sequence" });
+    }
+};
+
 const newPurchaseOrder = async (req, res) => {
     try {
-        const { po_number, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status, materials, extraCharge } = req.body
+        // Re-generate the number at the moment of saving to ensure no duplicates
+        const finalPONumber = await getNextSequence();
 
-        if (!po_number || !project_id) {
+        const {vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status, materials, extraCharge } = req.body
+
+        if (!finalPONumber || !project_id) {
             return res.status(400).json({ message: "Required field is missing.." })
         }
 
@@ -64,7 +109,7 @@ const newPurchaseOrder = async (req, res) => {
         const [poResult] = await db.query(`
         INSERT INTO purchase_orders(po_number, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [po_number, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number || null, billing_contact_email || null, initiator, initiator_number, total_amount, total_discount || null, subtotal, taxable_amount, total_gst, grand_total, amount_in_words || null, po_status || "Draft"]
+            [finalPONumber, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number || null, billing_contact_email || null, initiator, initiator_number, total_amount, total_discount || null, subtotal, taxable_amount, total_gst, grand_total, amount_in_words || null, po_status || "Draft"]
         );
 
         const po_id = poResult.insertId;
@@ -224,4 +269,4 @@ const updatePOStatus = async (req, res) => {
     }
 }
 
-module.exports = { fetchApprovedPR, newPurchaseOrder, draftedPurchaseOrders, fetchPurchaseOrderById, updatePOStatus }
+module.exports = { fetchApprovedPR, fetchNextPONumber, newPurchaseOrder, draftedPurchaseOrders, fetchPurchaseOrderById, updatePOStatus }

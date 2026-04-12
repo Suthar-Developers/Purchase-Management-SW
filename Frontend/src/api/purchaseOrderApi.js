@@ -11,6 +11,11 @@ export const fetchApprovedPR = async () => {
     }
 }
 
+export const fetchNextPONumber = async () => {
+    const res = await axios.get('http://localhost:3000/api/generate-po-number');
+    return res.data;
+}
+
 export const newPurchaseOrder = async (payload) => {
     try {
         const res = await axios.post('http://localhost:3000/api/new-purchase-order', payload)

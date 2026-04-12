@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import dayjs from 'dayjs';
 import { fetchDraftedPurchaseOrders } from "../../api/purchaseOrderApi";
-import { fetchProjects } from "../../api/projectApi"
 import PurchaseOrderForm from "../../components/models/PurchaseOrderForm";
 
 const PurchaseOrderRequests = () => {
@@ -110,6 +109,7 @@ const PurchaseOrderRequests = () => {
             {isOpenPOForm && selectedPO && (
                 <PurchaseOrderForm
                     mode="view"
+                    selectedRequest={selectedPO}
                     poData={selectedPO}
                     onClose={closePOViewModel}
                     onStatusUpdate={loadDraftedPO}

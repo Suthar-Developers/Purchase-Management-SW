@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import { newPurchaseOrder, updatePOStatus, fetchPurchaseOrderById } from "../../api/purchaseOrderApi"
+import { fetchNextPONumber, newPurchaseOrder, updatePOStatus, fetchPurchaseOrderById } from "../../api/purchaseOrderApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 
@@ -19,10 +19,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     })
 
     const [loading, setLoading] = useState(false);
-    const [isLoadingPO, setIsLoadingPO] = useState(false);
 
     const [form, setForm] = useState({
-        po_number: "JRC/PO/001",
+        po_number: "Loading...",
         vendor_id: "",
         project_id: "",
         order_date: new Date().toISOString().split('T')[0],
@@ -37,6 +36,15 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         po_status: "Draft"
     });
 
+    // Handle PO Number Generation (Only for Create Mode)
+    useEffect(() => {
+        if (mode === "create") {
+            fetchNextPONumber().then(res => {
+                setForm(prev => ({ ...prev, po_number: res.po_number }));
+            });
+        }
+    }, [mode]);
+
     useEffect(() => {
         fetchVendors().then(res => setVendorList(res.data || res))
         fetchProjects().then(res => setProjectList(res.data || res))
@@ -48,11 +56,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             if (poData.materials && poData.vendor_id) {
                 populateFormWithPOData(poData);
             } else if (poData.po_id || poData.id) {
-                setIsLoadingPO(true);
+                setLoading(true);
                 const poId = poData.po_id || poData.id;
                 fetchPurchaseOrderById(poId).then(fullPO => {
                     populateFormWithPOData(fullPO);
-                }).catch(err => console.error("Failed to fetch PO", err)).finally(() => setIsLoadingPO(false));
+                }).catch(err => console.error("Failed to fetch PO", err)).finally(() => setLoading(false));
             }
         }
     }, [mode, poData]);
@@ -400,7 +408,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 <div className="w-[50%] border-r">
                                     <div className="border-b">
                                         <p className="font-bold p-1 border-b border-b-gray-400">Purchase Order Number :</p>
-                                        <p className="p-1">JRC/PO/001</p>
+                                        <p className="p-1">{form.po_number}</p>
                                     </div>
 
                                     <div className="border-b p-1">
@@ -472,7 +480,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 <div className="flex items-center gap-3">
                                     <p className="text-sm font-bold p-1">Project :</p>
                                     <div>
-                                        {isReadOnly ? (
+                                        {(isReadOnly || selectedRequest) ? (
                                             <p className="font-bold text-gray-800">
                                                 {projectData?.projectName || 'N/A'}
                                             </p>
@@ -525,7 +533,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         <td className="py-3 w-[5%] text-center">{i + 1}</td>
 
                                         <td className="py-3 w-[45%] text-center">
-                                            {isReadOnly ? (
+                                            {(isReadOnly || selectedRequest) ? (
                                                 <span>{m.material}</span>
                                             ) : (
                                                 <input
@@ -537,7 +545,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {isReadOnly ? (
+                                            {(isReadOnly || selectedRequest) ? (
                                                 <span>{m.unit}</span>
                                             ) : (
                                                 <input
@@ -549,7 +557,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {isReadOnly ? (
+                                            {(isReadOnly || selectedRequest) ? (
                                                 <span>{m.qty}</span>
                                             ) : (
                                                 <input
@@ -812,9 +820,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     {/* ACTIONS */}
                     <div className="flex justify-end gap-3 mt-4">
                         {mode === "create" ? (
-                            <button
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                            >
+                            <button className="bg-green-600 text-white px-4 py-2 rounded-lg" disabled={loading}>
                                 Create PO
                             </button>
                         ) : (
