@@ -202,6 +202,27 @@ const draftedPurchaseOrders = async (req, res) => {
     }
 }
 
+const approvedPurchaseOrders = async (req, res) => {
+    try {
+        const sql = `
+            SELECT po.*, 
+                   p.projectName, 
+                   v.vendorName 
+            FROM purchase_orders po
+            LEFT JOIN projects p ON po.project_id = p.project_id
+            LEFT JOIN vendors v ON po.vendor_id = v.vendor_id
+            WHERE po.po_status = 'Approved'
+            ORDER BY po.po_id ASC
+        `
+        const [rows] = await db.query(sql)
+
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+}
+
 const fetchPurchaseOrderById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -269,4 +290,4 @@ const updatePOStatus = async (req, res) => {
     }
 }
 
-module.exports = { fetchApprovedPR, fetchNextPONumber, newPurchaseOrder, draftedPurchaseOrders, fetchPurchaseOrderById, updatePOStatus }
+module.exports = { fetchApprovedPR, fetchNextPONumber, newPurchaseOrder, draftedPurchaseOrders, approvedPurchaseOrders, fetchPurchaseOrderById, updatePOStatus }

@@ -32,6 +32,12 @@ export const fetchDraftedPurchaseOrders = async () => {
   return res.data;
 };
 
+export const fetchApprovedPurchaseOrders = async () => {
+  const res = await axios.get("http://localhost:3000/api/purchase-orders/approved-purchase-orders");
+  return res.data;
+};
+
+
 export const fetchPurchaseOrderById = async (id) => {
     const res = await axios.get(`http://localhost:3000/api/purchase-orders/${id}`);
     return res.data;

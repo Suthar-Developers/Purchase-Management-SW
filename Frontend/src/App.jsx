@@ -11,6 +11,7 @@ import VendorCreate from './components/models/VendorCreate'
 import PurchaseRequests from './pages/purchase/PurchaseRequests'
 import PurchaseOrders from './pages/purchase/PurchaseOrders'
 import PurchaseOrderRequests from './components/models/PurchaseOrderRequests'
+import ApprovedPurchaseOrders from './components/models/ApprovedPurchaseOrders'
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
             <Route path='/purchase-requests' element={<PurchaseRequests />} />
             <Route path='/purchase-orders' element={<PurchaseOrders />} />
             <Route path='/purchase-orders/drafted-purchase-orders' element={<PurchaseOrderRequests />} />
+            <Route path='/purchase-orders/approved-purchase-orders' element={<ApprovedPurchaseOrders />} />
           </Routes>
         </div>
       </div>

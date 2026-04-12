@@ -72,13 +72,13 @@ const SideNav = () => {
                     </Link>
 
                     <Link to="/purchase-orders/drafted-purchase-orders">
-                        <div className={`btn py-2 px-7 cursor-pointer hover:text-white ${isActive('/purchase-orders/po-requests') ? 'text-white font-semibold bg-gray-800' : ''}`}>
+                        <div className={`btn py-2 px-7 cursor-pointer hover:text-white ${isActive('/purchase-orders/drafted-purchase-orders') ? 'text-white font-semibold bg-gray-800' : ''}`}>
                             <span>PO Requests</span>
                         </div>
                     </Link>
 
-                    <Link to="/purchase-orders/po-approved">
-                        <div className={`btn py-2 px-7 cursor-pointer hover:text-white ${isActive('/purchase-orders/po-approved') ? 'text-white font-semibold bg-gray-800' : ''}`}>
+                    <Link to="/purchase-orders/approved-purchase-orders">
+                        <div className={`btn py-2 px-7 cursor-pointer hover:text-white ${isActive('/purchase-orders/approved-purchase-orders') ? 'text-white font-semibold bg-gray-800' : ''}`}>
                             <span>Approved POs</span>
                         </div>
                     </Link>

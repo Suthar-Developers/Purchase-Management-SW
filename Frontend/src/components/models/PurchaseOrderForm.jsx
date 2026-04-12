@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
+import html2canvas from 'html2canvas-pro';
+import { jsPDF } from 'jspdf';
 import { fetchNextPONumber, newPurchaseOrder, updatePOStatus, fetchPurchaseOrderById } from "../../api/purchaseOrderApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
@@ -336,6 +338,63 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         setMaterials(prev => prev.filter((_, i) => i !== index))
     }
 
+    // ... Download PO PDF ...
+
+    const handleDownloadPDF = async () => {
+        const element = pdfRef.current;
+        if (!element) return;
+
+        // Hide interactive elements for a clean PDF
+        const hiddenElements = element.querySelectorAll('.no-print, button, .fa-solid, .fa-regular, i, input, select');
+        hiddenElements.forEach(el => el.style.display = 'none');
+
+        try {
+            // Render at scale 2 – sharp quality, reasonable file size
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: false
+            });
+
+            // Convert to JPEG with 0.85 quality (excellent quality, ~1-2 MB)
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
+
+            // Create PDF
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const img = new Image();
+            img.src = imgData;
+            await new Promise((resolve) => { img.onload = resolve; });
+
+            const imgWidth = pdfWidth;
+            const imgHeight = (img.height * imgWidth) / img.width;
+            let position = 0;
+            let remainingHeight = imgHeight;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            remainingHeight -= pdfHeight;
+
+            // Handle multi-page content
+            while (remainingHeight > 0) {
+                position -= pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                remainingHeight -= pdfHeight;
+            }
+
+            pdf.save(`PO_${form.po_number.replace(/\//g, '-')}.pdf`);
+
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Failed to generate PDF. Please try again.');
+        } finally {
+            hiddenElements.forEach(el => el.style.display = '');
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
 
@@ -350,7 +409,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 <form onSubmit={handleSubmit}>
 
                     {/* PDF AREA */}
-                    <div ref={pdfRef} className="py-6 bg-white text-sm border">
+                    <div ref={pdfRef} style={{ width: '800px', margin: '0 auto', backgroundColor: 'white'}} id="po-print-area" className="py-6 bg-white text-sm border">
 
                         {/* HEADER */}
                         <div className="border-b pb-3 mb-4">
@@ -366,9 +425,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         </div>
 
                         {/* TOP INFO */}
-                        <div className="grid grid-cols-2 mb-4 text-xs">
+                        <div className="grid grid-cols-2 text-xs">
 
-                            <div className="flex flex-col border-y">
+                            <div className="flex flex-col border-t">
                                 <div>
                                     <label className="text-sm text-gray-500 px-2">To</label>
                                     {isReadOnly ? (
@@ -403,7 +462,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 </div>
                             </div>
 
-                            <div className="flex border-y border-l">
+                            <div className="flex border-t border-l">
 
                                 <div className="w-[50%] border-r">
                                     <div className="border-b">
@@ -443,32 +502,32 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         </div>
 
                         {/* ADDRESS */}
-                        <div className="grid grid-cols-2 mb-4 text-xs">
+                        <div className="grid grid-cols-2 text-xs">
 
-                            <div className="flex flex-col pt-2 border-y">
+                            <div className="flex flex-col pt-2 border-t">
                                 <div className="border-b">
                                     <p className="font-bold px-2">Billing Address :</p>
                                     <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
                                 </div>
 
                                 <div className="flex border-b">
-                                    <p className="border-r w-[15%] font-bold pl-2 py-1">PH :</p>
-                                    <p className="w-[85%] pl-5 py-1"></p>
+                                    <p className="border-r w-[20%] font-bold pl-2 py-1">PH :</p>
+                                    <p className="w-[80%] pl-5 py-1"></p>
                                 </div>
 
                                 <div className="flex border-b">
-                                    <p className="border-r w-[15%] font-bold pl-2 py-1">GSTIN/UIN :</p>
-                                    <p className="w-[85%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
+                                    <p className="border-r w-[20%] font-bold pl-2 py-1">GSTIN/UIN :</p>
+                                    <p className="w-[80%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
                                 </div>
 
                                 <div className="flex">
-                                    <p className="border-r w-[15%] font-bold pl-2 py-2.5">Email :</p>
-                                    <p className="w-[85%] pl-5 py-1"></p>
+                                    <p className="border-r w-[20%] font-bold pl-2 py-2.5">Email :</p>
+                                    <p className="w-[80%] pl-5 py-1"></p>
                                 </div>
 
                             </div>
 
-                            <div className="flex flex-col gap-2 pt-2 border-y border-l">
+                            <div className="flex flex-col gap-2 pt-2 border-t border-l">
 
                                 <div className="border-b pb-16.5">
                                     <p className="font-bold px-2">Delivery Address</p>
@@ -517,7 +576,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     <th className="border p-2">GST %</th>
                                     <th className="border p-2">Amount</th>
 
-                                    {!selectedRequest && !isReadOnly &&(
+                                    {!selectedRequest && !isReadOnly && (
                                         <th className="flex justify-center p-5 items-center">
                                             <i className="fa-solid fa-ellipsis"></i>
                                         </th>
@@ -647,7 +706,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                             <div className="w-72 space-y-2 pr-5 text-xs">
 
-                                {!extraCharge && (
+                                {!extraCharge && !isReadOnly && (
                                     <button
                                         type="button"
                                         onClick={() => setOpenExtraChargeModel(true)}
@@ -818,37 +877,53 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
 
                     {/* ACTIONS */}
-                    <div className="flex justify-end gap-3 mt-4">
+                    <div className="flex justify-end gap-3 mt-4 no-print">
+                        {mode === "view" && (
+                            <button
+                                type="button"
+                                onClick={handleDownloadPDF}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+                                disabled={loading}
+                            >
+                                <i className="fa-solid fa-download"></i>
+                                {loading ? "Generating..." : "Download PDF"}
+                            </button>
+                        )}
+
                         {mode === "create" ? (
                             <button className="bg-green-600 text-white px-4 py-2 rounded-lg" disabled={loading}>
                                 Create PO
                             </button>
                         ) : (
                             <>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusUpdate("Approved")}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                                    disabled={loading || form.po_status === "Approved"}
-                                >
-                                    Approve
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusUpdate("Rejected")}
-                                    className="bg-red-600 text-white px-4 py-2 rounded-lg"
-                                    disabled={loading || form.po_status === "Rejected"}
-                                >
-                                    Reject
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusUpdate("Hold")}
-                                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
-                                    disabled={loading || form.po_status === "Hold"}
-                                >
-                                    Hold
-                                </button>
+                                {form.po_status !== "Approved" && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStatusUpdate("Approved")}
+                                            className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                                            disabled={loading || form.po_status === "Approved"}
+                                        >
+                                            Approve
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStatusUpdate("Rejected")}
+                                            className="bg-red-600 text-white px-4 py-2 rounded-lg"
+                                            disabled={loading || form.po_status === "Rejected"}
+                                        >
+                                            Reject
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStatusUpdate("Hold")}
+                                            className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                                            disabled={loading || form.po_status === "Hold"}
+                                        >
+                                            Hold
+                                        </button>
+                                    </>
+                                )}
                             </>
                         )}
 
