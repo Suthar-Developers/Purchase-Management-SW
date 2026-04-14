@@ -10,6 +10,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
     const pdfRef = useRef()
 
+    const [isEditing, setIsEditing] = useState(false);
     const [vendorList, setVendorList] = useState([])
     const [projectList, setProjectList] = useState([])
     const [materials, setMaterials] = useState([])
@@ -38,6 +39,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         initiator_number: "",
         po_status: "Draft"
     });
+
+    // Helper to determine if a field should be read-only or editable
+    const isReadOnly = mode === "view" && !isEditing;
+    const editable = mode === "create" || isEditing;
 
     // Handle PO Number Generation (Only for Create Mode)
     useEffect(() => {
@@ -228,9 +233,13 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }
     };
 
+    const handleReviseClick = () => {
+        setIsEditing(true);
+    };
+
     const handleSubmit = async (e) => {
-        if (mode !== "create") return;
         e.preventDefault();
+        if (mode !== "create" && !isEditing) return;
 
         if (!form.project_id) return alert("Please select a project");
         if (!form.vendor_id) return alert("Please select a vendor");
@@ -262,46 +271,54 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             taxable_amount: taxableAmount,
             total_gst: totalGst,
             grand_total: grandTotal,
-            amount_in_words: `${grandTotal.toFixed(2)} Rupees Only`
+            amount_in_words: `${grandTotal.toFixed(2)} Rupees Only`,
+            po_status: isEditing ? "Revised" : form.po_status
         };
 
         try {
-            const res = await newPurchaseOrder(payload);
+            if (isEditing || mode === "edit") {
+                // Call your Update API (ensure have this in purchaseOrderApi.js)
+                const poId = poData.po_id || poData.id;
+                await updatePOStatus(poId, payload);
+                alert("PO Revised Successfully!");
+            } else {
+                const res = await newPurchaseOrder(payload);
 
-            setForm({
-                po_number: "",
-                vendor_id: "",
-                project_id: "",
-                order_date: "",
-                order_placed_by: "",
-                billing_address: "",
-                delivery_address: "",
-                billing_gst: "",
-                billing_contact_number: "",
-                billing_contact_email: "",
-                initiator: "",
-                initiator_number: "",
-                po_status: "Draft",
-            });
-            setMaterials([]);
+                setForm({
+                    po_number: "",
+                    vendor_id: "",
+                    project_id: "",
+                    order_date: "",
+                    order_placed_by: "",
+                    billing_address: "",
+                    delivery_address: "",
+                    billing_gst: "",
+                    billing_contact_number: "",
+                    billing_contact_email: "",
+                    initiator: "",
+                    initiator_number: "",
+                    po_status: "Draft",
+                });
+                setMaterials([]);
 
-            setExtraCharge(null);
-            setExtraCharges({
-                extraChargeCategory: "",
-                extraChargeAmount: "",
-                extraChargeGst: ""
-            });
+                setExtraCharge(null);
+                setExtraCharges({
+                    extraChargeCategory: "",
+                    extraChargeAmount: "",
+                    extraChargeGst: ""
+                });
 
-            const prId = selectedRequest?.request_id;
+                const prId = selectedRequest?.request_id;
 
-            if (prId) {
-                await updatePRStatus(prId, { requestStatus: "PO Drafted" });
+                if (prId) {
+                    await updatePRStatus(prId, { requestStatus: "PO Drafted" });
+                }
+
+                alert(res?.data?.message || res?.message || "PO Created successfully");
+
+                if (onStatusUpdate) onStatusUpdate();
+                onClose()
             }
-
-            alert(res?.data?.message || res?.message || "PO Created successfully");
-
-            if (onStatusUpdate) onStatusUpdate();
-            onClose()
         } catch (error) {
             console.error("Submission Error:", error.response?.data);
             alert(error?.response?.data?.message || "Error while creating purchase order");
@@ -309,9 +326,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             setLoading(false);
         }
     };
-
-    // Helper to determine if a field should be read-only
-    const isReadOnly = mode === "view";
 
     const projectData = projectList.find((p) =>
         selectedRequest
@@ -416,7 +430,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 <form onSubmit={handleSubmit}>
 
                     {/* PDF AREA */}
-                    <div ref={pdfRef} style={{ width: '800px', margin: '0 auto', backgroundColor: 'white'}} id="po-print-area" className="py-6 bg-white text-sm border">
+                    <div ref={pdfRef} style={{ width: '800px', margin: '0 auto', backgroundColor: 'white' }} id="po-print-area" className="py-6 bg-white text-sm border">
 
                         {/* HEADER */}
                         <div className="border-b pb-3 mb-4">
@@ -427,7 +441,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             <p className="text-center text-xs">GSTIN: 27AAGFJ5194C1ZC</p>
 
                             <h2 className="text-center font-bold text-lg mt-2">
-                                PURCHASE ORDER
+                                {form.po_status === "Revised" ? "PURCHASE ORDER (REVISED)" : "PURCHASE ORDER"}
                             </h2>
                         </div>
 
@@ -437,11 +451,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             <div className="flex flex-col border-t">
                                 <div>
                                     <label className="text-sm text-gray-500 px-2">To</label>
-                                    {isReadOnly ? (
-                                        <p className="font-bold text-gray-800 px-2 pb-2 border-b">
-                                            {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
-                                        </p>
-                                    ) : (
+                                    {editable ? (
                                         <select
                                             name="vendor_id"
                                             className="input-line text-red-500 font-bold"
@@ -455,15 +465,18 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 </option>
                                             ))}
                                         </select>
+                                    ) : (
+                                        <p className="font-bold text-gray-800 px-2 pb-2 border-b">
+                                            {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="p-2">
                                     <p>
-                                        {
-                                            vendorList.find(
-                                                (v) => v.vendor_id === Number(form.vendor_id || "")
-                                            )?.location || "N/A"
+                                        {vendorList.find(
+                                            (v) => v.vendor_id === Number(form.vendor_id || "")
+                                        )?.location || "N/A"
                                         }
                                     </p>
                                 </div>
@@ -599,77 +612,83 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         <td className="py-3 w-[5%] text-center">{i + 1}</td>
 
                                         <td className="py-3 w-[45%] text-center">
-                                            {(isReadOnly || selectedRequest) ? (
-                                                <span>{m.material}</span>
-                                            ) : (
+                                            {editable ? (
                                                 <input
                                                     placeholder="Enter Material"
                                                     className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
+                                                    value={m.material}
                                                 />
+                                            ) : (
+                                                <span>{m.material}</span>
                                             )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {(isReadOnly || selectedRequest) ? (
-                                                <span>{m.unit}</span>
-                                            ) : (
+                                            {editable ? (
                                                 <input
                                                     placeholder="Enter Unit"
                                                     className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
+                                                    value={m.unit}
                                                 />
+                                            ) : (
+                                                <span>{m.unit}</span>
                                             )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {(isReadOnly || selectedRequest) ? (
-                                                <span>{m.qty}</span>
-                                            ) : (
+                                            {editable ? (
                                                 <input
                                                     placeholder="Enter Quantity"
                                                     className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
+                                                    value={m.qty}
                                                 />
+                                            ) : (
+                                                <span>{m.qty}</span>
                                             )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {isReadOnly ? (
-                                                <span>{m.rate}</span>
-                                            ) : (
+                                            {editable ? (
                                                 <input
                                                     placeholder="Enter Rate"
                                                     className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
                                                     disabled={isReadOnly}
+                                                    value={m.rate}
                                                 />
+                                            ) : (
+                                                <span>{m.rate}</span>
                                             )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {isReadOnly ? (
-                                                <span>{m.discount}</span>
-                                            ) : (
+                                            {editable ? (
                                                 <input
                                                     placeholder="Enter Discount"
                                                     className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
                                                     disabled={isReadOnly}
+                                                    value={m.discount}
                                                 />
+                                            ) : (
+                                                <span>{m.discount}</span>
                                             )}
                                         </td>
 
                                         <td className="py-3 w-[8.33%] text-center">
-                                            {isReadOnly ? (
-                                                <span>{m.gst}</span>
-                                            ) : (
+                                            {editable ? (
                                                 <input
                                                     placeholder="Enter GST"
                                                     className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
                                                     disabled={isReadOnly}
+                                                    value={m.gst}
                                                 />
+                                            ) : (
+                                                <span>{m.gst}</span>
                                             )}
                                         </td>
 
@@ -885,29 +904,37 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                     {/* ACTIONS */}
                     <div className="flex justify-end gap-3 mt-4 no-print">
-                        {mode === "view" && (
-                            <button
-                                type="button"
-                                onClick={handleDownloadPDF}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-                                disabled={loading}
-                            >
-                                <i className="fa-solid fa-download"></i>
-                                {loading ? "Generating..." : "Download PDF"}
-                            </button>
+                        {mode === "view" && !isEditing && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadPDF}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+                                    disabled={loading}
+                                >
+                                    <i className="fa-solid fa-download"></i>
+                                    {loading ? "Generating..." : "Download PDF"}
+                                </button>
+
+                                {form.po_status === "Approved" && (
+                                    <button type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
+                                        Revise PO
+                                    </button>
+                                )}
+                            </>
                         )}
 
-                        {mode === "create" ? (
-                            <button className="bg-green-600 text-white px-4 py-2 rounded-lg" disabled={loading}>
-                                Create PO
+                        {(mode === "create" || isEditing) ? (
+                            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">
+                                {isEditing ? "Save Revision" : "Create PO"}
                             </button>
                         ) : (
                             <>
-                                {form.po_status !== "Approved" && (
+                                {form.po_status !== "Approved" && form.po_status !== "Revised" && (
                                     <>
                                         <button
                                             type="button"
-                                                onClick={() => handlePOStatusUpdate("Approved")}
+                                            onClick={() => handlePOStatusUpdate("Approved")}
                                             className="bg-green-600 text-white px-4 py-2 rounded-lg"
                                             disabled={loading || form.po_status === "Approved"}
                                         >
@@ -915,7 +942,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </button>
                                         <button
                                             type="button"
-                                                onClick={() => handlePOStatusUpdate("Rejected")}
+                                            onClick={() => handlePOStatusUpdate("Rejected")}
                                             className="bg-red-600 text-white px-4 py-2 rounded-lg"
                                             disabled={loading || form.po_status === "Rejected"}
                                         >
@@ -923,7 +950,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </button>
                                         <button
                                             type="button"
-                                                onClick={() => handlePOStatusUpdate("Hold")}
+                                            onClick={() => handlePOStatusUpdate("Hold")}
                                             className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
                                             disabled={loading || form.po_status === "Hold"}
                                         >

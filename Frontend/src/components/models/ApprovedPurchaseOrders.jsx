@@ -36,16 +36,11 @@ const ApprovedPurchaseOrders = () => {
     return (
         <div>
             <div className="mx-5 my-3 pb-4 border-b">
-                <h1 className="text-2xl font-bold">Purchase Order Requests for Approval</h1>
+                <h1 className="text-2xl font-bold">Approved Purchase Orders</h1>
             </div>
 
             <div className="">
                 <div className="bg-white h-[90%] rounded-xl p-6">
-
-                    <div className="flex justify-between items-center mb-5">
-                        <h2 className="text-xl font-bold">Drafted Purchase Orders :-</h2>
-
-                    </div>
 
                     <div className="h-[85%] overflow-auto rounded-t-lg">
 

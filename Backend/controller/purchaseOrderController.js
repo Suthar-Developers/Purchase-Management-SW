@@ -202,6 +202,7 @@ const draftedPurchaseOrders = async (req, res) => {
     }
 }
 
+// Fetch approved & revised POs
 const approvedPurchaseOrders = async (req, res) => {
     try {
         const sql = `
@@ -211,7 +212,7 @@ const approvedPurchaseOrders = async (req, res) => {
             FROM purchase_orders po
             LEFT JOIN projects p ON po.project_id = p.project_id
             LEFT JOIN vendors v ON po.vendor_id = v.vendor_id
-            WHERE po.po_status = 'Approved'
+            WHERE po.po_status IN ('Approved', 'Revised')
             ORDER BY po.po_id ASC
         `
         const [rows] = await db.query(sql)
