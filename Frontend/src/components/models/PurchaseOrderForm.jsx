@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react"
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 import { fetchNextPONumber, newPurchaseOrder, updatePOStatus, fetchPurchaseOrderById } from "../../api/purchaseOrderApi"
+import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 
@@ -84,7 +85,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             po_status: po.po_status
         });
 
-        // ✅ Converting material fields to numbers
+        // Converting material fields to numbers
         const materialsWithNumbers = (po.materials || []).map(m => ({
             ...m,
             qty: Number(m.qty) || 0,
@@ -176,8 +177,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         const rowGstAmt = (rowTaxable * gstPercent) / 100;
 
         acc.taxable += rowTaxable;
-        acc.amount += rowAmount;       // Gross Total
-        acc.discount += rowDiscount;   // Total Discount
+        acc.amount += rowAmount;
+        acc.discount += rowDiscount;
         acc.totalGst += rowGstAmt;
 
         // GST Grouping logic stays the same
@@ -191,7 +192,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }, { amount: 0, discount: 0, subtotal: 0, totalGst: 0, gstGroups: {} });
 
     // Add Extra Charge to Totals
-
     const eAmount = Number(extraCharge?.amount || 0);
     const eGstPercent = Number(extraCharge?.gst || 0);
     const eGstAmt = (eAmount * eGstPercent) / 100;
@@ -210,8 +210,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const totalGst = totals.totalGst + eGstAmt;
     const grandTotal = taxableAmount + totalGst;
 
-    // --- Status update handler for view mode ---
-    const handleStatusUpdate = async (newStatus) => {
+    // --- Status update handler for Purchase Orders ---
+    const handlePOStatusUpdate = async (newStatus) => {
         if (!window.confirm(`Are you sure you want to ${newStatus} this PO?`)) return;
         setLoading(true);
         try {
@@ -246,7 +246,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         );
 
         if (!isValid) return alert("Fill all material fields");
-
 
         const selectedProject = projectList.find(p => p.project_id === Number(form.project_id));
 
@@ -293,14 +292,21 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 extraChargeGst: ""
             });
 
+            const prId = selectedRequest?.request_id;
+
+            if (prId) {
+                await updatePRStatus(prId, { requestStatus: "PO Drafted" });
+            }
+
             alert(res?.data?.message || res?.message || "PO Created successfully");
-            console.log("Data :", res.data)
 
+            if (onStatusUpdate) onStatusUpdate();
             onClose()
-
         } catch (error) {
-            console.error(error);
+            console.error("Submission Error:", error.response?.data);
             alert(error?.response?.data?.message || "Error while creating purchase order");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -339,7 +345,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }
 
     // ... Download PO PDF ...
-
     const handleDownloadPDF = async () => {
         const element = pdfRef.current;
         if (!element) return;
@@ -393,6 +398,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         } finally {
             hiddenElements.forEach(el => el.style.display = '');
         }
+
+        onClose()
     };
 
     return (
@@ -900,7 +907,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     <>
                                         <button
                                             type="button"
-                                            onClick={() => handleStatusUpdate("Approved")}
+                                                onClick={() => handlePOStatusUpdate("Approved")}
                                             className="bg-green-600 text-white px-4 py-2 rounded-lg"
                                             disabled={loading || form.po_status === "Approved"}
                                         >
@@ -908,7 +915,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => handleStatusUpdate("Rejected")}
+                                                onClick={() => handlePOStatusUpdate("Rejected")}
                                             className="bg-red-600 text-white px-4 py-2 rounded-lg"
                                             disabled={loading || form.po_status === "Rejected"}
                                         >
@@ -916,7 +923,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => handleStatusUpdate("Hold")}
+                                                onClick={() => handlePOStatusUpdate("Hold")}
                                             className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
                                             disabled={loading || form.po_status === "Hold"}
                                         >

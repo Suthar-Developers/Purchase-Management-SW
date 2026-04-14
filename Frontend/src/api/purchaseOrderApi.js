@@ -44,6 +44,6 @@ export const fetchPurchaseOrderById = async (id) => {
 };
 
 export const updatePOStatus = async (id, data) => {
-  const res = await axios.put(`http://localhost:3000/api/purchase-orders/${id}/status`, data);
+  const res = await axios.put(`http://localhost:3000/api/purchase-orders/${id}/updatePOStatus`, data);
   return res.data;
 };

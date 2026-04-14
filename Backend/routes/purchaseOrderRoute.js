@@ -8,6 +8,6 @@ router.get('/purchase-orders/drafted-purchase-orders', draftedPurchaseOrders);
 router.get('/purchase-orders/approved-purchase-orders', approvedPurchaseOrders);
 router.get('/purchase-orders/:id', fetchPurchaseOrderById);
 router.post('/new-purchase-order', newPurchaseOrder);
-router.put('/purchase-orders/:id/status', updatePOStatus);
+router.put('/purchase-orders/:id/updatePOStatus', updatePOStatus);
 
 module.exports = router;

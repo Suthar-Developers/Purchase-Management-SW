@@ -100,7 +100,7 @@ const updateMaterialStatus = async (req, res) => {
     const { material_id, materialStatus } = req.body
 
     if (!material_id || !materialStatus) {
-        return res.status(400).json({ message: "material_id or status missing" })
+        return res.status(400).json({ message: "material_id or materialStatus missing" })
     }
 
     try {
@@ -147,4 +147,23 @@ const updateMaterialStatus = async (req, res) => {
     }
 }
 
-module.exports = { createPurchaseRequest, fetchPurchaseRequests, updateMaterialStatus };
+const updatePRStatus = async (req, res) => {
+    const { id } = req.params
+    const { requestStatus } = req.body
+
+    if (!id || !requestStatus) {
+        return res.status(400).json({ message: "request_id or requestStatus missing" })
+    }
+
+    try {
+        // Update the purchase_request status
+        await db.query(`UPDATE purchase_request SET requestStatus=? WHERE request_id=?`, [requestStatus, id]);
+
+        return res.status(200).json({ message: "Purchase request status updated successfully" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+}
+
+module.exports = { createPurchaseRequest, fetchPurchaseRequests, updateMaterialStatus, updatePRStatus };

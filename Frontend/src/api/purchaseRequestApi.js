@@ -29,3 +29,13 @@ export const updateMaterialStatus = async (material_id, materialStatus) => {
         throw error
     }
 }
+
+export const updatePRStatus = async (prId, statusData) => {
+    try {
+        const res = await axios.put(`http://localhost:3000/api/purchase-requests/${prId}/updatePRStatus`, statusData)
+        return res.data
+    } catch (error) {
+        console.error("Error updating purchase request status", error)
+        throw error
+    }
+}
