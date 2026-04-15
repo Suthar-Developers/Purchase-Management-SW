@@ -39,7 +39,7 @@ const createPurchaseRequest = async (req, res) => {
                     m.boqRef || null,
                     m.scope,
                     m.category,
-                    m.materialStatus || 'Pending']
+                    m.materialStatus || 'Requested']
             );
         }
 

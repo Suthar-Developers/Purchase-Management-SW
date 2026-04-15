@@ -49,7 +49,7 @@ const PurchaseRequestList = ({ onCreate }) => {
 
   return (
     <div className="w-full h-full bg-slate-200 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl h-full flex flex-col p-6">
+      <div className="bg-white rounded-2xl shadow-2xl h-[85%] flex flex-col p-6 overflow-auto">
 
         {/* Header */}
         <div className="px-6 flex justify-between items-center">
@@ -60,9 +60,9 @@ const PurchaseRequestList = ({ onCreate }) => {
         </div>
 
         {/* Table Card */}
-        <div className="flex-1 overflow-auto rounded-lg">
+        <div className="flex-1 rounded-lg">
 
-          <table className="w-full text-sm">
+          <table className="w-full overflow-auto text-sm">
 
             <thead className="bg-[#4b5ea3] text-white">
               <tr>
@@ -75,7 +75,7 @@ const PurchaseRequestList = ({ onCreate }) => {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="">
               {purchaseRequest.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="text-center p-6 text-gray-400">
