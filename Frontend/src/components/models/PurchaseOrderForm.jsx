@@ -434,11 +434,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                         {/* HEADER */}
                         <div className="border-b pb-3 mb-4">
-                            <h1 className="text-xl font-bold text-center">JRC INTERIORS</h1>
-                            <p className="text-center text-xs">
-                                Kanhaiya Industrial Estate, Vasai, Palghar - 401208
-                            </p>
-                            <p className="text-center text-xs">GSTIN: 27AAGFJ5194C1ZC</p>
+                            <div>
+                                <img className="w-full h-30" src="/Letter_Head_Logo.jpeg" alt="" />
+                            </div>
 
                             <h2 className="text-center font-bold text-lg mt-2">
                                 {form.po_status === "Revised" ? "PURCHASE ORDER (REVISED)" : "PURCHASE ORDER"}
@@ -628,7 +626,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             {editable ? (
                                                 <input
                                                     placeholder="Enter Unit"
-                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
                                                     value={m.unit}
                                                 />
@@ -641,7 +639,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             {editable ? (
                                                 <input
                                                     placeholder="Enter Quantity"
-                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
                                                     value={m.qty}
                                                 />
@@ -654,7 +652,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             {editable ? (
                                                 <input
                                                     placeholder="Enter Rate"
-                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
                                                     disabled={isReadOnly}
                                                     value={m.rate}
@@ -668,7 +666,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             {editable ? (
                                                 <input
                                                     placeholder="Enter Discount"
-                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
                                                     disabled={isReadOnly}
                                                     value={m.discount}
@@ -682,7 +680,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             {editable ? (
                                                 <input
                                                     placeholder="Enter GST"
-                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                     onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
                                                     disabled={isReadOnly}
                                                     value={m.gst}

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 #po-print-area {
-    min-width: 900px !important;
+    min-width: 950px !important;
     background-color: white !important;
     font-family: 'Arial', sans-serif;
 }
@@ -9,7 +9,6 @@
 #po-print-area table {
     width: 100% !important;
     border-collapse: collapse;
-    margin: 5px !important;
 }
 
 #po-print-area th,
