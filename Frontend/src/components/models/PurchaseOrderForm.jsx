@@ -358,6 +358,43 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         setMaterials(prev => prev.filter((_, i) => i !== index))
     }
 
+    const numberToWords = (num) => {
+        const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+        const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        const makeWords = (n) => {
+            if (n < 20) return a[n];
+            let digit = n % 10;
+            if (n < 100) return b[Math.floor(n / 10)] + (digit !== 0 ? " " + a[digit] : "");
+            if (n < 1000) return a[Math.floor(n / 100)] + "Hundred " + (n % 100 !== 0 ? "and " + makeWords(n % 100) : "");
+            return "";
+        };
+
+        let n = Math.floor(num);
+        if (n === 0) return "Zero";
+
+        let str = "";
+        // Crores
+        if (Math.floor(n / 10000000) > 0) {
+            str += makeWords(Math.floor(n / 10000000)) + "Crore ";
+            n %= 10000000;
+        }
+        // Lakhs
+        if (Math.floor(n / 100000) > 0) {
+            str += makeWords(Math.floor(n / 100000)) + "Lakh ";
+            n %= 100000;
+        }
+        // Thousands
+        if (Math.floor(n / 1000) > 0) {
+            str += makeWords(Math.floor(n / 1000)) + "Thousand ";
+            n %= 1000;
+        }
+        // Remaining
+        str += makeWords(n);
+
+        return str.trim() + " Rupees Only";
+    };
+
     // ... Download PO PDF ...
     const handleDownloadPDF = async () => {
         const element = pdfRef.current;
@@ -430,12 +467,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 <form onSubmit={handleSubmit}>
 
                     {/* PDF AREA */}
-                    <div ref={pdfRef} style={{ width: '800px', margin: '0 auto', backgroundColor: 'white' }} id="po-print-area" className="py-6 bg-white text-sm border">
+                    <div ref={pdfRef} style={{ width: '800px', margin: '0 auto', backgroundColor: 'white' }} id="po-print-area" className="py-6 bg-white text-sm">
 
                         {/* HEADER */}
-                        <div className="border-b pb-3 mb-4">
+                        <div className="pb-3">
                             <div>
-                                <img className="w-full h-30" src="/Letter_Head_Logo.jpeg" alt="" />
+                                <img className="w-[95%] h-30 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
                             </div>
 
                             <h2 className="text-center font-bold text-lg mt-2">
@@ -443,534 +480,546 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             </h2>
                         </div>
 
-                        {/* TOP INFO */}
-                        <div className="grid grid-cols-2 text-xs">
+                        <div className="border mx-5">
 
-                            <div className="flex flex-col border-t">
-                                <div>
-                                    <label className="text-sm text-gray-500 px-2">To</label>
-                                    {editable ? (
-                                        <select
-                                            name="vendor_id"
-                                            className="input-line text-red-500 font-bold"
-                                            onChange={handleFormChange}
-                                            value={form.vendor_id || ""}
-                                        >
-                                            <option value="" disabled>Select Vendor</option>
-                                            {vendorList.map((v) => (
-                                                <option key={v.vendor_id} value={v.vendor_id}>
-                                                    {v.vendorName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <p className="font-bold text-gray-800 px-2 pb-2 border-b">
-                                            {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
-                                        </p>
-                                    )}
-                                </div>
+                            {/* TOP INFO */}
+                            <div className="grid grid-cols-2 text-xs">
 
-                                <div className="p-2">
-                                    <p>
-                                        {vendorList.find(
-                                            (v) => v.vendor_id === Number(form.vendor_id || "")
-                                        )?.location || "N/A"
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex border-t border-l">
-
-                                <div className="w-[50%] border-r">
-                                    <div className="border-b">
-                                        <p className="font-bold p-1 border-b border-b-gray-400">Purchase Order Number :</p>
-                                        <p className="p-1">{form.po_number}</p>
-                                    </div>
-
-                                    <div className="border-b p-1">
-                                        <p className="text-ms font-bold">Contact Person</p>
-                                    </div>
-
-                                    <div className="p-1">
-                                        <p className="text-ms font-bold">Contact Person Number</p>
-                                    </div>
-                                </div>
-
-                                <div className="w-[50%]">
-                                    <div className="flex border-b">
-                                        <p className="w-[50%] border-r p-1 font-bold">Dated :</p>
-                                        <p className="w-[50%] p-1">{new Date().toLocaleDateString()}</p>
-                                    </div>
-
-                                    <div className="flex border-b">
-                                        <p className="w-[50%] border-r p-1 font-bold">Order Placed By :</p>
-                                        <p className="w-[50%] p-1">Shyam</p>
-                                    </div>
-
-                                    <div className="border-b p-1">
-                                        <p>{projectData?.contactPersonName || "N/A"}</p>
-                                    </div>
-
-                                    <div className="p-1">
-                                        <p>{projectData?.contactPersonNumber || "N/A"}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ADDRESS */}
-                        <div className="grid grid-cols-2 text-xs">
-
-                            <div className="flex flex-col pt-2 border-t">
-                                <div className="border-b">
-                                    <p className="font-bold px-2">Billing Address :</p>
-                                    <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
-                                </div>
-
-                                <div className="flex border-b">
-                                    <p className="border-r w-[20%] font-bold pl-2 py-1">PH :</p>
-                                    <p className="w-[80%] pl-5 py-1"></p>
-                                </div>
-
-                                <div className="flex border-b">
-                                    <p className="border-r w-[20%] font-bold pl-2 py-1">GSTIN/UIN :</p>
-                                    <p className="w-[80%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
-                                </div>
-
-                                <div className="flex">
-                                    <p className="border-r w-[20%] font-bold pl-2 py-2.5">Email :</p>
-                                    <p className="w-[80%] pl-5 py-1"></p>
-                                </div>
-
-                            </div>
-
-                            <div className="flex flex-col gap-2 pt-2 border-t border-l">
-
-                                <div className="border-b pb-16.5">
-                                    <p className="font-bold px-2">Delivery Address</p>
-                                    <p className="px-2">
-                                        {projectData?.address || "N/A"}
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center gap-3">
-                                    <p className="text-sm font-bold p-1">Project :</p>
+                                <div className="flex flex-col">
                                     <div>
-                                        {(isReadOnly || selectedRequest) ? (
-                                            <p className="font-bold text-gray-800">
-                                                {projectData?.projectName || 'N/A'}
-                                            </p>
-                                        ) : (
+                                        <label className="text-sm text-gray-500 px-2">To</label>
+                                        {editable ? (
                                             <select
-                                                name="project_id"
-                                                className="w-3/2 outline-none text-red-500 font-bold"
+                                                name="vendor_id"
+                                                className="input-line text-red-500 font-bold"
                                                 onChange={handleFormChange}
-                                                value={form.project_id || ""}
+                                                value={form.vendor_id || ""}
                                             >
-                                                <option value="" disabled>Select Project</option>
-                                                {projectList.map((p) => (
-                                                    <option key={p.project_id} value={p.project_id}>
-                                                        {p.projectName}
+                                                <option value="" disabled>Select Vendor</option>
+                                                {vendorList.map((v) => (
+                                                    <option key={v.vendor_id} value={v.vendor_id}>
+                                                        {v.vendorName}
                                                     </option>
                                                 ))}
                                             </select>
+                                        ) : (
+                                            <p className="font-bold text-gray-800 px-2 pb-2 border-b">
+                                                {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
+                                            </p>
                                         )}
+                                    </div>
+
+                                    <div className="p-2">
+                                        <p>
+                                            {vendorList.find(
+                                                (v) => v.vendor_id === Number(form.vendor_id || "")
+                                            )?.location || "N/A"
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex border-l">
+
+                                    <div className="w-[50%] border-r">
+                                        <div className="border-b">
+                                            <p className="font-bold p-1 border-b border-b-gray-400">Purchase Order Number :</p>
+                                            <p className="p-1">{form.po_number}</p>
+                                        </div>
+
+                                        <div className="border-b p-1">
+                                            <p className="text-ms font-bold">Contact Person</p>
+                                        </div>
+
+                                        <div className="p-1">
+                                            <p className="text-ms font-bold">Contact Person Number</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-[50%]">
+                                        <div className="flex border-b">
+                                            <p className="w-[50%] border-r p-1 font-bold">Dated :</p>
+                                            <p className="w-[50%] p-1">{new Date().toLocaleDateString()}</p>
+                                        </div>
+
+                                        <div className="flex border-b">
+                                            <p className="w-[50%] border-r p-1 font-bold">Order Placed By :</p>
+                                            <p className="w-[50%] p-1">Shyam</p>
+                                        </div>
+
+                                        <div className="border-b p-1">
+                                            <p>{projectData?.contactPersonName || "N/A"}</p>
+                                        </div>
+
+                                        <div className="p-1">
+                                            <p>{projectData?.contactPersonNumber || "N/A"}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* TABLE */}
-                        <table className="w-full border-y text-sm">
-                            <thead>
-                                <tr className="bg-gray-200">
-                                    <th className="border-y p-2">S.No</th>
-                                    <th className="border p-2">Description</th>
-                                    <th className="border p-2">Unit</th>
-                                    <th className="border p-2">Qty</th>
-                                    <th className="border p-2">Rate</th>
-                                    <th className="border p-2">Disc %</th>
-                                    <th className="border p-2">GST %</th>
-                                    <th className="border p-2">Amount</th>
+                            {/* ADDRESS */}
+                            <div className="grid grid-cols-2 text-xs">
 
-                                    {!selectedRequest && !isReadOnly && (
-                                        <th className="flex justify-center p-5 items-center">
-                                            <i className="fa-solid fa-ellipsis"></i>
-                                        </th>
-                                    )}
+                                <div className="flex flex-col pt-2 border-t">
+                                    <div className="border-b">
+                                        <p className="font-bold px-2">Billing Address :</p>
+                                        <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
+                                    </div>
 
-                                </tr>
-                            </thead>
+                                    <div className="flex border-b">
+                                        <p className="border-r w-[20%] font-bold pl-2 py-1">PH :</p>
+                                        <p className="w-[80%] pl-5 py-1"></p>
+                                    </div>
 
-                            <tbody>
-                                {materials.map((m, i) => (
-                                    <tr key={i} className="border border-b-gray-300 border-x-gray-100">
+                                    <div className="flex border-b">
+                                        <p className="border-r w-[20%] font-bold pl-2 py-1">GSTIN/UIN :</p>
+                                        <p className="w-[80%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
+                                    </div>
 
-                                        <td className="py-3 w-[5%] text-center">{i + 1}</td>
+                                    <div className="flex">
+                                        <p className="border-r w-[20%] font-bold pl-2 py-2.5">Email :</p>
+                                        <p className="w-[80%] pl-5 py-1"></p>
+                                    </div>
 
-                                        <td className="py-3 w-[45%] text-center">
-                                            {editable ? (
-                                                <input
-                                                    placeholder="Enter Material"
-                                                    className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                    onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
-                                                    value={m.material}
-                                                />
+                                </div>
+
+                                <div className="flex flex-col gap-2 pt-2 border-t border-l">
+
+                                    <div className="border-b pb-16.5">
+                                        <p className="font-bold px-2">Delivery Address</p>
+                                        <p className="px-2">
+                                            {projectData?.address || "N/A"}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <p className="text-sm font-bold p-1">Project :</p>
+                                        <div>
+                                            {(isReadOnly || selectedRequest) ? (
+                                                <p className="font-bold text-gray-800">
+                                                    {projectData?.projectName || 'N/A'}
+                                                </p>
                                             ) : (
-                                                <span>{m.material}</span>
-                                            )}
-                                        </td>
-
-                                        <td className="py-3 w-[8.33%] text-center">
-                                            {editable ? (
-                                                <input
-                                                    placeholder="Enter Unit"
-                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                    onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
-                                                    value={m.unit}
-                                                />
-                                            ) : (
-                                                <span>{m.unit}</span>
-                                            )}
-                                        </td>
-
-                                        <td className="py-3 w-[8.33%] text-center">
-                                            {editable ? (
-                                                <input
-                                                    placeholder="Enter Quantity"
-                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                    onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
-                                                    value={m.qty}
-                                                />
-                                            ) : (
-                                                <span>{m.qty}</span>
-                                            )}
-                                        </td>
-
-                                        <td className="py-3 w-[8.33%] text-center">
-                                            {editable ? (
-                                                <input
-                                                    placeholder="Enter Rate"
-                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                    onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
-                                                    disabled={isReadOnly}
-                                                    value={m.rate}
-                                                />
-                                            ) : (
-                                                <span>{m.rate}</span>
-                                            )}
-                                        </td>
-
-                                        <td className="py-3 w-[8.33%] text-center">
-                                            {editable ? (
-                                                <input
-                                                    placeholder="Enter Discount"
-                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                    onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
-                                                    disabled={isReadOnly}
-                                                    value={m.discount}
-                                                />
-                                            ) : (
-                                                <span>{m.discount}</span>
-                                            )}
-                                        </td>
-
-                                        <td className="py-3 w-[8.33%] text-center">
-                                            {editable ? (
-                                                <input
-                                                    placeholder="Enter GST"
-                                                    className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                    onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
-                                                    disabled={isReadOnly}
-                                                    value={m.gst}
-                                                />
-                                            ) : (
-                                                <span>{m.gst}</span>
-                                            )}
-                                        </td>
-
-                                        <td className="py-3 w-[8.33%] text-center">₹ {(Number(m.total) || 0).toFixed(2)}</td>
-
-                                        {!selectedRequest && !isReadOnly && (
-                                            <td className="flex justify-center py-5 items-center">
-                                                <button
-                                                    onClick={() => handleDeleteRow(i)}
-                                                    className="text-red-600 rounded-lg"
+                                                <select
+                                                    name="project_id"
+                                                    className="w-3/2 outline-none text-red-500 font-bold"
+                                                    onChange={handleFormChange}
+                                                    value={form.project_id || ""}
                                                 >
-                                                    <i className="fa-solid fa-xmark fa-2xl"></i>
-                                                </button>
-                                            </td>
-                                        )}
-
-                                    </tr>
-                                ))}
-                            </tbody>
-
-                        </table>
-
-                        <div className="flex justify-between mt-4 text-xs">
-                            <div className="flex w-full justify-around">
-                                {!selectedRequest && !isReadOnly && (
-                                    <div className="flex justify-center items-center w-full">
-                                        <button
-                                            type="button"
-                                            onClick={handleAddRow}
-                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                                        >
-                                            + Add New Row
-                                        </button>
+                                                    <option value="" disabled>Select Project</option>
+                                                    {projectList.map((p) => (
+                                                        <option key={p.project_id} value={p.project_id}>
+                                                            {p.projectName}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
                                     </div>
-                                )}
-
-
+                                </div>
                             </div>
 
-                            {/* TOTAL */}
-
-                            <div className="w-72 space-y-2 pr-5 text-xs">
-
-                                {!extraCharge && !isReadOnly && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setOpenExtraChargeModel(true)}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
-                                    >
-                                        + Add Other Charge
-                                    </button>
-                                )}
-
-                                {/* EXTRA CHARGE DISPLAY */}
-                                <div className="flex justify-between mt-3">
-                                    <span>Total Amount</span>
-                                    <span>₹ {totals.amount.toFixed(2)}</span>
-                                </div>
-
-                                <div className="flex justify-between">
-                                    <span>Total Discount</span>
-                                    <span>- ₹ {totals.discount.toFixed(2)}</span>
-                                </div>
-
-                                <div className="flex justify-between">
-                                    <span>Subtotal</span>
-                                    <span>₹ {subtotal.toFixed(2)}</span>
-                                </div>
-
-                                {extraCharge && (
-                                    <div className="flex justify-between">
-                                        <span>{extraCharge.category}</span>
-                                        <span>₹ {extraBase.toFixed(2)}</span>
-                                    </div>
-                                )}
-
-                                <div className="flex justify-between">
-                                    <span>Taxable Amount</span>
-                                    <span>₹ {taxableAmount.toFixed(2)}</span>
-                                </div>
-
-                                <div className="flex justify-between">
-                                    <span>CGST</span>
-                                    <span>₹ {(totalGst / 2).toFixed(2)}</span>
-                                </div>
-
-                                <div className="flex justify-between">
-                                    <span>SGST</span>
-                                    <span>₹ {(totalGst / 2).toFixed(2)}</span>
-                                </div>
-
-                                <div className="flex justify-between font-bold border-t pt-2 text-sm">
-                                    <span>Total</span>
-                                    <span>₹ {grandTotal}</span>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        {/* AMOUNT IN WORDS */}
-                        <div className="mt-4 text-xs px-3">
-                            <p><b>Amount in Words:</b> {grandTotal} Rupees Only</p>
-                        </div>
-
-                        <div className="mt-4 text-xs border-t pt-3">
-
-                            <p className="font-bold mb-2 px-3">Taxable Value Breakdown:</p>
-
-                            <table className="w-full text-center text-xs">
+                            {/* TABLE */}
+                            <table className="w-full text-sm">
                                 <thead>
                                     <tr className="bg-gray-200">
-                                        <th className="border-y p-1">Taxable Value</th>
-                                        <th className="border p-1">CGST %</th>
-                                        <th className="border p-1">CGST Amt</th>
-                                        <th className="border p-1">SGST %</th>
-                                        <th className="border p-1">SGST Amt</th>
-                                        <th className="border-y p-1">Total GST</th>
+                                        <th className="border p-2">S.No</th>
+                                        <th className="border p-2">Description</th>
+                                        <th className="border p-2">Unit</th>
+                                        <th className="border p-2">Qty</th>
+                                        <th className="border p-2">Rate</th>
+                                        <th className="border p-2">Disc %</th>
+                                        <th className="border p-2">GST %</th>
+                                        <th className="border p-2">Amount</th>
+
+                                        {!selectedRequest && !isReadOnly && (
+                                            <th className="flex justify-center p-5 items-center">
+                                                <i className="fa-solid fa-ellipsis"></i>
+                                            </th>
+                                        )}
+
                                     </tr>
                                 </thead>
 
                                 <tbody>
-                                    {Object.entries(totals.gstGroups).map(([gst, val], i) => {
-                                        const cgstRate = Number(gst) / 2
-                                        const sgstRate = Number(gst) / 2
+                                    {materials.map((m, i) => (
+                                        <tr key={i} className="border border-b-gray-300 border-r-gray-100">
 
-                                        const cgstAmt = val.gstAmount / 2
-                                        const sgstAmt = val.gstAmount / 2
+                                            <td className="py-3 w-[5%] text-center">{i + 1}</td>
 
-                                        return (
-                                            <tr key={i}>
-                                                <td className="border-y p-1">
-                                                    ₹ {val.taxable.toFixed(2)}
+                                            <td className="py-3 w-[46.3%] text-center">
+                                                {editable ? (
+                                                    <input
+                                                        placeholder="Enter Material"
+                                                        className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                        onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
+                                                        value={m.material}
+                                                    />
+                                                ) : (
+                                                    <span>{m.material}</span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-3 w-[8.33%] text-center">
+                                                {editable ? (
+                                                    <input
+                                                        placeholder="Enter Unit"
+                                                        className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                        onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
+                                                        value={m.unit}
+                                                    />
+                                                ) : (
+                                                    <span>{m.unit}</span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-3 w-[8.33%] text-center">
+                                                {editable ? (
+                                                    <input
+                                                        placeholder="Enter Quantity"
+                                                        className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                        onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
+                                                        value={m.qty}
+                                                    />
+                                                ) : (
+                                                    <span>{m.qty}</span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-3 w-[8.33%] text-center">
+                                                {editable ? (
+                                                    <input
+                                                        placeholder="Enter Rate"
+                                                        className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                        onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
+                                                        disabled={isReadOnly}
+                                                        value={m.rate}
+                                                    />
+                                                ) : (
+                                                    <span>{m.rate}</span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-3 w-[8.33%] text-center">
+                                                {editable ? (
+                                                    <input
+                                                        placeholder="Enter Discount"
+                                                        className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                        onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
+                                                        disabled={isReadOnly}
+                                                        value={m.discount}
+                                                    />
+                                                ) : (
+                                                    <span>{m.discount}</span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-3 w-[8.33%] text-center">
+                                                {editable ? (
+                                                    <input
+                                                        placeholder="Enter GST"
+                                                        className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                        onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
+                                                        disabled={isReadOnly}
+                                                        value={m.gst}
+                                                    />
+                                                ) : (
+                                                    <span>{m.gst}</span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-3 w-[8.33%] text-center">₹ {(Number(m.total) || 0).toFixed(2)}</td>
+
+                                            {!selectedRequest && !isReadOnly && (
+                                                <td className="flex justify-center py-5 items-center">
+                                                    <button
+                                                        onClick={() => handleDeleteRow(i)}
+                                                        className="text-red-600 rounded-lg"
+                                                    >
+                                                        <i className="fa-solid fa-xmark fa-2xl"></i>
+                                                    </button>
                                                 </td>
+                                            )}
 
-                                                <td className="border p-1">
-                                                    {cgstRate}%
-                                                </td>
-
-                                                <td className="border p-1">
-                                                    ₹ {cgstAmt.toFixed(2)}
-                                                </td>
-
-                                                <td className="border p-1">
-                                                    {sgstRate}%
-                                                </td>
-
-                                                <td className="border p-1">
-                                                    ₹ {sgstAmt.toFixed(2)}
-                                                </td>
-
-                                                <td className="border-y p-1">
-                                                    ₹ {val.gstAmount.toFixed(2)}
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
+                                        </tr>
+                                    ))}
                                 </tbody>
 
-                                <tfoot>
-                                    <tr className="font-bold bg-gray-100">
-                                        <td className="border-y p-1">
-                                            ₹ {taxableAmount.toFixed(2)}
-                                        </td>
-                                        <td className="border p-1">—</td>
-                                        <td className="border p-1">
-                                            ₹ {(totalGst / 2).toFixed(2)}
-                                        </td>
-                                        <td className="border p-1">—</td>
-                                        <td className="border p-1">
-                                            ₹ {(totalGst / 2).toFixed(2)}
-                                        </td>
-                                        <td className="border-y p-1">
-                                            ₹ {totalGst}
-                                        </td>
-                                    </tr>
-                                </tfoot>
-
                             </table>
-                        </div>
 
-                        {/* TERMS */}
-                        <div className="mt-4 px-3 text-xs">
-                            <p className="font-bold">Terms of Delivery:</p>
-                            <ul className="list-decimal ml-5">
-                                <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
-                                <li>Please deliver above material at above given site address asap.</li>
-                                <li>Kindly mention proper site name and address in your challan.</li>
-                                <li>E-way Bill Applicable.</li>
-                            </ul>
-                        </div>
+                            <div className="flex justify-between mt-4 text-xs">
+                                <div className="flex w-full justify-around">
+                                    {!selectedRequest && !isReadOnly && (
+                                        <div className="flex justify-center items-center w-full">
+                                            <button
+                                                type="button"
+                                                onClick={handleAddRow}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                                            >
+                                                + Add New Row
+                                            </button>
+                                        </div>
+                                    )}
 
-                        {/* SIGNATURE */}
-                        <div className="grid grid-cols-3 mt-8 text-xs text-center">
-                            <div>
-                                <p>Prepared By</p>
-                                <p className="mt-6">____________________</p>
+
+                                </div>
+
+                                {/* TOTAL */}
+
+                                <div className="w-72 space-y-2 pr-5 text-xs">
+
+                                    {!extraCharge && !isReadOnly && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpenExtraChargeModel(true)}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
+                                        >
+                                            + Add Other Charge
+                                        </button>
+                                    )}
+
+                                    {/* EXTRA CHARGE DISPLAY */}
+                                    <div className="flex justify-between mt-3">
+                                        <span>Total Amount</span>
+                                        <span>₹ {totals.amount.toFixed(2)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between">
+                                        <span>Total Discount</span>
+                                        <span>- ₹ {totals.discount.toFixed(2)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between">
+                                        <span>Subtotal</span>
+                                        <span>₹ {subtotal.toFixed(2)}</span>
+                                    </div>
+
+                                    {extraCharge && (
+                                        <div className="flex justify-between">
+                                            <span>{extraCharge.category}</span>
+                                            <span>₹ {extraBase.toFixed(2)}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between">
+                                        <span>Taxable Amount</span>
+                                        <span>₹ {taxableAmount.toFixed(2)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between">
+                                        <span>CGST</span>
+                                        <span>₹ {(totalGst / 2).toFixed(2)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between">
+                                        <span>SGST</span>
+                                        <span>₹ {(totalGst / 2).toFixed(2)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between font-bold border-t pt-2 text-sm">
+                                        <span>Total</span>
+                                        <span>₹ {grandTotal}</span>
+                                    </div>
+
+                                </div>
                             </div>
 
-                            <div>
-                                <p>Checked By</p>
-                                <p className="mt-6">____________________</p>
+                            {/* AMOUNT IN WORDS */}
+                            <div className="mt-4 text-xs px-3">
+                                <p>Chargeable Amount in Words :</p>
+                                <p><b>{numberToWords(grandTotal)}</b></p>
                             </div>
 
-                            <div>
-                                <p>Approved By</p>
-                                <p className="mt-6">____________________</p>
+                            <div className="mt-4 text-xs border-t pt-3">
+
+                                <p className="font-bold mb-2 px-3">Taxable Value Breakdown:</p>
+
+                                <table className="w-full text-center text-xs">
+                                    <thead>
+                                        <tr className="bg-gray-200">
+                                            <th className="border-y p-1">Taxable Value</th>
+                                            <th className="border p-1">CGST %</th>
+                                            <th className="border p-1">CGST Amt</th>
+                                            <th className="border p-1">SGST %</th>
+                                            <th className="border p-1">SGST Amt</th>
+                                            <th className="border-y p-1">Total GST</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {Object.entries(totals.gstGroups).map(([gst, val], i) => {
+                                            const cgstRate = Number(gst) / 2
+                                            const sgstRate = Number(gst) / 2
+
+                                            const cgstAmt = val.gstAmount / 2
+                                            const sgstAmt = val.gstAmount / 2
+
+                                            return (
+                                                <tr key={i}>
+                                                    <td className="border-y p-1">
+                                                        ₹ {val.taxable.toFixed(2)}
+                                                    </td>
+
+                                                    <td className="border p-1">
+                                                        {cgstRate}%
+                                                    </td>
+
+                                                    <td className="border p-1">
+                                                        ₹ {cgstAmt.toFixed(2)}
+                                                    </td>
+
+                                                    <td className="border p-1">
+                                                        {sgstRate}%
+                                                    </td>
+
+                                                    <td className="border p-1">
+                                                        ₹ {sgstAmt.toFixed(2)}
+                                                    </td>
+
+                                                    <td className="border-y p-1">
+                                                        ₹ {val.gstAmount.toFixed(2)}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+
+                                    <tfoot>
+                                        <tr className="font-bold bg-gray-100">
+                                            <td className="border-y p-1">
+                                                ₹ {taxableAmount.toFixed(2)}
+                                            </td>
+                                            <td className="border p-1">—</td>
+                                            <td className="border p-1">
+                                                ₹ {(totalGst / 2).toFixed(2)}
+                                            </td>
+                                            <td className="border p-1">—</td>
+                                            <td className="border p-1">
+                                                ₹ {(totalGst / 2).toFixed(2)}
+                                            </td>
+                                            <td className="border-y p-1">
+                                                ₹ {totalGst}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+
+                                </table>
                             </div>
+
+                            {/* TERMS */}
+                            <div className="my-4 px-3 font-bold text-blue-900">
+                                <h3>NOTE : REQUIRED MTC REPORT</h3>
+                            </div>
+
+                            <div className="px-3 text-xs">
+                                <p className="font-bold">Terms of Delivery:</p>
+                                <ul className="list-decimal ml-5">
+                                    <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
+                                    <li>Please deliver above material at above given site address asap.</li>
+                                    <li>Kindly mention proper site name and address in your challan.</li>
+                                    <li>E-way Bill Applicable.</li>
+                                </ul>
+                            </div>
+
+                            {/* SIGNATURE */}
+                            <div className="grid grid-cols-3 mt-8 pb-10 text-xs text-center">
+                                <div>
+                                    <p>Prepared By</p>
+                                    <p className="mt-6">____________________</p>
+                                </div>
+
+                                <div>
+                                    <p>Checked By</p>
+                                    <p className="mt-6">____________________</p>
+                                </div>
+
+                                <div>
+                                    <p>Approved By</p>
+                                    <p className="mt-6">____________________</p>
+                                </div>
+                            </div>
+
+                            <div className="text-center border-t">
+                                <p>This is a Computer Generated Purchase Order</p>
+                            </div>
+
                         </div>
 
 
-                    </div>
-
-
-                    {/* ACTIONS */}
-                    <div className="flex justify-end gap-3 mt-4 no-print">
-                        {mode === "view" && !isEditing && (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={handleDownloadPDF}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-                                    disabled={loading}
-                                >
-                                    <i className="fa-solid fa-download"></i>
-                                    {loading ? "Generating..." : "Download PDF"}
-                                </button>
-
-                                {form.po_status === "Approved" && (
-                                    <button type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
-                                        Revise PO
+                        {/* ACTIONS */}
+                        <div className="flex justify-end gap-3 mt-4 no-print">
+                            {mode === "view" && !isEditing && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleDownloadPDF}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        <i className="fa-solid fa-download"></i>
+                                        {loading ? "Generating..." : "Download PDF"}
                                     </button>
-                                )}
-                            </>
-                        )}
 
-                        {(mode === "create" || isEditing) ? (
-                            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">
-                                {isEditing ? "Save Revision" : "Create PO"}
+                                    {form.po_status === "Approved" && (
+                                        <button type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
+                                            Revise PO
+                                        </button>
+                                    )}
+                                </>
+                            )}
+
+                            {(mode === "create" || isEditing) ? (
+                                <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">
+                                    {isEditing ? "Save Revision" : "Create PO"}
+                                </button>
+                            ) : (
+                                <>
+                                    {form.po_status !== "Approved" && form.po_status !== "Revised" && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => handlePOStatusUpdate("Approved")}
+                                                className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                                                disabled={loading || form.po_status === "Approved"}
+                                            >
+                                                Approve
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handlePOStatusUpdate("Rejected")}
+                                                className="bg-red-600 text-white px-4 py-2 rounded-lg"
+                                                disabled={loading || form.po_status === "Rejected"}
+                                            >
+                                                Reject
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handlePOStatusUpdate("Hold")}
+                                                className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                                                disabled={loading || form.po_status === "Hold"}
+                                            >
+                                                Hold
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="bg-gray-300 px-4 py-2 rounded-lg"
+                            >
+                                Close
                             </button>
-                        ) : (
-                            <>
-                                {form.po_status !== "Approved" && form.po_status !== "Revised" && (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePOStatusUpdate("Approved")}
-                                            className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                                            disabled={loading || form.po_status === "Approved"}
-                                        >
-                                            Approve
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePOStatusUpdate("Rejected")}
-                                            className="bg-red-600 text-white px-4 py-2 rounded-lg"
-                                            disabled={loading || form.po_status === "Rejected"}
-                                        >
-                                            Reject
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePOStatusUpdate("Hold")}
-                                            className="bg-yellow-600 text-white px-4 py-2 rounded-lg"
-                                            disabled={loading || form.po_status === "Hold"}
-                                        >
-                                            Hold
-                                        </button>
-                                    </>
-                                )}
-                            </>
-                        )}
 
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="bg-gray-300 px-4 py-2 rounded-lg"
-                        >
-                            Close
-                        </button>
+                        </div>
                     </div>
 
                 </form>
 
-            </div>
+            </div >
 
             {openExtraChargeModel && (
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
