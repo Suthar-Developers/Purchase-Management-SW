@@ -413,52 +413,51 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         setLoading(true);
 
-        // 1. Setup PDF in A4 Portrait mode
-        const pdf = new jsPDF('p', 'mm', 'a4');
-
-        // 2. Select all individual "Page" divs created by your chunkArray map
-        // We target the divs that have the white background and border
-        const pages = element.querySelectorAll('#po-print-area > div');
-
         try {
+            // Initialize A4 PDF
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            // Select all the page divs (mapped by chunkArray)
+            const pages = element.querySelectorAll('#po-print-area > div');
+
             for (let i = 0; i < pages.length; i++) {
                 const page = pages[i];
 
-                // Hide interactive elements inside the specific page loop
+                // Hide UI elements in the clone/render
                 const hidden = page.querySelectorAll('.no-print, button, i, select');
                 hidden.forEach(el => el.style.display = 'none');
 
-                // 3. Capture current page
+                // 1. Capture current page at Scale 2 (Sharp but safe)
                 const canvas = await html2canvas(page, {
-                    scale: 3, // High resolution for text clarity
+                    scale: 2,
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     logging: false,
                 });
 
-                const imgData = canvas.toDataURL('image/png');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
+                // 2. Convert to JPEG (More stable for jsPDF than PNG)
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
 
-                // 4. Add to PDF
+                // 3. Add to PDF
                 if (i > 0) pdf.addPage();
 
-                // Add image covering the full A4 area
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                // Fill the full A4 page
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
-                // Restore hidden elements for the UI
+                // Restore hidden elements
                 hidden.forEach(el => el.style.display = '');
             }
 
-            // 5. Finalize
+            // 4. Save
             pdf.save(`PO_${form.po_number.replace(/\//g, '-')}.pdf`);
 
         } catch (error) {
             console.error('PDF generation failed:', error);
-            alert('Failed to generate professional PDF.');
+            alert('Error: Data overflow. Try reducing the number of rows per page.');
         } finally {
             setLoading(false);
-            onClose(); // Optional: Close modal after download
         }
     };
 
@@ -478,18 +477,16 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     {/* PDF AREA */}
                     <div ref={pdfRef} id="po-print-area" className="py-6 bg-white text-sm">
 
-                        {chunkArray(materials, 10).map((materialChunk, pageIndex, allPages) => (
+                        {chunkArray(materials, 17).map((materialChunk, pageIndex, allPages) => (
                             <div
                                 key={pageIndex}
                                 className="bg-white mb-10 shadow-lg p-8 mx-auto border border-black"
-                                style={{ width: '794px', minHeight: '1120px', position: 'relative' }}>
-
-
+                                style={{ width: '1000px', minHeight: '1120px', position: 'relative' }}>
 
                                 {/* HEADER */}
                                 <div className="pb-3">
                                     <div>
-                                        <img className="w-[95%] h-30 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
+                                        <img className="w-[95%] h-18 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
                                     </div>
 
                                     <h2 className="text-center font-bold text-lg mt-2">
@@ -499,12 +496,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                 <div className="border mx-5">
 
-                                    {/* TOP INFO */}
-                                    <div className="grid grid-cols-2 text-xs">
-
-                                        <div className="flex flex-col">
+                                    <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
+                                        <div className="col-span-4 border-r border-b pl-1">
                                             <div>
-                                                <label className="text-sm text-gray-500 px-2">To</label>
+                                                <label className="text-sm text-gray-500">To</label>
                                                 {editable ? (
                                                     <select
                                                         name="vendor_id"
@@ -520,13 +515,30 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         ))}
                                                     </select>
                                                 ) : (
-                                                    <p className="font-bold text-gray-800 px-2 pb-2 border-b">
+                                                    <p className="font-bold text-gray-800 px-2">
                                                         {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
                                                     </p>
                                                 )}
                                             </div>
+                                        </div>
 
-                                            <div className="p-2">
+                                        <div className="col-span-2 col-start-5 border-b flex flex-col justify-evenly">
+                                            <p className="pl-1 font-bold border-b border-b-gray-400">Purchase Order Number :</p>
+                                            <p className="pl-1">{form.po_number}</p>
+                                        </div>
+
+                                        <div className="col-start-7 border-b border-x flex flex-col justify-evenly">
+                                            <p className="pl-1 font-bold border-b border-b-gray-400">Dated :</p>
+                                            <p className="pl-1 font-bold">Order Placed By :</p>
+                                        </div>
+
+                                        <div className="col-start-8 border-b flex flex-col justify-evenly">
+                                            <p className="pl-1 border-b border-b-gray-400">{new Date().toLocaleDateString()}</p>
+                                            <p className="pl-1">Shyam</p>
+                                        </div>
+
+                                        <div className="col-span-4 row-start-2 border-r">
+                                            <div className="m-1">
                                                 <p>
                                                     {vendorList.find(
                                                         (v) => v.vendor_id === Number(form.vendor_id || "")
@@ -536,82 +548,45 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             </div>
                                         </div>
 
-                                        <div className="flex border-l">
-
-                                            <div className="w-[50%] border-r">
-                                                <div className="border-b">
-                                                    <p className="font-bold p-1 border-b border-b-gray-400">Purchase Order Number :</p>
-                                                    <p className="p-1">{form.po_number}</p>
-                                                </div>
-
-                                                <div className="border-b p-1">
-                                                    <p className="text-ms font-bold">Contact Person</p>
-                                                </div>
-
-                                                <div className="p-1">
-                                                    <p className="text-ms font-bold">Contact Person Number</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="w-[50%]">
-                                                <div className="flex border-b">
-                                                    <p className="w-[50%] border-r p-1 font-bold">Dated :</p>
-                                                    <p className="w-[50%] p-1">{new Date().toLocaleDateString()}</p>
-                                                </div>
-
-                                                <div className="flex border-b">
-                                                    <p className="w-[50%] border-r p-1 font-bold">Order Placed By :</p>
-                                                    <p className="w-[50%] p-1">Shyam</p>
-                                                </div>
-
-                                                <div className="border-b p-1">
-                                                    <p>{projectData?.contactPersonName || "N/A"}</p>
-                                                </div>
-
-                                                <div className="p-1">
-                                                    <p>{projectData?.contactPersonNumber || "N/A"}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ADDRESS */}
-                                    <div className="grid grid-cols-2 text-xs">
-
-                                        <div className="flex flex-col pt-2 border-t">
-                                            <div className="border-b">
-                                                <p className="font-bold px-2">Billing Address :</p>
-                                                <p className="p-2">JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
-                                            </div>
-
-                                            <div className="flex border-b">
-                                                <p className="border-r w-[20%] font-bold pl-2 py-1">PH :</p>
-                                                <p className="w-[80%] pl-5 py-1"></p>
-                                            </div>
-
-                                            <div className="flex border-b">
-                                                <p className="border-r w-[20%] font-bold pl-2 py-1">GSTIN/UIN :</p>
-                                                <p className="w-[80%] pl-5 py-1 ">27AAGFJ5194C1ZC</p>
-                                            </div>
-
-                                            <div className="flex">
-                                                <p className="border-r w-[20%] font-bold pl-2 py-2.5">Email :</p>
-                                                <p className="w-[80%] pl-5 py-1"></p>
-                                            </div>
-
+                                        <div className="col-span-2 col-start-5 row-start-2 flex flex-col justify-evenly">
+                                            <p className="pl-1 text-ms font-bold border-b border-b-gray-400">Contact Person</p>
+                                            <p className="pl-1 text-ms font-bold">Contact Person Number</p>
                                         </div>
 
-                                        <div className="flex flex-col gap-2 pt-2 border-t border-l">
+                                        <div className="col-span-2 col-start-7 row-start-2 border-l flex flex-col justify-evenly">
+                                            <p className="pl-1 border-b border-b-gray-400">{projectData?.contactPersonName || "N/A"}</p>
+                                            <p className="pl-1">{projectData?.contactPersonNumber || "N/A"}</p>
+                                        </div>
 
-                                            <div className="border-b pb-16.5">
-                                                <p className="font-bold px-2">Delivery Address</p>
-                                                <p className="px-2">
-                                                    {projectData?.address || "N/A"}
-                                                </p>
+                                        <div className="col-span-4 row-start-3 border-y border-r">
+                                            <div className="pl-1">
+                                                <p className="font-bold">Billing Address :</p>
+                                                <p>JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
                                             </div>
+                                        </div>
 
-                                            <div className="flex items-center gap-3">
-                                                <p className="text-sm font-bold p-1">Project :</p>
+                                        <div className="col-span-4 col-start-5 row-start-3 border-y">
+                                            <div className="pl-1">
+                                                <p className="font-bold">Delivery Address :</p>
+                                                <p>{projectData?.address || "N/A"}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="row-start-4 border-r">
+                                                <p className="pl-1 border-b font-bold">PH :</p>
+                                                <p className="pl-1 border-b font-bold">GSTIN/UIN :</p>
+                                                <p className="pl-1 border-b font-bold">Email :</p>
+                                        </div>
+
+                                        <div className="col-span-3 row-start-4 border-r">
+                                                <p className="pl-2 border-b">-</p>
+                                                <p className="pl-2 border-b">27AAGFJ5194C1ZC</p>
+                                                <p className="pl-2 border-b">-</p>
+                                        </div>
+
+                                        <div className="col-span-4 col-start-5 row-start-4 border-b flex items-center">
+                                            <div className="flex items-center gap-1 pl-1">
+                                                <p className="text-sm font-bold">Project :</p>
                                                 <div>
                                                     {(isReadOnly || selectedRequest) ? (
                                                         <p className="font-bold text-gray-800">
@@ -663,13 +638,13 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             {materialChunk.map((m, i) => (
                                                 <tr key={i} className="border border-b-gray-300 border-r-gray-100">
 
-                                                    <td className="py-3 w-[5%] text-center">{(pageIndex * 10) + i + 1}</td>
+                                                    <td className="w-[5%] text-center">{(pageIndex * 17) + i + 1}</td>
 
-                                                    <td className="py-3 w-[46.3%] text-center">
+                                                    <td className="w-[46.3%] text-center">
                                                         {editable ? (
                                                             <input
                                                                 placeholder="Enter Material"
-                                                                className="w-3/4 border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
                                                                 value={m.material}
                                                             />
@@ -678,11 +653,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="py-3 w-[8.33%] text-center">
+                                                    <td className="w-[8.33%] text-center">
                                                         {editable ? (
                                                             <input
                                                                 placeholder="Enter Unit"
-                                                                className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
                                                                 value={m.unit}
                                                             />
@@ -691,11 +666,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="py-3 w-[8.33%] text-center">
+                                                    <td className="w-[8.33%] text-center">
                                                         {editable ? (
                                                             <input
                                                                 placeholder="Enter Quantity"
-                                                                className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
                                                                 value={m.qty}
                                                             />
@@ -704,11 +679,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="py-3 w-[8.33%] text-center">
+                                                    <td className="w-[8.33%] text-center">
                                                         {editable ? (
                                                             <input
                                                                 placeholder="Enter Rate"
-                                                                className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
                                                                 disabled={isReadOnly}
                                                                 value={m.rate}
@@ -718,11 +693,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="py-3 w-[8.33%] text-center">
+                                                    <td className="w-[8.33%] text-center">
                                                         {editable ? (
                                                             <input
                                                                 placeholder="Enter Discount"
-                                                                className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
                                                                 disabled={isReadOnly}
                                                                 value={m.discount}
@@ -732,11 +707,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="py-3 w-[8.33%] text-center">
+                                                    <td className="w-[8.33%] text-center">
                                                         {editable ? (
                                                             <input
                                                                 placeholder="Enter GST"
-                                                                className="w-full border-b border-gray-400 p-2 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
                                                                 disabled={isReadOnly}
                                                                 value={m.gst}
@@ -746,7 +721,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="py-3 w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
+                                                    <td className="w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
 
                                                     {!selectedRequest && !isReadOnly && (
                                                         <td className="flex justify-center py-5 items-center">
@@ -765,27 +740,24 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                     </table>
 
-                                    <div className="flex justify-between mt-4 text-xs">
-                                        <div className="flex w-full justify-around">
-                                            {!selectedRequest && !isReadOnly && (
-                                                <div className="flex justify-center items-center w-full">
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleAddRow}
-                                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                                                    >
-                                                        + Add New Row
-                                                    </button>
+                                    {pageIndex === allPages.length - 1 && (
+                                        <div>
+                                            <div className="flex flex-col justify-between mt-4 text-xs">
+                                                <div className="flex w-full justify-around">
+                                                    {!selectedRequest && !isReadOnly && (
+                                                        <div className="flex justify-center items-center w-full">
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleAddRow}
+                                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                                                            >
+                                                                + Add New Row
+                                                            </button>
+                                                        </div>
+                                                    )}
+
                                                 </div>
-                                            )}
 
-
-                                        </div>
-
-                                        {/* TOTAL */}
-
-                                        {pageIndex === allPages.length - 1 && (
-                                            <div className="mt-4">
                                                 <div className="flex justify-end pr-5">
                                                     <div className="w-72 space-y-1 p-2 text-xs">
 
@@ -799,19 +771,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                             </button>
                                                         )}
 
-                                                        {/* EXTRA CHARGE DISPLAY */}
-                                                        <div className="flex justify-between mt-3">
+                                                        <div className="flex justify-between">
                                                             <span>Total Amount</span>
-                                                            <span>₹ {totals.amount.toFixed(2)}</span>
-                                                        </div>
-
-                                                        <div className="flex justify-between">
-                                                            <span>Total Discount</span>
-                                                            <span>- ₹ {totals.discount.toFixed(2)}</span>
-                                                        </div>
-
-                                                        <div className="flex justify-between">
-                                                            <span>Subtotal</span>
                                                             <span>₹ {subtotal.toFixed(2)}</span>
                                                         </div>
 
@@ -933,48 +894,50 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     )}
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
 
-                                    {/* TERMS */}
-                                    <div className="absolute bottom-10 left-8 right-8">
-                                        <div className="my-4 px-3 font-bold text-blue-900">
-                                            <h3>NOTE : REQUIRED MTC REPORT</h3>
-                                        </div>
 
-                                        <div className="px-3 text-xs">
-                                            <p className="font-bold">Terms of Delivery:</p>
-                                            <ul className="list-decimal ml-5">
-                                                <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
-                                                <li>Please deliver above material at above given site address asap.</li>
-                                                <li>Kindly mention proper site name and address in your challan.</li>
-                                                <li>E-way Bill Applicable.</li>
-                                            </ul>
-                                        </div>
+                                            {/* TERMS */}
 
-                                        {/* SIGNATURE */}
-                                        <div className="grid grid-cols-3 mt-8 pb-10 text-xs text-center">
-                                            <div>
-                                                <p>Prepared By</p>
-                                                <p className="mt-6">____________________</p>
+                                            <div className="absolute bottom-10 left-8 right-8">
+                                                <div className="mb-4 font-bold text-blue-900 text-xs px-3 italic">
+                                                    NOTE : REQUIRED MTC REPORT
+                                                </div>
+
+                                                <div className="px-3 text-xs">
+                                                    <p className="font-bold">Terms of Delivery:</p>
+                                                    <ul className="list-decimal ml-5">
+                                                        <li>Please attached PO Copy & Site Sign challan copy along with the invoice & kindly mentioned our GST in your invoice.</li>
+                                                        <li>Please deliver above material at above given site address asap.</li>
+                                                        <li>Kindly mention proper site name and address in your challan.</li>
+                                                        <li>E-way Bill Applicable.</li>
+                                                    </ul>
+                                                </div>
+
+                                                {/* SIGNATURE */}
+                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-4">
+                                                    <div>
+                                                        <p>Prepared By</p>
+                                                        <p className="mt-6">____________________</p>
+                                                    </div>
+
+                                                    <div>
+                                                        <p>Checked By</p>
+                                                        <p className="mt-6">____________________</p>
+                                                    </div>
+
+                                                    <div>
+                                                        <p>Approved By</p>
+                                                        <p className="mt-6">____________________</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-center text-[10px] text-gray-400 mt-2">
+                                                    <p>This is a Computer Generated Purchase Order</p>
+                                                </div>
+
                                             </div>
-
-                                            <div>
-                                                <p>Checked By</p>
-                                                <p className="mt-6">____________________</p>
-                                            </div>
-
-                                            <div>
-                                                <p>Approved By</p>
-                                                <p className="mt-6">____________________</p>
-                                            </div>
                                         </div>
-
-                                        <div className="text-center border-t">
-                                            <p>This is a Computer Generated Purchase Order</p>
-                                        </div>
-
-                                    </div>
+                                    )}
 
                                 </div>
                             </div>
