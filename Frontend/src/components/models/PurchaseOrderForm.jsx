@@ -6,6 +6,26 @@ import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 
+// ─── Page Dimension Constants ─────────────────────────────────────────────────
+// A4 proportional height for a 1000px-wide div:
+const PAGE_WIDTH_PX = 1000;
+const PAGE_HEIGHT_PX = 1414;   // = 1000 × 297/210 → exact A4 at 210mm width
+
+// ─── Pagination Constants ─────────────────────────────────────────────────────
+// Estimated fixed overhead per page (header + logo + title + top-info + table header)
+const FIXED_OVERHEAD_PX = 350;
+// Estimated summary section height (calculation + words + breakdown + terms + sig)
+// Using a conservative value that covers 1–5 GST groups comfortably.
+const SUMMARY_HEIGHT_PX = 520;
+// Row height (matches filler row height style)
+const ROW_HEIGHT_PX = 32;
+
+// Max material rows that comfortably coexist with the summary/footer on one page
+const ROWS_WITH_SUMMARY = 12;
+// Max material rows that fit on a page that carries NO summary/footer
+const ROWS_WITHOUT_SUMMARY = 30;
+// ─────────────────────────────────────────────────────────────────────────────
+
 const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, onStatusUpdate }) => {
 
     const pdfRef = useRef()
@@ -130,7 +150,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }, [selectedRequest, mode]);
 
     useEffect(() => {
-        if (mode === "create" && selectedRequest && projectList.length > 0 & vendorList.length > 0) {
+        if (mode === "create" && selectedRequest && projectList.length > 0 && vendorList.length > 0) {
 
             const project = projectList.find(
                 (p) => p.projectName === selectedRequest.projectName
@@ -157,11 +177,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         const discPercent = Number(updated[index].discount || 0)
 
         const base = qty * rate
-        const discountAmt = (base * discPercent) / 100
-
-        updated[index].total = base - discountAmt
-        updated[index].amount = base;
-
+        updated[index].total = base - (base * discPercent) / 100
+        updated[index].amount = base
         setMaterials(updated)
     }
 
@@ -235,9 +252,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }
     };
 
-    const handleReviseClick = () => {
-        setIsEditing(true);
-    };
+    const handleReviseClick = () => setIsEditing(true);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -302,7 +317,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     po_status: "Draft",
                 });
                 setMaterials([]);
-
                 setExtraCharge(null);
                 setExtraCharges({
                     extraChargeCategory: "",
@@ -352,13 +366,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         setOpenExtraChargeModel(false)
     }
 
-    const handleAddRow = () => {
-        setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
-    }
-
-    const handleDeleteRow = (index) => {
-        setMaterials(prev => prev.filter((_, i) => i !== index))
-    }
+    const handleAddRow = () => setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
+    const handleDeleteRow = (index) => setMaterials(prev => prev.filter((_, i) => i !== index))
 
     const numberToWords = (num) => {
         const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
@@ -372,8 +381,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             return "";
         };
 
-        let n = Math.floor(num);
-        if (n === 0) return "Zero";
+        let n = Math.floor(num); if (!n) return "Zero";
 
         let str = "";
         // Crores
@@ -397,17 +405,89 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         return str.trim() + " Rupees Only";
     };
 
-    // ... Creating chunks ...
-    const chunkArray = (array, size) => {
-        const chunks = [];
-        for (let i = 0; i < array.length; i += size) {
-            chunks.push(array.slice(i, i + size));
+    // ─── buildPages ───────────────────────────────────────────────────────────
+    /**
+     * Splits materials into page descriptors:
+     *   chunk         — material rows for this page
+     *   showSummary   — render Calculation + Taxable + Terms + Footer?
+     *   emptyRowCount — blank filler <tr>s (visual padding only)
+     *   startIndex    — global offset for S.No + edit handlers
+     *
+     * Page height = 1414px (A4-proportional for a 1000px-wide div).
+     * The flex-grow spacer between the table and the summary section absorbs
+     * the remaining vertical space, so the summary is always pushed toward
+     * the bottom without any position:absolute overlap.
+     *
+     * emptyRowCount is calculated so that total rows (real + filler) always
+     * equal ROWS_WITH_SUMMARY on summary pages, giving every summary page
+     * the same predictable height.
+     */
+    const buildPages = (allMaterials) => {
+        const count = allMaterials.length;
+        const pages = [];
+
+        // ── Case 1: fits on a single page with the summary ─────────────────────
+        if (count === 0 || count <= ROWS_WITH_SUMMARY) {
+            pages.push({
+                chunk: allMaterials,
+                showSummary: true,
+                emptyRowCount: Math.max(0, ROWS_WITH_SUMMARY - count),
+                startIndex: 0,
+            });
+            return pages;
         }
-        return chunks;
+
+        // ── Case 2: materials fit on one page but summary won't ────────────────
+        if (count <= ROWS_WITHOUT_SUMMARY) {
+            // Page 1 — all material rows + filler; NO summary
+            pages.push({
+                chunk: allMaterials,
+                showSummary: false,
+                emptyRowCount: ROWS_WITHOUT_SUMMARY - count,
+                startIndex: 0,
+            });
+            // Page 2 — no material rows; summary pinned to bottom via filler
+            pages.push({
+                chunk: [],
+                showSummary: true,
+                emptyRowCount: ROWS_WITH_SUMMARY,
+                startIndex: count,
+            });
+            return pages;
+        }
+
+        // ── Case 3: multiple pages required: dense material pages then a final summary page ──
+        let offset = 0;
+        let remaining = [...allMaterials];
+
+        // All pages except the last are dense material-only pages
+        while (remaining.length > ROWS_WITHOUT_SUMMARY) {
+            pages.push({
+                chunk: remaining.slice(0, ROWS_WITHOUT_SUMMARY),
+                showSummary: false,
+                emptyRowCount: 0,
+                startIndex: offset,
+            });
+            offset += ROWS_WITHOUT_SUMMARY;
+            remaining = remaining.slice(ROWS_WITHOUT_SUMMARY);
+        }
+
+        // Final page — remaining rows + filler + summary
+        pages.push({
+            chunk: remaining,
+            showSummary: true,
+            emptyRowCount: Math.max(0, ROWS_WITH_SUMMARY - remaining.length),
+            startIndex: offset,
+        });
+
+        return pages;
     };
+    // ──────────────────────────────────────────────────────────────────────────
 
     // ... Download PO PDF ...
     const handleDownloadPDF = async () => {
+        if (loading) return;
+
         const element = pdfRef.current;
         if (!element) return;
 
@@ -415,39 +495,41 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         try {
             // Initialize A4 PDF
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+            });
+            const pdfWidth = pdf.internal.pageSize.getWidth();   // 210 mm
+            const pdfHeight = pdf.internal.pageSize.getHeight();  // 297 mm
 
-            // Select all the page divs (mapped by chunkArray)
-            const pages = element.querySelectorAll('#po-print-area > div');
+            // Only capture .po-page divs — action buttons div is excluded
+            const pages = element.querySelectorAll('.po-page');
 
             for (let i = 0; i < pages.length; i++) {
                 const page = pages[i];
 
-                // Hide UI elements in the clone/render
+                // Hide interactive controls without changing layout dimensions
                 const hidden = page.querySelectorAll('.no-print, button, i, select');
-                hidden.forEach(el => el.style.display = 'none');
+                hidden.forEach(el => { el.style.visibility = 'hidden'; });
 
                 // 1. Capture current page at Scale 2 (Sharp but safe)
                 const canvas = await html2canvas(page, {
-                    scale: 2,
+                    scale: window.devicePixelRatio > 1 ? 2 : 1.5,
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     logging: false,
                 });
 
-                // 2. Convert to JPEG (More stable for jsPDF than PNG)
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                // 2. Convert to PNG
+                const imgData = canvas.toDataURL('image/png', 1.0);
 
                 // 3. Add to PDF
                 if (i > 0) pdf.addPage();
 
                 // Fill the full A4 page
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-
-                // Restore hidden elements
-                hidden.forEach(el => el.style.display = '');
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, '', 'FAST');
+                hidden.forEach(el => { el.style.visibility = ''; });
             }
 
             // 4. Save
@@ -455,7 +537,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         } catch (error) {
             console.error('PDF generation failed:', error);
-            alert('Error: Data overflow. Try reducing the number of rows per page.');
+            alert('Error generating PDF. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -476,14 +558,15 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     {/* PDF AREA */}
                     <div ref={pdfRef} id="po-print-area" className="py-6 bg-white text-sm">
 
-                        {chunkArray(materials, 17).map((materialChunk, pageIndex, allPages) => (
+                        {buildPages(materials).map((page, pageIndex) => (
                             <div
                                 key={pageIndex}
-                                className="bg-white mb-10 shadow-lg p-8 mx-auto border border-black"
-                                style={{ width: '1000px', minHeight: '1120px', position: 'relative' }}>
+                                className="po-page bg-white mb-10 shadow-lg p-8 mx-auto border border-black"
+                                style={{
+                                    width: `${PAGE_WIDTH_PX}px`, height: `${PAGE_HEIGHT_PX}px`, display: 'flex', flexDirection: 'column', }}>
 
-                                {/* HEADER */}
-                                <div className="pb-3">
+                                {/* HEADER — identical on every page */}
+                                <div className="pb-3 shrink-0">
                                     <div>
                                         <img className="w-[95%] h-18 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
                                     </div>
@@ -493,10 +576,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     </h2>
                                 </div>
 
-                                <div className="border mx-5">
+                                <div className="border mx-5" style={{ display: 'flex', flexDirection: 'column', flex: 1, }}>
 
                                     {/* --Top Information-- */}
-                                    <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
+                                    <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs shrink-0">
                                         <div className="col-span-4 border-r border-b pl-1">
                                             <div>
                                                 <label className="text-sm text-gray-500">To</label>
@@ -573,15 +656,15 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </div>
 
                                         <div className="row-start-4 border-r">
-                                                <p className="pl-1 border-b font-bold">PH :</p>
-                                                <p className="pl-1 border-b font-bold">GSTIN/UIN :</p>
-                                                <p className="pl-1 border-b font-bold">Email :</p>
+                                            <p className="pl-1 border-b font-bold">PH :</p>
+                                            <p className="pl-1 border-b font-bold">GSTIN/UIN :</p>
+                                            <p className="pl-1 border-b font-bold">Email :</p>
                                         </div>
 
                                         <div className="col-span-3 row-start-4 border-r">
-                                                <p className="pl-2 border-b">-</p>
-                                                <p className="pl-2 border-b">27AAGFJ5194C1ZC</p>
-                                                <p className="pl-2 border-b">-</p>
+                                            <p className="pl-2 border-b">-</p>
+                                            <p className="pl-2 border-b">27AAGFJ5194C1ZC</p>
+                                            <p className="pl-2 border-b">-</p>
                                         </div>
 
                                         <div className="col-span-4 col-start-5 row-start-4 border-b flex items-center">
@@ -613,8 +696,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     </div>
 
                                     {/* Material Table */}
-                                    <table className="w-full text-sm">
-                                        <thead>
+                                    <table className="w-full text-sm border-collapse">
+                                        <thead className="bg-gray-200">
                                             <tr className="bg-gray-200">
                                                 <th className="border p-2">S.No</th>
                                                 <th className="border p-2">Description</th>
@@ -630,278 +713,267 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         <i className="fa-solid fa-ellipsis"></i>
                                                     </th>
                                                 )}
-
                                             </tr>
                                         </thead>
 
                                         <tbody>
-                                            {materialChunk.map((m, i) => (
-                                                <tr key={i} className="border border-b-gray-300 border-r-gray-100">
+                                            {/* ── Real material rows ──────────────────────────────── */}
+                                            {page.chunk.map((m, i) => {
+                                                // Use global index so handleMaterialChange always
+                                                // targets the correct entry in the materials array
+                                                const globalIndex = page.startIndex + i;
+                                                return (
+                                                    <tr key={globalIndex} className="border border-b-gray-300 border-r-gray-100">
 
-                                                    <td className="w-[5%] text-center">{(pageIndex * 17) + i + 1}</td>
+                                                        <td className="w-[5%] text-center">{globalIndex + 1}</td>
 
-                                                    <td className="w-[46.3%] text-center">
-                                                        {editable ? (
-                                                            <input
-                                                                placeholder="Enter Material"
-                                                                className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
-                                                                value={m.material}
-                                                            />
-                                                        ) : (
-                                                            <span>{m.material}</span>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="w-[8.33%] text-center">
-                                                        {editable ? (
-                                                            <input
-                                                                placeholder="Enter Unit"
-                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
-                                                                value={m.unit}
-                                                            />
-                                                        ) : (
-                                                            <span>{m.unit}</span>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="w-[8.33%] text-center">
-                                                        {editable ? (
-                                                            <input
-                                                                placeholder="Enter Quantity"
-                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
-                                                                value={m.qty}
-                                                            />
-                                                        ) : (
-                                                            <span>{m.qty}</span>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="w-[8.33%] text-center">
-                                                        {editable ? (
-                                                            <input
-                                                                placeholder="Enter Rate"
-                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
-                                                                disabled={isReadOnly}
-                                                                value={m.rate}
-                                                            />
-                                                        ) : (
-                                                            <span>{m.rate}</span>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="w-[8.33%] text-center">
-                                                        {editable ? (
-                                                            <input
-                                                                placeholder="Enter Discount"
-                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
-                                                                disabled={isReadOnly}
-                                                                value={m.discount}
-                                                            />
-                                                        ) : (
-                                                            <span>{m.discount}</span>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="w-[8.33%] text-center">
-                                                        {editable ? (
-                                                            <input
-                                                                placeholder="Enter GST"
-                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
-                                                                disabled={isReadOnly}
-                                                                value={m.gst}
-                                                            />
-                                                        ) : (
-                                                            <span>{m.gst}</span>
-                                                        )}
-                                                    </td>
-
-                                                    <td className="w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
-
-                                                    {!selectedRequest && !isReadOnly && (
-                                                        <td className="flex justify-center py-5 items-center">
-                                                            <button
-                                                                onClick={() => handleDeleteRow(i)}
-                                                                className="text-red-600 rounded-lg"
-                                                            >
-                                                                <i className="fa-solid fa-xmark fa-2xl"></i>
-                                                            </button>
+                                                        <td className="w-[46.3%] text-center">
+                                                            {editable ? (
+                                                                <input
+                                                                    placeholder="Enter Material"
+                                                                    className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                    onChange={(e) => handleMaterialChange(globalIndex, "material", e.target.value)}
+                                                                    value={m.material}
+                                                                />
+                                                            ) : (
+                                                                <span>{m.material}</span>
+                                                            )}
                                                         </td>
-                                                    )}
 
+                                                        <td className="w-[8.33%] text-center">
+                                                            {editable ? (
+                                                                <input
+                                                                    placeholder="Enter Unit"
+                                                                    className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                    onChange={(e) => handleMaterialChange(globalIndex, "unit", e.target.value)}
+                                                                    value={m.unit}
+                                                                />
+                                                            ) : (
+                                                                <span>{m.unit}</span>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="w-[8.33%] text-center">
+                                                            {editable ? (
+                                                                <input
+                                                                    placeholder="Enter Quantity"
+                                                                    className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                    onChange={(e) => handleMaterialChange(globalIndex, "qty", e.target.value)}
+                                                                    value={m.qty}
+                                                                />
+                                                            ) : (
+                                                                <span>{m.qty}</span>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="w-[8.33%] text-center">
+                                                            {editable ? (
+                                                                <input
+                                                                    placeholder="Enter Rate"
+                                                                    className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                    onChange={(e) => handleMaterialChange(globalIndex, "rate", e.target.value)}
+                                                                    disabled={isReadOnly}
+                                                                    value={m.rate}
+                                                                />
+                                                            ) : (
+                                                                <span>{m.rate}</span>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="w-[8.33%] text-center">
+                                                            {editable ? (
+                                                                <input
+                                                                    placeholder="Enter Discount"
+                                                                    className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                    onChange={(e) => handleMaterialChange(globalIndex, "discount", e.target.value)}
+                                                                    disabled={isReadOnly}
+                                                                    value={m.discount}
+                                                                />
+                                                            ) : (
+                                                                <span>{m.discount}</span>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="w-[8.33%] text-center">
+                                                            {editable ? (
+                                                                <input
+                                                                    placeholder="Enter GST"
+                                                                    className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
+                                                                    onChange={(e) => handleMaterialChange(globalIndex, "gst", e.target.value)}
+                                                                    disabled={isReadOnly}
+                                                                    value={m.gst}
+                                                                />
+                                                            ) : (
+                                                                <span>{m.gst}</span>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
+
+                                                        {!selectedRequest && !isReadOnly && (
+                                                            <td className="flex justify-center py-5 items-center">
+                                                                <button
+                                                                    onClick={() => handleDeleteRow(globalIndex)}
+                                                                    className="text-red-600 rounded-lg"
+                                                                >
+                                                                    <i className="fa-solid fa-xmark fa-2xl"></i>
+                                                                </button>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                );
+                                            })}
+
+                                            {/* ── Empty filler rows ───────────────────────────────
+                                                Fills vertical space so the summary/footer is always
+                                                pushed to the bottom of the page, avoiding blank gaps.
+                                            ─────────────────────────────────────────────────────── */}
+                                            {Array.from({ length: page.emptyRowCount }).map((_, idx) => (
+                                                <tr
+                                                    key={`filler-${pageIndex}-${idx}`}
+                                                    style={{ height: `${ROW_HEIGHT_PX}px` }}
+                                                    className="border border-b-gray-200"
+                                                >
+                                                    <td className="w-[5%]">&nbsp;</td>
+                                                    <td className="w-[46.3%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    {!selectedRequest && !isReadOnly && <td>&nbsp;</td>}
                                                 </tr>
                                             ))}
                                         </tbody>
-
                                     </table>
 
-                                    {/* Calculation Part */}
-                                    {pageIndex === allPages.length - 1 && (
-                                        <div>
-                                            <div className="flex flex-col justify-between mt-4 text-xs">
-                                                <div className="flex w-full justify-around">
-                                                    {!selectedRequest && !isReadOnly && (
-                                                        <div className="flex justify-center items-center w-full">
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleAddRow}
-                                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                                                            >
-                                                                + Add New Row
-                                                            </button>
-                                                        </div>
+                                    <div style={{ flex: 1 }} />
+
+                                    {/* ── Calculation + Footer — only on the summary page ─── */}
+                                    {page.showSummary && (
+                                        <div className="pb-4 shrink-0">
+                                            {/* Add Row button */}
+                                            {!selectedRequest && !isReadOnly && (
+                                                <div className="flex justify-center my-2 no-print">
+                                                    <button type="button" onClick={handleAddRow} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                                        + Add New Row
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {/* Calculation box */}
+                                            <div className="flex justify-end pr-5">
+                                                <div className="w-72 space-y-1 p-2 text-xs">
+
+                                                    {!extraCharge && !isReadOnly && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setOpenExtraChargeModel(true)}
+                                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
+                                                        >
+                                                            + Add Other Charge
+                                                        </button>
                                                     )}
 
-                                                </div>
-
-                                                <div className="flex justify-end pr-5">
-                                                    <div className="w-72 space-y-1 p-2 text-xs">
-
-                                                        {!extraCharge && !isReadOnly && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setOpenExtraChargeModel(true)}
-                                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
-                                                            >
-                                                                + Add Other Charge
-                                                            </button>
-                                                        )}
-
-                                                        <div className="flex justify-between">
-                                                            <span>Total Amount</span>
-                                                            <span>₹ {subtotal.toFixed(2)}</span>
-                                                        </div>
-
-                                                        {extraCharge && (
-                                                            <div className="flex justify-between">
-                                                                <span>{extraCharge.category}</span>
-                                                                <span>₹ {extraBase.toFixed(2)}</span>
-                                                            </div>
-                                                        )}
-
-                                                        <div className="flex justify-between">
-                                                            <span>Taxable Amount</span>
-                                                            <span>₹ {taxableAmount.toFixed(2)}</span>
-                                                        </div>
-
-                                                        <div className="flex justify-between">
-                                                            <span>CGST</span>
-                                                            <span>₹ {(totalGst / 2).toFixed(2)}</span>
-                                                        </div>
-
-                                                        <div className="flex justify-between">
-                                                            <span>SGST</span>
-                                                            <span>₹ {(totalGst / 2).toFixed(2)}</span>
-                                                        </div>
-
-                                                        <div className="flex justify-between font-bold border-t pt-2 text-sm">
-                                                            <span>Total</span>
-                                                            <span>₹ {grandTotal}</span>
-                                                        </div>
+                                                    <div className="flex justify-between">
+                                                        <span>Total Amount</span>
+                                                        <span>₹ {subtotal.toFixed(2)}</span>
                                                     </div>
 
-                                                </div>
-
-
-                                                {/* AMOUNT IN WORDS */}
-                                                <div className="mt-4 text-xs px-3">
-                                                    <p>Chargeable Amount in Words :</p>
-                                                    <p><b>{numberToWords(grandTotal)}</b></p>
-                                                </div>
-
-                                                {/* Taxable Value Breakdown */}
-                                                <div className="mt-4 text-xs border-t pt-3">
-                                                    {Object.keys(totals.gstGroups).length > 0 ? (
-                                                        <>
-                                                            <p className="font-bold mb-2 px-3">Taxable Value Breakdown:</p>
-
-                                                            <table className="w-full text-center text-xs">
-                                                                <thead>
-                                                                    <tr className="bg-gray-200">
-                                                                        <th className="border-y p-1">Taxable Value</th>
-                                                                        <th className="border p-1">CGST %</th>
-                                                                        <th className="border p-1">CGST Amt</th>
-                                                                        <th className="border p-1">SGST %</th>
-                                                                        <th className="border p-1">SGST Amt</th>
-                                                                        <th className="border-y p-1">Total GST</th>
-                                                                    </tr>
-                                                                </thead>
-
-                                                                <tbody>
-                                                                    {Object.entries(totals.gstGroups).map(([gst, val], i) => {
-                                                                        const cgstRate = Number(gst) / 2
-                                                                        const sgstRate = Number(gst) / 2
-
-                                                                        const cgstAmt = val.gstAmount / 2
-                                                                        const sgstAmt = val.gstAmount / 2
-
-                                                                        return (
-                                                                            <tr key={i}>
-                                                                                <td className="border-y p-1">
-                                                                                    ₹ {val.taxable.toFixed(2)}
-                                                                                </td>
-
-                                                                                <td className="border p-1">
-                                                                                    {cgstRate}%
-                                                                                </td>
-
-                                                                                <td className="border p-1">
-                                                                                    ₹ {cgstAmt.toFixed(2)}
-                                                                                </td>
-
-                                                                                <td className="border p-1">
-                                                                                    {sgstRate}%
-                                                                                </td>
-
-                                                                                <td className="border p-1">
-                                                                                    ₹ {sgstAmt.toFixed(2)}
-                                                                                </td>
-
-                                                                                <td className="border-y p-1">
-                                                                                    ₹ {val.gstAmount.toFixed(2)}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )
-                                                                    })}
-                                                                </tbody>
-
-                                                                <tfoot>
-                                                                    <tr className="font-bold bg-gray-100">
-                                                                        <td className="border-y p-1">
-                                                                            ₹ {taxableAmount.toFixed(2)}
-                                                                        </td>
-                                                                        <td className="border p-1">—</td>
-                                                                        <td className="border p-1">
-                                                                            ₹ {(totalGst / 2).toFixed(2)}
-                                                                        </td>
-                                                                        <td className="border p-1">—</td>
-                                                                        <td className="border p-1">
-                                                                            ₹ {(totalGst / 2).toFixed(2)}
-                                                                        </td>
-                                                                        <td className="border-y p-1">
-                                                                            ₹ {totalGst}
-                                                                        </td>
-                                                                    </tr>
-                                                                </tfoot>
-
-                                                            </table>
-                                                        </>
-                                                    ) : (
-                                                        <p className="italic px-3 text-gray-500">No GST applicable for this order.</p>
+                                                    {extraCharge && (
+                                                        <div className="flex justify-between">
+                                                            <span>{extraCharge.category}</span>
+                                                            <span>₹ {extraBase.toFixed(2)}</span>
+                                                        </div>
                                                     )}
+
+                                                    <div className="flex justify-between">
+                                                        <span>Taxable Amount</span>
+                                                        <span>₹ {taxableAmount.toFixed(2)}</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between">
+                                                        <span>CGST</span>
+                                                        <span>₹ {(totalGst / 2).toFixed(2)}</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between">
+                                                        <span>SGST</span>
+                                                        <span>₹ {(totalGst / 2).toFixed(2)}</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between font-bold border-t pt-2 text-sm">
+                                                        <span>Total</span>
+                                                        <span>₹ {grandTotal}</span>
+                                                    </div>
                                                 </div>
                                             </div>
 
+                                            {/* AMOUNT IN WORDS */}
+                                            <div className="mt-3 text-xs px-3">
+                                                <p>Chargeable Amount in Words :</p>
+                                                <p><b>{numberToWords(grandTotal)}</b></p>
+                                            </div>
+
+                                            {/* Taxable Value Breakdown */}
+                                            <div className="mt-2 text-xs border-t pt-2">
+                                                {Object.keys(totals.gstGroups).length > 0 ? (
+                                                    <>
+                                                        <p className="font-bold mb-1 px-3">Taxable Value Breakdown:</p>
+
+                                                        <table className="w-full text-center text-xs">
+                                                            <thead>
+                                                                <tr className="bg-gray-200">
+                                                                    <th className="border-y p-1">Taxable Value</th>
+                                                                    <th className="border p-1">CGST %</th>
+                                                                    <th className="border p-1">CGST Amt</th>
+                                                                    <th className="border p-1">SGST %</th>
+                                                                    <th className="border p-1">SGST Amt</th>
+                                                                    <th className="border-y p-1">Total GST</th>
+                                                                </tr>
+                                                            </thead>
+
+                                                            <tbody>
+                                                                {Object.entries(totals.gstGroups).map(([gst, val], i) => {
+                                                                    const cgstRate = Number(gst) / 2
+                                                                    const sgstRate = Number(gst) / 2
+                                                                    const cgstAmt = val.gstAmount / 2
+                                                                    const sgstAmt = val.gstAmount / 2
+
+                                                                    return (
+                                                                        <tr key={i}>
+                                                                            <td className="border-y p-1">₹ {val.taxable.toFixed(2)}</td>
+                                                                            <td className="border p-1">{cgstRate}%</td>
+                                                                            <td className="border p-1">₹ {cgstAmt.toFixed(2)}</td>
+                                                                            <td className="border p-1">{sgstRate}%</td>
+                                                                            <td className="border p-1">₹ {sgstAmt.toFixed(2)}</td>
+                                                                            <td className="border-y p-1">₹ {val.gstAmount.toFixed(2)}</td>
+                                                                        </tr>
+                                                                    )
+                                                                })}
+                                                            </tbody>
+
+                                                            <tfoot>
+                                                                <tr className="font-bold bg-gray-100">
+                                                                    <td className="border-y p-1">₹ {taxableAmount.toFixed(2)}</td>
+                                                                    <td className="border p-1">—</td>
+                                                                    <td className="border p-1">₹ {(totalGst / 2).toFixed(2)}</td>
+                                                                    <td className="border p-1">—</td>
+                                                                    <td className="border p-1">₹ {(totalGst / 2).toFixed(2)}</td>
+                                                                    <td className="border-y p-1">₹ {totalGst}</td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </>
+                                                ) : (
+                                                    <p className="italic px-3 text-gray-500">No GST applicable for this order.</p>
+                                                )}
+                                            </div>
 
                                             {/* Terms & Conditions */}
-
-                                            <div className="absolute bottom-10 left-8 right-8">
-                                                <div className="mb-4 font-bold text-blue-900 text-xs px-3 italic">
+                                            <div className="mt-3">
+                                                <div className="mb-2 font-bold text-blue-900 text-xs px-3 italic">
                                                     NOTE : REQUIRED MTC REPORT
                                                 </div>
 
@@ -916,27 +988,24 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 </div>
 
                                                 {/* SIGNATURE */}
-                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-4">
+                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-3 mt-3">
                                                     <div>
                                                         <p>Prepared By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p className="mt-5">____________________</p>
                                                     </div>
-
                                                     <div>
                                                         <p>Checked By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p className="mt-5">____________________</p>
                                                     </div>
-
                                                     <div>
                                                         <p>Approved By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p className="mt-5">____________________</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="text-center text-[10px] text-gray-400 mt-2">
                                                     <p>This is a Computer Generated Purchase Order</p>
                                                 </div>
-
                                             </div>
                                         </div>
                                     )}
@@ -1003,18 +1072,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 </>
                             )}
 
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="bg-gray-300 px-4 py-2 rounded-lg"
-                            >
-                                Close
-                            </button>
-
+                            <button type="button" onClick={onClose} className="bg-gray-300 px-4 py-2 rounded-lg">Close</button>
                         </div>
                     </div>
                 </form>
-            </div >
+            </div>
 
             {openExtraChargeModel && (
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
@@ -1071,11 +1133,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         <div className="flex justify-end">
                             <button type="button" onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition">Add Charge</button>
                         </div>
-
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     )
 }
 
