@@ -466,7 +466,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
             <div className="bg-white w-[80%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
 
-                {/* HEADER */}
                 <div className="flex justify-between mb-4">
                     <h2 className="text-2xl font-bold">{mode === "create" ? "Purchase Order" : "Purchase Order Details"}</h2>
                     <button onClick={onClose} className="text-2xl font-bold hover:cursor-pointer">✕</button>
@@ -496,6 +495,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                 <div className="border mx-5">
 
+                                    {/* --Top Information-- */}
                                     <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
                                         <div className="col-span-4 border-r border-b pl-1">
                                             <div>
@@ -612,7 +612,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </div>
                                     </div>
 
-                                    {/* TABLE */}
+                                    {/* Material Table */}
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="bg-gray-200">
@@ -740,6 +740,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                     </table>
 
+                                    {/* Calculation Part */}
                                     {pageIndex === allPages.length - 1 && (
                                         <div>
                                             <div className="flex flex-col justify-between mt-4 text-xs">
@@ -813,6 +814,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <p><b>{numberToWords(grandTotal)}</b></p>
                                                 </div>
 
+                                                {/* Taxable Value Breakdown */}
                                                 <div className="mt-4 text-xs border-t pt-3">
                                                     {Object.keys(totals.gstGroups).length > 0 ? (
                                                         <>
@@ -896,7 +898,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             </div>
 
 
-                                            {/* TERMS */}
+                                            {/* Terms & Conditions */}
 
                                             <div className="absolute bottom-10 left-8 right-8">
                                                 <div className="mb-4 font-bold text-blue-900 text-xs px-3 italic">
@@ -938,11 +940,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             </div>
                                         </div>
                                     )}
-
                                 </div>
                             </div>
                         ))}
-
 
                         {/* ACTIONS */}
                         <div className="flex justify-end gap-3 mt-4 no-print">
@@ -1012,11 +1012,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             </button>
 
                         </div>
-
                     </div>
-
                 </form>
-
             </div >
 
             {openExtraChargeModel && (
@@ -1078,7 +1075,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     </div>
                 </div>
             )}
-
         </div >
     )
 }
