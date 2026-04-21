@@ -71,13 +71,13 @@ const Vendors = () => {
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
 
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
-                <h1 className='text-2xl font-bold p-6'>All Projects</h1>
+                <h1 className='text-2xl font-bold p-6'>All Vendors</h1>
                 <div className='flex justify-around w-full px-15 text-center mb-5'>
                     <input
                         className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5'
                         type="search"
-                        name="ProjectSearch"
-                        placeholder='Search projects...'
+                        name="VendorSearch"
+                        placeholder='Search vendors...'
                         value={searchVendor}
                         onChange={(e) => setSearchVendor(e.target.value)}
                     />
