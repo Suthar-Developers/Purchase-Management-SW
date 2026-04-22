@@ -72,7 +72,7 @@ const Vendors = () => {
 
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-2xl font-bold p-6'>All Vendors</h1>
-                <div className='flex justify-around w-full px-15 text-center mb-5'>
+                <div className='flex justify-around w-full items-center px-15 text-center mb-5'>
                     <input
                         className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5'
                         type="search"
@@ -81,7 +81,7 @@ const Vendors = () => {
                         value={searchVendor}
                         onChange={(e) => setSearchVendor(e.target.value)}
                     />
-                    <Button lable='Add' onClick={openModel} />
+                    <Button lable='+ Add' className='w-25 px-6 py-2 font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={openModel} />
                 </div>
 
                 <div className='flex flex-col gap-3 w-full overflow-auto rounded-lg'>
