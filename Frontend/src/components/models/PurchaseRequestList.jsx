@@ -56,7 +56,7 @@ const PurchaseRequestList = ({ onCreate }) => {
           <h1 className="text-2xl font-bold pb-6">
             Purchase Requests
           </h1>
-          <Button lable={"+ New Request"} onClick={onCreate} />
+          <Button lable={"+ New Request"} className='px-4 py-2 font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
         </div>
 
         {/* Table Card */}
