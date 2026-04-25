@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import Button from '../../components/common/Button'
 import { State, City } from "country-state-city"
 
 
@@ -53,16 +54,16 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
     }
 
     useEffect(() => {
-    const code = generateProjectCode(
-        formData.stateCode,
-        formData.projectName
-    )
+        const code = generateProjectCode(
+            formData.stateCode,
+            formData.projectName
+        )
 
-    setFormData((prev) => ({
-        ...prev,
-        projectCode: code
-    }))
-}, [formData.stateCode, formData.projectName])
+        setFormData((prev) => ({
+            ...prev,
+            projectCode: code
+        }))
+    }, [formData.stateCode, formData.projectName])
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -111,13 +112,9 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
 
             <div className="bg-white w-[80%] h-[90%] rounded-xl p-6">
-                <button
-                    className="bg-sky-500 text-white font-bold px-10 py-3 rounded-lg float-end"
-                    onClick={onClose}>Close
-                </button>
+                <Button lable='Close' className="bg-sky-500 text-white font-bold px-10 py-3 rounded-lg float-end hover:cursor-pointer hover:bg-sky-600" onClick={onClose} />
 
                 <div>
-
                     <div className="flex items-center justify-center p-4">
                         <form
                             onSubmit={handleSubmit}
@@ -305,17 +302,10 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                             />
 
                             {/* Submit */}
-                            <button
-                                type="submit"
-                                className="w-full rounded-lg bg-indigo-600 py-3 text-white font-medium hover:bg-indigo-700 transition"
-                            >
-                                Create Project
-                            </button>
+                            <Button lable="Create Project" type="submit" className="w-full rounded-lg bg-indigo-600 py-3 text-white font-medium hover:cursor-pointer hover:bg-indigo-800 transition" />
                         </form>
                     </div>
-
                 </div>
-
             </div>
         </div>
     )
