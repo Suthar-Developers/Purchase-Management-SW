@@ -75,8 +75,8 @@ const AddMaterials = ({ onClose, onSave }) => {
         </div>
 
         <div className="flex justify-end gap-3 p-4">
-          <button onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-          <Button onClick={handleSubmit} lable={'Add'} />
+          <Button onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" lable={'Cancel'} />
+          <Button onClick={handleSubmit} className='w-25 px-6 py-2 font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' lable={'Add'} />
         </div>
 
       </div>
