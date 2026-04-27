@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { fetchProjects } from "../../api/projectApi"
 import { createPurchaseRequest } from "../../api/purchaseRequestApi"
 import AddMaterials from "./AddMaterials"
+import Button from "../common/Button"
 
 const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
@@ -178,12 +179,11 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
           {/* FOOTER */}
           <div className="px-6 mb-25 py-4 border-t flex justify-between">
 
-            <button type="button" onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#4b5ea3] text-white rounded-lg hover:bg-[#354684]">Add Material</button>
+            <Button lable="Add Material" type="button" onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#3c4e8f] text-white rounded-lg hover:bg-[#2f4180] hover:cursor-pointer" />
 
-            <div className="space-x-3">
-              <button type="submit" disabled={materials.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save</button>
-
-              <button type="button" onClick={onBack} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Back</button>
+            <div className="flex space-x-3">
+              <Button lable="Save" type="submit" disabled={materials.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:cursor-pointer" />
+              <Button lable="Back" type="button" onClick={onBack} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
             </div>
 
           </div>
