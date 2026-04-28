@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { fetchApprovedPR } from "../../api/purchaseOrderApi";
 import PurchaseOrderForm from "../../components/models/PurchaseOrderForm";
 import PurchaseRequestView from "../../components/models/PurchaseRequestView";
+import Button from "../../components/common/Button";
 
 const PurchaseOrders = () => {
 
@@ -54,7 +55,6 @@ const PurchaseOrders = () => {
                     </div>
 
                     <div className="h-[85%] overflow-auto rounded-t-lg">
-
                         <table className="w-full">
 
                             <thead className="bg-[#4b5ea3] text-white">
@@ -86,25 +86,16 @@ const PurchaseOrders = () => {
                                             <td className="py-3 text-center">{pr.deliverBefore ? dayjs(pr.deliverBefore).format('DD MMM YYYY') : '-'}</td>
 
                                             <td className="py-3 text-center">
-                                                <button
-                                                    onClick={() => { setSelectedPR(pr); setIsOpenManualPOForm(true); }}
-                                                    className="pr-2 font-semibold border-r hover:text-blue-500"
-                                                >
-                                                    Create PO
-                                                </button>
-
-                                                <button
-                                                    onClick={() => openPRViewModel(pr)}
-                                                    className="text-blue-700 hover:text-green-600 ml-2 hover:scale-110">
-                                                    <i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>
-                                                </button>
+                                                <div className="flex justify-center">
+                                                    <Button lable="Create PO" onClick={() => { setSelectedPR(pr); setIsOpenManualPOForm(true); }} className="pr-2 font-semibold border-r hover:text-blue-500 hover:scale-103" />
+                                                    <Button onClick={() => openPRViewModel(pr)} className="text-blue-700 hover:text-green-600 ml-2 hover:scale-110" icon={<i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>} />
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
                                 )}
                             </tbody>
                         </table>
-
                     </div>
                 </div>
             </div>
