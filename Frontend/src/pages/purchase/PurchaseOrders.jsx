@@ -47,10 +47,7 @@ const PurchaseOrders = () => {
                     <div className="flex justify-between items-center mb-5">
                         <h2 className="text-xl font-bold">Approved Purchase Requests :-</h2>
 
-                        <button onClick={() => { setSelectedPR(null); setIsOpenManualPOForm(true); }} className="flex items-center justify-center gap-3 py-3 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition">
-                            <i className="fa-solid fa-pen-to-square text-ms"></i>
-                            Create PO Manually
-                        </button>
+                        <Button lable="Create PO Manually" onClick={() => { setSelectedPR(null); setIsOpenManualPOForm(true); }} className="flex items-center justify-center gap-3 py-3 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition" icon={<i className=" fa-solid fa-pen-to-square text-ms"></i>} />
 
                     </div>
 

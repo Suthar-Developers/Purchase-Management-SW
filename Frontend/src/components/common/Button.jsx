@@ -4,7 +4,7 @@ const Button = ({ lable, icon, type, className = "", onClick, disabled }) => {
 
   return (
     <div>
-      <button onClick={onClick} type={type} className={`${className}`} disabled={disabled}>{lable}{icon}</button>
+      <button onClick={onClick} type={type} className={`${className}`} disabled={disabled}>{icon}{lable}</button>
     </div>
   )
 }
