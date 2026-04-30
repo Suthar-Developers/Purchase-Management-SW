@@ -5,6 +5,7 @@ import { fetchNextPONumber, newPurchaseOrder, updatePOStatus, fetchPurchaseOrder
 import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
+import Button from "../common/Button";
 
 const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, onStatusUpdate }) => {
 
@@ -468,7 +469,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                 <div className="flex justify-between mb-4">
                     <h2 className="text-2xl font-bold">{mode === "create" ? "Purchase Order" : "Purchase Order Details"}</h2>
-                    <button onClick={onClose} className="text-2xl font-bold hover:cursor-pointer">✕</button>
+                    <Button lable="✕" onClick={onClose} className="py-1 px-2 rounded-xl text-2xl font-bold hover:bg-gray-100 hover:text-red-700 hover:cursor-pointer" />
                 </div>
 
                 <form onSubmit={handleSubmit}>
