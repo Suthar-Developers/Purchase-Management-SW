@@ -748,13 +748,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 <div className="flex w-full justify-around">
                                                     {!selectedRequest && !isReadOnly && (
                                                         <div className="flex justify-center items-center w-full">
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleAddRow}
-                                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                                                            >
-                                                                + Add New Row
-                                                            </button>
+                                                            <Button lable="+ Add New Row" type="button" onClick={handleAddRow} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
                                                         </div>
                                                     )}
 
@@ -764,13 +758,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <div className="w-72 space-y-1 p-2 text-xs">
 
                                                         {!extraCharge && !isReadOnly && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setOpenExtraChargeModel(true)}
-                                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
-                                                            >
-                                                                + Add Other Charge
-                                                            </button>
+                                                            <Button lable="+ Add Other Charge" type="button" onClick={() => setOpenExtraChargeModel(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-700 hover:cursor-pointer" />
                                                         )}
 
                                                         <div className="flex justify-between">
