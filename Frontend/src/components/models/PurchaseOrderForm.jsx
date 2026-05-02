@@ -725,13 +725,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
 
                                                     {!selectedRequest && !isReadOnly && (
-                                                        <td className="flex justify-center py-5 items-center">
-                                                            <button
-                                                                onClick={() => handleDeleteRow(i)}
-                                                                className="text-red-600 rounded-lg"
-                                                            >
-                                                                <i className="fa-solid fa-xmark fa-2xl"></i>
-                                                            </button>
+                                                        <td className="border-none">
+                                                            <Button onClick={() => handleDeleteRow(i)} className="text-red-600 rounded-lg" icon={<i className="fa-solid fa-xmark fa-2xl"></i>} />
                                                         </td>
                                                     )}
 
