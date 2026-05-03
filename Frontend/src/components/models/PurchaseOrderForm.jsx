@@ -726,7 +726,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                     {!selectedRequest && !isReadOnly && (
                                                         <td className="border-none">
-                                                            <Button onClick={() => handleDeleteRow(i)} className="text-red-600 rounded-lg" icon={<i className="fa-solid fa-xmark fa-2xl"></i>} />
+                                                            <Button onClick={() => handleDeleteRow(i)} className="text-red-600 rounded-lg hover:cursor-pointer" icon={<i className="fa-solid fa-xmark fa-2xl"></i>} />
                                                         </td>
                                                     )}
 
