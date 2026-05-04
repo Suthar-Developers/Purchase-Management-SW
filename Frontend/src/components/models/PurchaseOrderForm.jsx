@@ -951,9 +951,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             )}
 
                             {(mode === "create" || isEditing) ? (
-                                <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">
-                                    {isEditing ? "Save Revision" : "Create PO"}
-                                </button>
+
+                        <Button lable={isEditing ? "Save Revision" : "Create PO"} type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" />
                             ) : (
                                 <>
                                     {form.po_status !== "Approved" && form.po_status !== "Revised" && (
