@@ -574,15 +574,15 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </div>
 
                                         <div className="row-start-4 border-r">
-                                                <p className="pl-1 border-b font-bold">PH :</p>
-                                                <p className="pl-1 border-b font-bold">GSTIN/UIN :</p>
-                                                <p className="pl-1 border-b font-bold">Email :</p>
+                                            <p className="pl-1 border-b font-bold">PH :</p>
+                                            <p className="pl-1 border-b font-bold">GSTIN/UIN :</p>
+                                            <p className="pl-1 border-b font-bold">Email :</p>
                                         </div>
 
                                         <div className="col-span-3 row-start-4 border-r">
-                                                <p className="pl-2 border-b">-</p>
-                                                <p className="pl-2 border-b">27AAGFJ5194C1ZC</p>
-                                                <p className="pl-2 border-b">-</p>
+                                            <p className="pl-2 border-b">-</p>
+                                            <p className="pl-2 border-b">27AAGFJ5194C1ZC</p>
+                                            <p className="pl-2 border-b">-</p>
                                         </div>
 
                                         <div className="col-span-4 col-start-5 row-start-4 border-b flex items-center">
@@ -951,20 +951,13 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             )}
 
                             {(mode === "create" || isEditing) ? (
-
-                        <Button lable={isEditing ? "Save Revision" : "Create PO"} type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" />
+                                <Button lable={isEditing ? "Save Revision" : "Create PO"} type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" />
                             ) : (
                                 <>
                                     {form.po_status !== "Approved" && form.po_status !== "Revised" && (
                                         <>
-                                            <button
-                                                type="button"
-                                                onClick={() => handlePOStatusUpdate("Approved")}
-                                                className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                                                disabled={loading || form.po_status === "Approved"}
-                                            >
-                                                Approve
-                                            </button>
+                                            <Button lable="Approve" type="button" onClick={() => handlePOStatusUpdate("Approved")} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" disabled={loading || form.po_status === "Approved"} />
+
                                             <button
                                                 type="button"
                                                 onClick={() => handlePOStatusUpdate("Rejected")}
