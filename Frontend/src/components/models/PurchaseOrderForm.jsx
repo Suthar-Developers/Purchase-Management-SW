@@ -956,16 +956,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 <>
                                     {form.po_status !== "Approved" && form.po_status !== "Revised" && (
                                         <>
-                                            <Button lable="Approve" type="button" onClick={() => handlePOStatusUpdate("Approved")} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" disabled={loading || form.po_status === "Approved"} />
+                                                <Button lable="Approve" type="button" onClick={() => handlePOStatusUpdate("Approved")} className="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" disabled={loading || form.po_status === "Approved"} />
 
-                                            <button
-                                                type="button"
-                                                onClick={() => handlePOStatusUpdate("Rejected")}
-                                                className="bg-red-600 text-white px-4 py-2 rounded-lg"
-                                                disabled={loading || form.po_status === "Rejected"}
-                                            >
-                                                Reject
-                                            </button>
+                                            <Button lable="Reject" type="button" onClick={() => handlePOStatusUpdate("Rejected")} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-red-700" disabled={loading || form.po_status === "Rejected"} />
+
                                             <button
                                                 type="button"
                                                 onClick={() => handlePOStatusUpdate("Hold")}
