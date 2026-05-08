@@ -961,19 +961,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             <Button lable="Reject" type="button" onClick={() => handlePOStatusUpdate("Rejected")} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-red-700" disabled={loading || form.po_status === "Rejected"} />
 
                                             <Button lable="Hold" type="button" onClick={() => handlePOStatusUpdate("Hold")} className="bg-yellow-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-yellow-700" disabled={loading || form.po_status === "Hold"} />
-
                                         </>
                                     )}
                                 </>
                             )}
 
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="bg-gray-300 px-4 py-2 rounded-lg"
-                            >
-                                Close
-                            </button>
+                            <Button lable="Close" type="button" onClick={onClose} className="bg-gray-200 px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-gray-300" />
 
                         </div>
                     </div>
