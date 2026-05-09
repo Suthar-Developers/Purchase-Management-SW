@@ -932,15 +932,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         <div className="flex justify-end gap-3 mt-4 no-print">
                             {mode === "view" && !isEditing && (
                                 <>
-                                    <button
-                                        type="button"
-                                        onClick={handleDownloadPDF}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        <i className="fa-solid fa-download"></i>
-                                        {loading ? "Generating..." : "Download PDF"}
-                                    </button>
+                                    <Button lable={loading ? "Generating..." : "Download PDF"} icon={<i className="fa-solid fa-download"></i>} type="button" onClick={handleDownloadPDF} className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:cursor-pointer hover:bg-blue-700" disabled={loading} />
 
                                     {form.po_status === "Approved" && (
                                         <button type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
@@ -966,8 +958,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 </>
                             )}
 
-                            <Button lable="Close" type="button" onClick={onClose} className="bg-gray-200 px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-gray-300" />
-
+                            <Button lable="Close" type="button" onClick={onClose} className="bg-gray-200 font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-gray-300" />
                         </div>
                     </div>
                 </form>
