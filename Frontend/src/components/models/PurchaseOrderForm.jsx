@@ -933,11 +933,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             {mode === "view" && !isEditing && (
                                 <>
                                     <Button lable={loading ? "Generating..." : "Download PDF"} icon={<i className="fa-solid fa-download"></i>} type="button" onClick={handleDownloadPDF} className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:cursor-pointer hover:bg-blue-700" disabled={loading} />
-
                                     {form.po_status === "Approved" && (
-                                        <button type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg">
-                                            Revise PO
-                                        </button>
+                                        <Button lable="Revise PO" type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 hover:cursor-pointer" />
                                     )}
                                 </>
                             )}
