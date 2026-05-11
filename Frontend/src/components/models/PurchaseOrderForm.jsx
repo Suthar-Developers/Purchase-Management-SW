@@ -965,7 +965,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
                     <div className="bg-white w-[30%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
                         <div className="flex justify-end">
-                            <button onClick={() => setOpenExtraChargeModel(false)} className="hover:cursor-pointer"><i className="fa-solid text-2xl fa-xmark"></i></button>
+                            <Button icon={<i className="fa-solid text-2xl fa-xmark"></i>} onClick={() => setOpenExtraChargeModel(false)} className="px-2 py-1 rounded-lg hover:bg-gray-100 hover:text-red-700 hover:cursor-pointer" />
                         </div>
                         <h2 className="text-center font-bold mb-10">Add Extra Charge</h2>
 
