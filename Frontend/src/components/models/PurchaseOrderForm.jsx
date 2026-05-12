@@ -1014,7 +1014,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         </div>
 
                         <div className="flex justify-end">
-                            <button type="button" onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition">Add Charge</button>
+                            <Button lable="Add Charge" type="button" onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition" />
                         </div>
 
                     </div>
