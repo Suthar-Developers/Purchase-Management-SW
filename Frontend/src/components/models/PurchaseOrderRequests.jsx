@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import dayjs from 'dayjs';
 import { fetchDraftedPurchaseOrders } from "../../api/purchaseOrderApi";
 import PurchaseOrderForm from "../../components/models/PurchaseOrderForm";
+import Button from "../common/Button";
 
 const PurchaseOrderRequests = () => {
     const [draftedPOs, setDraftedPOs] = useState([])
@@ -88,19 +89,13 @@ const PurchaseOrderRequests = () => {
                                             <td className="w-[6%] py-3 text-center">{po.po_status}</td>
 
                                             <td className="w-[8%] py-3 text-center">
-
-                                                <button
-                                                    onClick={() => openPOViewModel(po)}
-                                                    className="text-blue-700 hover:text-green-600 ml-2 hover:scale-110">
-                                                    <i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>
-                                                </button>
+                                                <Button icon={<i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>} onClick={() => openPOViewModel(po)} className="text-blue-700 hover:text-green-600 ml-2 hover:scale-110" />
                                             </td>
                                         </tr>
                                     ))
                                 )}
                             </tbody>
                         </table>
-
                     </div>
                 </div>
             </div>
