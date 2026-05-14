@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { updateMaterialStatus } from "../../api/purchaseRequestApi"
+import Button from "../common/Button"
 
 const formatDate = (dateStr) => {
     if (!dateStr) return ""
@@ -54,9 +55,11 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
 
                 {/* Close */}
                 <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-xl"
-                >✕</button>
+                    
+                    
+                ></button>
+
+                <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:bg-gray-100 hover:text-red-700" />
 
                 {/* 🔷 HEADER SECTION */}
                 <h2 className="text-2xl font-bold mb-4 border-b pb-2">
