@@ -54,11 +54,6 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
             <div className="bg-white w-[75%] rounded-2xl shadow-2xl p-6 relative">
 
                 {/* Close */}
-                <button
-                    
-                    
-                ></button>
-
                 <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:bg-gray-100 hover:text-red-700" />
 
                 {/* 🔷 HEADER SECTION */}
@@ -79,14 +74,7 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                 <div className="flex justify-between mb-4">
                     <div className="flex gap-2 flex-wrap ml-5">
                         {req.materials?.map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setActiveIndex(i)}
-                                className={`px-4 py-2 rounded-lg 
-                ${activeIndex === i ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-                            >
-                                Material {i + 1}
-                            </button>
+                            <Button lable={`Material ${i + 1}`} key={i} onClick={() => setActiveIndex(i)} className={`px-4 py-2 rounded-lg ${activeIndex === i ? "bg-blue-600 text-white" : "bg-gray-200"}`} />
                         ))}
                     </div>
 
