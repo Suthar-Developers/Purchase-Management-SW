@@ -74,7 +74,7 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                 <div className="flex justify-between mb-4">
                     <div className="flex gap-2 flex-wrap ml-5">
                         {req.materials?.map((_, i) => (
-                            <Button lable={`Material ${i + 1}`} key={i} onClick={() => setActiveIndex(i)} className={`px-4 py-2 rounded-lg ${activeIndex === i ? "bg-blue-600 text-white" : "bg-gray-200"}`} />
+                            <Button lable={`Material ${i + 1}`} key={i} onClick={() => setActiveIndex(i)} className={`px-4 py-2 rounded-lg hover:cursor-pointer ${activeIndex === i ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"}`} />
                         ))}
                     </div>
 
