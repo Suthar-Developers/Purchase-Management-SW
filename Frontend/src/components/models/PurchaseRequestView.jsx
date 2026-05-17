@@ -79,22 +79,13 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                     </div>
 
                     <div className="mr-5">
-                        <button
-                            onClick={() => {
-                                setSelectedMaterialIndex(activeIndex)
-                                setShowApprovalModal(true)
-                            }}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-gray-500"
-                        >
-                            Action
-                        </button>
+                        <Button lable="Action" onClick={() => { setSelectedMaterialIndex(activeIndex), setShowApprovalModal(true) }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-gray-500 hover:cursor-pointer" />
                     </div>
                 </div>
 
                 {/* 🔷 MATERIAL DETAILS */}
                 {material && (
                     <div className="grid grid-cols-4 gap-3">
-
                         <Field label="Material" value={material.material} />
                         <Field label="Specification" value={material.specification} />
                         <Field label="Make" value={material.make} />
@@ -107,18 +98,12 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                         <Field label="Scope" value={material.scope} />
                         <Field label="Category" value={material.category} />
                         <Field label="Status" value={material.materialStatus || "Pending"} />
-
                     </div>
                 )}
 
                 {/* Footer */}
                 <div className="flex justify-end border-t pt-3 mt-3">
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-                    >
-                        Close
-                    </button>
+                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
                 </div>
 
                 {showApprovalModal && (
