@@ -109,27 +109,21 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                 {showApprovalModal && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
 
-                        <div className="bg-white rounded-xl p-6 w-75 shadow-xl">
+                        <div className="bg-white rounded-xl p-6 w-[25%] shadow-xl">
 
                             <h3 className="text-lg font-semibold mb-4 text-center">
                                 Material Action
                             </h3>
 
-                            <div className="flex flex-col gap-3">
+                            <div className="flex gap-3">
 
                                 {/* ✅ APPROVE */}
-                                <button
-                                    onClick={() => handleMaterialAction(material.material_id, "Approved")}
-                                    className="flex items-center justify-center gap-2 py-2 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 active:scale-[0.98] transition-all duration-150 shadow-sm"
-                                >
-                                    <i className="fa-solid fa-check"></i>
-                                    Approve
-                                </button>
+                                <Button lable="Approve" icon={<i className="fa-solid fa-check"></i>} onClick={() => handleMaterialAction(material.material_id, "Approved")} className="flex flex-1 items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 active:scale-[0.98] transition-all duration-150 shadow-sm" />
 
                                 {/* ⚠️ Pending */}
                                 <button
                                     onClick={() => handleMaterialAction(material.material_id, "Pending")}
-                                    className="flex items-center justify-center gap-2 py-2 rounded-lg bg-yellow-400 text-gray-800 font-medium hover:bg-yellow-500 active:scale-[0.98] transition-all duration-150 shadow-sm"
+                                    className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-yellow-400 text-gray-800 font-medium hover:bg-yellow-500 active:scale-[0.98] transition-all duration-150 shadow-sm"
                                 >
                                     <i className="fa-solid fa-pause"></i>
                                     Pending
@@ -138,7 +132,7 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                                 {/* ❌ REJECT */}
                                 <button
                                     onClick={() => handleMaterialAction(material.material_id, "Rejected")}
-                                    className="flex items-center justify-center gap-2 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 active:scale-[0.98] transition-all duration-150 shadow-sm"
+                                    className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 active:scale-[0.98] transition-all duration-150 shadow-sm"
                                 >
                                     <i className="fa-solid fa-xmark"></i>
                                     Reject
