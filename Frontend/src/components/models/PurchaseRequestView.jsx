@@ -124,13 +124,7 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                                 <Button lable="Pending" icon={<i className="fa-solid fa-pause"></i>} onClick={() => handleMaterialAction(material.material_id, "Pending")} className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-yellow-400 text-gray-800 font-medium hover:bg-yellow-500 active:scale-[0.98] transition-all duration-150 shadow-sm" />
 
                                 {/* ❌ REJECT */}
-                                <button
-                                    onClick={() => handleMaterialAction(material.material_id, "Rejected")}
-                                    className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 active:scale-[0.98] transition-all duration-150 shadow-sm"
-                                >
-                                    <i className="fa-solid fa-xmark"></i>
-                                    Reject
-                                </button>
+                                <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 active:scale-[0.98] transition-all duration-150 shadow-sm" />
 
                             </div>
 
