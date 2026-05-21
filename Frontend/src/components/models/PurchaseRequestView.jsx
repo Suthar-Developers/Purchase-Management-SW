@@ -115,17 +115,12 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                                 Material Action
                             </h3>
 
-                            <div className="flex gap-3">
+                            <div className="grid grid-cols-3 gap-3">
+                                <Button lable="Approve" icon={<i className="fa-solid fa-check"></i>} onClick={() => handleMaterialAction(material.material_id, "Approved")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 active:scale-[0.98] transition-all duration-150 shadow-sm" />
 
-                                {/* ✅ APPROVE */}
-                                <Button lable="Approve" icon={<i className="fa-solid fa-check"></i>} onClick={() => handleMaterialAction(material.material_id, "Approved")} className="flex flex-1 items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 active:scale-[0.98] transition-all duration-150 shadow-sm" />
+                                <Button lable="Pending" icon={<i className="fa-solid fa-pause"></i>} onClick={() => handleMaterialAction(material.material_id, "Pending")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-yellow-400 text-gray-800 font-medium hover:bg-yellow-500 active:scale-[0.98] transition-all duration-150 shadow-sm" />
 
-                                {/* ⚠️ Pending */}
-                                <Button lable="Pending" icon={<i className="fa-solid fa-pause"></i>} onClick={() => handleMaterialAction(material.material_id, "Pending")} className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-yellow-400 text-gray-800 font-medium hover:bg-yellow-500 active:scale-[0.98] transition-all duration-150 shadow-sm" />
-
-                                {/* ❌ REJECT */}
-                                <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="flex flex-1 items-center justify-center gap-2 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 active:scale-[0.98] transition-all duration-150 shadow-sm" />
-
+                                <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 active:scale-[0.98] transition-all duration-150 shadow-sm" />
                             </div>
 
                             <button
