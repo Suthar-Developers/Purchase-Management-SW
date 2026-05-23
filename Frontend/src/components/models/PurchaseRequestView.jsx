@@ -123,13 +123,7 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                                 <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
                             </div>
 
-                            <button
-                                onClick={() => setShowApprovalModal(false)}
-                                className="mt-4 w-full py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-                            >
-                                Cancel
-                            </button>
-
+                            <Button lable="Cancel" onClick={() => setShowApprovalModal(false)} className="mt-4 w-full py-2 bg-gray-300 rounded-lg hover:bg-gray-400" />
                         </div>
                     </div>
                 )}
