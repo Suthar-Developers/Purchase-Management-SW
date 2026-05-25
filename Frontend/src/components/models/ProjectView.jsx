@@ -210,12 +210,7 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
       <div className="bg-white w-[70%] rounded-2xl shadow-2xl p-8 relative">
 
         {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
-        >
-          ✕
-        </button>
+        <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:text-red-700 hover:bg-gray-100 " />
 
         {/* Title */}
         <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">
