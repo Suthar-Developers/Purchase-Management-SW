@@ -208,21 +208,12 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
 
       <div className="bg-white w-[70%] rounded-2xl shadow-2xl p-8 relative">
-
-        {/* Close Button */}
         <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:text-red-700 hover:bg-gray-100 " />
 
-        {/* Title */}
-        <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">
-          Project Details
-        </h2>
-
-        {/* Fields Grid */}
+        <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">Project Details</h2>
 
         <div className="grid grid-cols-3 gap-3 text-lg">
-
           {fields.map((field) => (
-
             <Field
               key={field.name}
               label={field.label}
@@ -235,14 +226,10 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
               formData={formData}
               setFormData={setFormData}
             />
-
           ))}
         </div>
 
-        {/* Buttons */}
-
         <div className="flex justify-end mt-8 gap-4">
-
           <button
             onClick={onClose}
             className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
@@ -251,22 +238,16 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
           </button>
 
           {isEditing ? (
-
             <button
               onClick={handleUpdate}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
               Save
             </button>
-
           ) : (
-
             <Button lable='Edit Project' onClick={() => setIsEditing(true)} />
-
           )}
-
         </div>
-
       </div>
     </div>
   )
