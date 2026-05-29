@@ -20,16 +20,13 @@ const formatDate = (dateStr) => {
 const Field = ({ label, name, value, isEditing, handleChange, options, type, formData, setFormData }) => {
 
   const boxStyle = "bg-gray-100 p-4 rounded-lg"
-  const inputStyle =
-    "w-full border border-gray-300 rounded-lg px-2 py-1 mt-1"
+  const inputStyle = "w-full border border-gray-300 rounded-lg px-2 py-1 mt-1"
 
   return (
     <div className={boxStyle}>
-
       <p className="text-gray-500 text-sm">{label}</p>
 
       {isEditing ? (
-
         type === "state" ? (
           <select
             value={value || ""}
@@ -77,9 +74,7 @@ const Field = ({ label, name, value, isEditing, handleChange, options, type, for
                 ))}
             </select>
           ) :
-
             options ? (
-
               <select
                 name={name}
                 value={value || ""}
@@ -92,9 +87,7 @@ const Field = ({ label, name, value, isEditing, handleChange, options, type, for
                   </option>
                 ))}
               </select>
-
             ) : type === "date" ? (
-
               <input
                 type="date"
                 name={name}
@@ -102,34 +95,25 @@ const Field = ({ label, name, value, isEditing, handleChange, options, type, for
                 onChange={handleChange}
                 className={inputStyle}
               />
-
             ) : name === "projectCode" ? (
-
               <input
                 value={value || ""}
                 className={inputStyle}
                 readOnly
               />
-
             ) : (
-
               <input
                 name={name}
                 value={value || ""}
                 onChange={handleChange}
                 className={inputStyle}
               />
-
             )
-
       ) : (
-
         type === "date"
           ? <p className="font-semibold text-gray-800">{formatDate(value)}</p>
           : <p className="font-semibold text-gray-800">{value}</p>
-
       )}
-
     </div>
   )
 }
@@ -143,7 +127,6 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
 
   useEffect(() => {
     if (project) {
-
       const stateObj = State.getStatesOfCountry("IN").find(
         (s) => s.name === project.state
       )
@@ -184,7 +167,6 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
   }
 
   /* Field Configuration */
-
   const fields = [
     { label: "Project Name", name: "projectName" },
     { label: "Project Code", name: "projectCode" },
@@ -206,7 +188,6 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-
       <div className="bg-white w-[70%] rounded-2xl shadow-2xl p-8 relative">
         <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:text-red-700 hover:bg-gray-100 " />
 
@@ -235,7 +216,7 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
           {isEditing ? (
             <Button lable="Save" onClick={handleUpdate} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:cursor-pointer" />
           ) : (
-            <Button lable='Edit Project' onClick={() => setIsEditing(true)} />
+              <Button lable='Edit Project' onClick={() => setIsEditing(true)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
           )}
         </div>
       </div>
