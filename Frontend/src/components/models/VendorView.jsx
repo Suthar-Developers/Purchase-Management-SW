@@ -2,24 +2,17 @@ import React, { useState, useEffect } from "react"
 import Button from "../common/Button"
 import { updateVendor } from "../../api/vendorApi"
 
-
 /* Reusable Field Component */
-
 const Field = ({ label, name, value, isEditing, handleChange, options }) => {
-
     const boxStyle = "bg-gray-100 p-4 rounded-lg"
-    const inputStyle =
-        "w-full border border-gray-300 rounded-lg px-2 py-1 mt-1"
+    const inputStyle = "w-full border border-gray-300 rounded-lg px-2 py-1 mt-1"
 
     return (
         <div className={boxStyle}>
-
             <p className="text-gray-500 text-sm">{label}</p>
 
             {isEditing ? (
-
                 options ? (
-
                     <select
                         name={name}
                         value={value || ""}
@@ -32,28 +25,20 @@ const Field = ({ label, name, value, isEditing, handleChange, options }) => {
                             </option>
                         ))}
                     </select>
-
                 ) : (
-
                     <input
                         name={name}
                         value={value || ""}
                         onChange={handleChange}
                         className={inputStyle}
                     />
-
                 )
-
             ) : (
-
                 <p className="font-semibold text-gray-800">{value}</p>
-
             )}
-
         </div>
     )
 }
-
 
 const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
 
@@ -77,9 +62,7 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
     }
 
     const handleUpdate = async () => {
-
         try {
-
             const res = await updateVendor(formData.vendor_id, formData)
 
             alert(res?.message || "Project updated successfully")
@@ -94,7 +77,6 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
     }
 
     /* Field Configuration */
-
     const fields = [
         { label: "Vendor Name", name: "vendorName" },
         { label: "Vendor Contact Number", name: "vendorContactNumber" },
@@ -113,12 +95,8 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
     ]
 
     return (
-
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-
             <div className="bg-white w-[70%] rounded-2xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
-
-                {/* Close Button */}
 
                 <button
                     onClick={onClose}
@@ -127,18 +105,12 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                     ✕
                 </button>
 
-                {/* Title */}
-
                 <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">
                     Vendor Details
                 </h2>
 
-                {/* Fields Grid */}
-
                 <div className="grid grid-cols-3 gap-3 text-lg">
-
                     {fields.map((field) => (
-
                         <Field
                             key={field.name}
                             label={field.label}
@@ -148,14 +120,10 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                             handleChange={handleChange}
                             options={field.options}
                         />
-
                     ))}
                 </div>
 
-                {/* Buttons */}
-
                 <div className="flex justify-end mt-8 gap-4">
-
                     <button
                         onClick={onClose}
                         className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
@@ -164,26 +132,19 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                     </button>
 
                     {isEditing ? (
-
                         <button
                             onClick={handleUpdate}
                             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                         >
                             Save
                         </button>
-
                     ) : (
-
                         <Button lable='Edit Vendor' onClick={() => setIsEditing(true)} />
-
                     )}
-
                 </div>
             </div>
         </div>
-
     )
-
 }
 
 export default VendorView
