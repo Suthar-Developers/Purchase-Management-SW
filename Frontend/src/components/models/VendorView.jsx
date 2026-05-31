@@ -98,16 +98,9 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
             <div className="bg-white w-[70%] rounded-2xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
 
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
-                >
-                    ✕
-                </button>
+                <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:text-red-700 hover:bg-gray-100 " />
 
-                <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">
-                    Vendor Details
-                </h2>
+                <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">Vendor Details</h2>
 
                 <div className="grid grid-cols-3 gap-3 text-lg">
                     {fields.map((field) => (
