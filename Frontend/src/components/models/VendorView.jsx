@@ -117,12 +117,7 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                 </div>
 
                 <div className="flex justify-end mt-8 gap-4">
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-                    >
-                        Close
-                    </button>
+                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
 
                     {isEditing ? (
                         <button
