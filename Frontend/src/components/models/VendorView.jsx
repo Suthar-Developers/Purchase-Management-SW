@@ -120,12 +120,8 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                     <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
 
                     {isEditing ? (
-                        <button
-                            onClick={handleUpdate}
-                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                        >
-                            Save
-                        </button>
+                        <Button lable="Save" onClick={handleUpdate} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:cursor-pointer" />
+
                     ) : (
                         <Button lable='Edit Vendor' onClick={() => setIsEditing(true)} />
                     )}
