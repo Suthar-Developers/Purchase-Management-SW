@@ -123,7 +123,7 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                         <Button lable="Save" onClick={handleUpdate} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:cursor-pointer" />
 
                     ) : (
-                        <Button lable='Edit Vendor' onClick={() => setIsEditing(true)} />
+                        <Button lable='Edit Vendor' onClick={() => setIsEditing(true)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
                     )}
                 </div>
             </div>
