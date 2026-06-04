@@ -12,11 +12,11 @@ const Projects = () => {
     const [startEditing, setStartEditing] = useState(false)
     const [searchProject, setSearchProject] = useState('');
 
-    const getProjects = async()=>{
-        try{
+    const getProjects = async () => {
+        try {
             const data = await fetchProjects()
             setProjects(data)
-        } catch(error){
+        } catch (error) {
             console.error(error)
         }
     }
@@ -28,6 +28,7 @@ const Projects = () => {
     const openModel = () => {
         setIsModelOpen(true)
     }
+
     const closeModel = () => {
         setIsModelOpen(false)
         setIsViewModelOpen(false)
@@ -69,7 +70,6 @@ const Projects = () => {
 
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
-
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-2xl font-bold p-6'>All Projects</h1>
                 <div className='flex justify-around items-center w-full px-15 text-center mb-5'>
@@ -124,7 +124,6 @@ const Projects = () => {
                 {isViewModelOpen && (
                     <ProjectView project={selectedProject} onClose={closeView} refreshProjects={getProjects} startEditing={startEditing} />
                 )}
-
             </div>
         </div>
     )
