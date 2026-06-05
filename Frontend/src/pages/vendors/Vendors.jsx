@@ -28,6 +28,7 @@ const Vendors = () => {
     const openModel = () => {
         setIsModelOpen(true)
     }
+
     const closeModel = () => {
         setIsModelOpen(false)
         setIsViewModelOpen(false)
@@ -69,7 +70,6 @@ const Vendors = () => {
 
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
-
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-2xl font-bold p-6'>All Vendors</h1>
                 <div className='flex justify-around w-full items-center px-15 text-center mb-5'>
@@ -118,7 +118,6 @@ const Vendors = () => {
                 {isViewModelOpen && (
                     <VendorView vendor={selectedVendors} onClose={closeView} refreshVendors={getVendors} startEditing={startEditing} />
                 )}
-
             </div>
         </div>
     )
