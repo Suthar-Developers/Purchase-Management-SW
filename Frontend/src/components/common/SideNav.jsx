@@ -10,9 +10,9 @@ const SideNav = () => {
     const isActive = (path) => location.pathname === path
 
     return (
-        <div className='flex flex-col items-center w-fit px-3 h-screen bg-slate-900 text-gray-300 shadow-r-xl'>
+        <div className='flex flex-col items-center text-xs w-fit px-3 h-screen bg-slate-900 text-gray-300 shadow-r-xl'>
             <div className='py-5 w-full'>
-                <h1 className='text-center text-2xl font-bold'>JRC INTERIORS</h1>
+                <h1 className='text-center text-xl font-bold'>JRC INTERIORS</h1>
             </div>
 
             <div className='pb-4'>
