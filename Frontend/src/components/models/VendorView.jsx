@@ -4,8 +4,8 @@ import { updateVendor } from "../../api/vendorApi"
 
 /* Reusable Field Component */
 const Field = ({ label, name, value, isEditing, handleChange, options }) => {
-    const boxStyle = "bg-gray-100 p-4 rounded-lg"
-    const inputStyle = "w-full border border-gray-300 rounded-lg px-2 py-1 mt-1"
+    const boxStyle = "bg-gray-100 p-2 rounded-lg"
+    const inputStyle = "w-full border border-gray-300 text-xs rounded-lg px-2 py-1"
 
     return (
         <div className={boxStyle}>
@@ -96,13 +96,12 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-            <div className="bg-white w-[70%] rounded-2xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
+            <div className="bg-white w-[70%] h-fit rounded-2xl shadow-2xl p-4 relative">
+                <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 mb-3 rounded-lg font-bold text-lg hover:cursor-pointer hover:text-red-700 hover:bg-gray-100 " />
 
-                <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:text-red-700 hover:bg-gray-100 " />
+                <h2 className="text-lg font-bold mb-1 text-gray-800 border-b pb-3">Vendor Details</h2>
 
-                <h2 className="text-3xl font-bold mb-4 text-gray-800 border-b pb-3">Vendor Details</h2>
-
-                <div className="grid grid-cols-3 gap-3 text-lg">
+                <div className="grid grid-cols-3 gap-3 text-xs">
                     {fields.map((field) => (
                         <Field
                             key={field.name}
@@ -117,13 +116,13 @@ const VendorView = ({ vendor, onClose, refreshVendors, startEditing }) => {
                 </div>
 
                 <div className="flex justify-end mt-8 gap-4">
-                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
+                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 text-sm rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
 
                     {isEditing ? (
-                        <Button lable="Save" onClick={handleUpdate} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:cursor-pointer" />
+                        <Button lable="Save" onClick={handleUpdate} className="px-6 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 hover:cursor-pointer" />
 
                     ) : (
-                        <Button lable='Edit Vendor' onClick={() => setIsEditing(true)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
+                            <Button lable='Edit Vendor' onClick={() => setIsEditing(true)} className="px-6 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
                     )}
                 </div>
             </div>

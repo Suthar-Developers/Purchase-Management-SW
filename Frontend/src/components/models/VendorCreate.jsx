@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState } from 'react'
 import axios from 'axios'
+import Button from '../common/Button'
 
 const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
     if (!isOpen) return null
@@ -66,182 +67,171 @@ const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
     };
 
     const inputStyle =
-        "w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none";
+        "w-full rounded-lg border border-gray-300 px-4 py-2 text-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none";
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
 
-            <div className="bg-white w-[80%] h-[90%] rounded-xl p-6">
-                <button
-                    className="bg-sky-500 text-white font-bold px-10 py-3 rounded-lg float-end"
-                    onClick={onClose}>Close
-                </button>
+            <div className="bg-white w-[75%] h-fit rounded-xl p-6">
+                <Button lable="Close" onClick={onClose} className="bg-sky-500 text-white text-xs font-bold px-4 py-2 rounded-lg float-end hover:cursor-pointer hover:bg-sky-600" />
+                <div className="flex items-center justify-center p-4">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-4 space-y-2"
+                    >
+                        <h2 className="text-base pb-2 font-semibold text-gray-800">Create New Vendor</h2>
 
-                <div>
-
-                    <div className="flex items-center justify-center p-4">
-                        <form
-                            onSubmit={handleSubmit}
-                            className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8 space-y-6"
-                        >
-                            <h2 className="text-2xl font-semibold text-gray-800">
-                                Create New Vendor
-                            </h2>
-
-                            {/* Grid Inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <input
-                                    type="text"
-                                    name="vendorName"
-                                    placeholder="Vendor Name"
-                                    value={formData.vendorName}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                    required
-                                />
-
-                                <input
-                                    type="email"
-                                    name="vendorEmail"
-                                    placeholder="Vendor Email"
-                                    value={formData.vendorEmail}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="tel"
-                                    name="vendorContactNumber"
-                                    placeholder="Vendor Contact Number"
-                                    value={formData.vendorContactNumber}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="vendorPortal"
-                                    placeholder="Vendor Portal"
-                                    value={formData.vendorPortal}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="vendorType"
-                                    placeholder="Vendor Type"
-                                    value={formData.vendorType}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="vendorTag"
-                                    placeholder="Vendor Tag"
-                                    value={formData.vendorTag}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="pan"
-                                    placeholder="PAN No."
-                                    value={formData.pan}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="gst"
-                                    value={formData.gst}
-                                    placeholder='GST No.'
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="msme"
-                                    value={formData.msme}
-                                    placeholder='MSME'
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                >
-                                    <option>Active</option>
-                                    <option>Inactive</option>
-                                    <option>Order Not Premitted</option>
-                                    <option>Black Listed</option>
-                                </select>
-
-                                <input
-                                    type="text"
-                                    name="accountHolderName"
-                                    placeholder="Account Holder Name"
-                                    value={formData.accountHolderName}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="accountNumber"
-                                    placeholder="Account Number"
-                                    value={formData.accountNumber}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="ifsc"
-                                    placeholder="IFSC"
-                                    value={formData.ifsc}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                                <input
-                                    type="text"
-                                    name="bankName"
-                                    placeholder="Bank Name"
-                                    value={formData.bankName}
-                                    onChange={handleChange}
-                                    className={inputStyle}
-                                />
-
-                            </div>
-
-                            <textarea
-                                name="location"
-                                placeholder="Location"
-                                value={formData.location}
+                        {/* Grid Inputs */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <input
+                                type="text"
+                                name="vendorName"
+                                placeholder="Vendor Name"
+                                value={formData.vendorName}
                                 onChange={handleChange}
-                                className={`${inputStyle}`}
+                                className={inputStyle}
+                                required
                             />
 
-                            {/* Submit */}
-                            <button
-                                type="submit"
-                                className="w-full rounded-lg bg-indigo-600 py-3 text-white font-medium hover:bg-indigo-700 transition"
+                            <input
+                                type="email"
+                                name="vendorEmail"
+                                placeholder="Vendor Email"
+                                value={formData.vendorEmail}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="tel"
+                                name="vendorContactNumber"
+                                placeholder="Vendor Contact Number"
+                                value={formData.vendorContactNumber}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="vendorPortal"
+                                placeholder="Vendor Portal"
+                                value={formData.vendorPortal}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="vendorType"
+                                placeholder="Vendor Type"
+                                value={formData.vendorType}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="vendorTag"
+                                placeholder="Vendor Tag"
+                                value={formData.vendorTag}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="pan"
+                                placeholder="PAN No."
+                                value={formData.pan}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="gst"
+                                value={formData.gst}
+                                placeholder='GST No.'
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="msme"
+                                value={formData.msme}
+                                placeholder='MSME'
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <select
+                                name="status"
+                                value={formData.status}
+                                onChange={handleChange}
+                                className={inputStyle}
                             >
-                                Create Vendor
-                            </button>
-                        </form>
-                    </div>
+                                <option>Active</option>
+                                <option>Inactive</option>
+                                <option>Order Not Premitted</option>
+                                <option>Black Listed</option>
+                            </select>
 
+                            <input
+                                type="text"
+                                name="accountHolderName"
+                                placeholder="Account Holder Name"
+                                value={formData.accountHolderName}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="accountNumber"
+                                placeholder="Account Number"
+                                value={formData.accountNumber}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="ifsc"
+                                placeholder="IFSC"
+                                value={formData.ifsc}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                            <input
+                                type="text"
+                                name="bankName"
+                                placeholder="Bank Name"
+                                value={formData.bankName}
+                                onChange={handleChange}
+                                className={inputStyle}
+                            />
+
+                        </div>
+
+                        <textarea
+                            name="location"
+                            placeholder="Location"
+                            value={formData.location}
+                            onChange={handleChange}
+                            className={`${inputStyle}`}
+                        />
+
+                        {/* Submit */}
+                        <button
+                            type="submit"
+                            className="w-full rounded-lg bg-indigo-600 py-2 text-white text-xs font-medium hover:bg-indigo-700 transition"
+                        >
+                            Create Vendor
+                        </button>
+                    </form>
                 </div>
-
             </div>
         </div>
     )

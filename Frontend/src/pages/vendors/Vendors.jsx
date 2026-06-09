@@ -71,21 +71,21 @@ const Vendors = () => {
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
-                <h1 className='text-2xl font-bold p-6'>All Vendors</h1>
+                <h1 className='text-lg font-bold p-6'>All Vendors</h1>
                 <div className='flex justify-around w-full items-center px-15 text-center mb-5'>
                     <input
-                        className='rounded-lg px-4 py-2 bg-gray-100 text-black text-lg font-bold hover:bg-gray-200 w-full mr-5'
+                        className='rounded-lg px-4 py-2 bg-gray-100 text-black text-sm font-bold hover:bg-gray-200 w-full mr-5'
                         type="search"
                         name="VendorSearch"
                         placeholder='Search vendors...'
                         value={searchVendor}
                         onChange={(e) => setSearchVendor(e.target.value)}
                     />
-                    <Button lable='+ Add' className='w-25 px-6 py-2 font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={openModel} />
+                    <Button lable='+ Add' className='w-25 px-6 py-2 text-white text-sm font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
                 </div>
 
                 <div className='flex flex-col gap-3 w-full overflow-auto rounded-lg'>
-                    <div className='flex justify-around rounded-t-lg text-ms font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
+                    <div className='flex justify-around rounded-t-lg text-sm font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
                         <div className='w-1/12 text-center'>#</div>
                         <div className='w-1/4 text-center'>Vendor Name</div>
                         <div className='w-1/4 text-center'>Type</div>
@@ -97,7 +97,7 @@ const Vendors = () => {
                     </div>
 
                     {filteredVendors.map((vendor, index) => (
-                        <div key={vendor.vendor_id} className='flex justify-around items-center pb-2 text-ms border-b border-slate-300'>
+                        <div key={vendor.vendor_id} className='flex justify-around items-center pb-2 text-xs border-b border-slate-300'>
                             <div className='w-1/8 text-center'>{index + 1}</div>
                             <div className='w-1/4'>{vendor.vendorName}</div>
                             <div className='w-1/4 text-center'>{vendor.vendorType}</div>
