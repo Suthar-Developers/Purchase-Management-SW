@@ -56,7 +56,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
       });
       setMaterials([]);
       onBack()
-
     } catch (error) {
       console.error(error)
       alert("Error while creating purchase request")
@@ -69,33 +68,25 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
 
   return (
     <div className="w-full h-full bg-slate-200 p-4">
-
-      {/* CARD */}
       <div className="bg-white rounded-2xl shadow-2xl h-full flex flex-col">
-
-        {/* HEADER */}
         <div className="px-6 py-4 border-b flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-gray-700">
+          <h1 className="text-sm font-semibold text-gray-700">
             Create Purchase Request
           </h1>
         </div>
 
         {/* FORM */}
         <form onSubmit={handleSubmit}>
-
           <div className="px-6 py-4 grid grid-cols-4 gap-6">
-
             <div>
-              <label className="text-sm text-gray-500">Project</label>
+              <label className="text-xs text-gray-500">Project</label>
               <select
                 name="project_id"
                 className="input-line"
                 onChange={handleChange}
                 value={form.project_id}
               >
-
                 <option value="" disabled>Select Project</option>
-
                 {projects.map((project) => (
                   <option key={project.project_id} value={project.project_id}>
                     {project.projectName}
@@ -105,28 +96,24 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Contact Person</label>
+              <label className="text-xs text-gray-500">Contact Person</label>
               <input name="contactPerson" className="input-line" onChange={handleChange} value={form.contactPerson} required />
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Contact No./Email</label>
+              <label className="text-xs text-gray-500">Contact No./Email</label>
               <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} required />
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Deliver Before</label>
+              <label className="text-xs text-gray-500">Deliver Before</label>
               <input className="input-line" type="date" name="deliverBefore" value={form.deliverBefore} onChange={handleChange} required />
-
             </div>
-
           </div>
 
           {/* TABLE */}
           <div className="flex-1 overflow-auto rounded-lg">
-
-            <table className="w-full text-sm">
-
+            <table className="w-full text-xs">
               <thead className="bg-[#4b5ea3] text-white">
                 <tr>
                   <th className="p-3 text-left">#</th>
@@ -140,7 +127,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                   <th className="p-3 text-left">Attachment</th>
                 </tr>
               </thead>
-
               <tbody>
 
                 {materials.length === 0 ? (
@@ -170,26 +156,21 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                     )
                   })
                 )}
-
               </tbody>
             </table>
-
           </div>
 
           {/* FOOTER */}
           <div className="px-6 mb-25 py-4 border-t flex justify-between">
-
-            <Button lable="Add Material" type="button" onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#3c4e8f] text-white rounded-lg hover:bg-[#2f4180] hover:cursor-pointer" />
+            <Button lable="Add Material" type="button" onClick={() => setIsModalOpen(true)} className="px-6 py-2 bg-[#3c4e8f] text-white text-xs rounded-lg hover:bg-[#2f4180] hover:cursor-pointer" />
 
             <div className="flex space-x-3">
-              <Button lable="Save" type="submit" disabled={materials.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:cursor-pointer" />
-              <Button lable="Back" type="button" onClick={onBack} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
+              <Button lable="Save" type="submit" disabled={materials.length === 0} className="px-6 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 hover:cursor-pointer" />
+              <Button lable="Back" type="button" onClick={onBack} className="px-6 py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
             </div>
-
           </div>
         </form>
       </div>
-
 
       {/* MODAL */}
       {
@@ -203,7 +184,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
           />
         )
       }
-
     </div >
   )
 }

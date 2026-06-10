@@ -53,25 +53,23 @@ const PurchaseRequestList = ({ onCreate }) => {
 
         {/* Header */}
         <div className="px-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold pb-6">
+          <h1 className="text-lg font-bold pb-3">
             Purchase Requests
           </h1>
-          <Button lable={"+ New Request"} className='px-4 py-2 font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
+          <Button lable={"+ New Request"} className='px-4 py-2 mb-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
         </div>
 
         {/* Table Card */}
         <div className="flex-1 rounded-lg">
-
-          <table className="w-full overflow-auto text-sm">
-
+          <table className="w-full overflow-auto text-xs">
             <thead className="bg-[#4b5ea3] text-white">
               <tr>
-                <th className="p-4 text-center">PR No</th>
-                <th className="p-4 text-center">Project</th>
-                <th className="p-4 text-center">Initiator</th>
-                <th className="p-4 text-center">Contact Info</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-center">Action</th>
+                <th className="p-3 text-center rounded-tl-lg">PR No</th>
+                <th className="p-3 text-center">Project</th>
+                <th className="p-3 text-center">Initiator</th>
+                <th className="p-3 text-center">Contact Info</th>
+                <th className="p-3 text-center">Status</th>
+                <th className="p-3 text-center rounded-tr-lg">Action</th>
               </tr>
             </thead>
 
@@ -90,9 +88,7 @@ const PurchaseRequestList = ({ onCreate }) => {
                     <td className="py-3 text-center">{req.contactPerson}</td>
                     <td className="py-3 text-center">{req.contactInfo}</td>
 
-                    <td className="py-3 text-center">
-                      <StatusBadge status={req.requestStatus} />
-                    </td>
+                    <td className="py-3 text-center font-medium">{req.requestStatus}</td>
 
                     <td className="py-3 text-center">
                       <button onClick={() => openView(req)} className="text-blue-700 hover:text-green-600 hover:scale-120"><i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i></button>
@@ -101,9 +97,7 @@ const PurchaseRequestList = ({ onCreate }) => {
                 ))
               )}
             </tbody>
-
           </table>
-
         </div>
 
         {isViewModelOpen && (
