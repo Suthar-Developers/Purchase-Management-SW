@@ -28,15 +28,12 @@ const AddMaterials = ({ onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-
       <div className="bg-white w-175 rounded-2xl shadow-lg">
-
-        <div className="border-b px-5 py-5 font-semibold">
+        <div className="border-b px-5 py-3 font-semibold">
           Add Material
         </div>
 
-        <div className="p-5 grid grid-cols-2 gap-4">
-
+        <div className="p-4 grid grid-cols-2 gap-4">
           <input name="material" placeholder="Material" className="input-line" onChange={handleChange} required/>
           <input name="specification" placeholder="Specification" className="input-line" onChange={handleChange}/>
           <input name="make" placeholder="Make" className="input-line" onChange={handleChange}/>
@@ -71,14 +68,12 @@ const AddMaterials = ({ onClose, onSave }) => {
             <label className="text-xs text-blue-700 font-semibold" htmlFor="deliveryDate">Deliver Before</label>
             <input type="date" name="deliverBefore" className="input-line" onChange={handleChange}/>
           </div>
-
         </div>
 
         <div className="flex justify-end gap-3 p-4">
-          <Button onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" lable={'Cancel'} />
-          <Button onClick={handleSubmit} className='w-25 px-6 py-2 font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' lable={'Add'} />
+          <Button onClick={onClose} className="px-6 py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer" lable={'Cancel'} />
+          <Button onClick={handleSubmit} className='w-25 px-6 py-2 font-medium bg-blue-600 text-xs rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' lable={'Add'} />
         </div>
-
       </div>
     </div>
   )
