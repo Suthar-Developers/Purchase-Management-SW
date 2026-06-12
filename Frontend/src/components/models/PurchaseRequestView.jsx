@@ -16,7 +16,6 @@ const Field = ({ label, value }) => (
 )
 
 const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
-
     const [activeIndex, setActiveIndex] = useState(0)
     const [showApprovalModal, setShowApprovalModal] = useState(false)
     const [selectedMaterialIndex, setSelectedMaterialIndex] = useState(null)
@@ -25,23 +24,19 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
     if (!req) return null
 
     const material = materials?.[activeIndex]
-
     const handleMaterialAction = async (material_id, materialStatus) => {
         try {
             const updatedMaterials = [...materials]
 
             updatedMaterials[selectedMaterialIndex].materialStatus = materialStatus
-
             setMaterials(updatedMaterials)
 
             const res = await updateMaterialStatus(material_id, materialStatus)
-
             alert(res?.message || "Material status updated successfully")
 
             await refreshRequest()
             setShowApprovalModal(false)
             onClose()
-
         } catch (error) {
             console.error(error)
             alert("Failed to update status")
@@ -50,18 +45,14 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+            <div className="bg-white w-[65%] h-fit rounded-2xl shadow-2xl p-4 relative">
 
-            <div className="bg-white w-[75%] rounded-2xl shadow-2xl p-6 relative">
-
-                {/* Close */}
-                <Button lable="✕" onClick={onClose} className="absolute top-4 right-4 px-2 py-1 rounded-lg font-bold text-xl hover:cursor-pointer hover:bg-gray-100 hover:text-red-700" />
+                <Button lable="✕" onClick={onClose} className="absolute top-3 right-4 px-2 py-1 rounded-lg font-bold text-lg hover:cursor-pointer hover:bg-gray-100 hover:text-red-700" />
 
                 {/* 🔷 HEADER SECTION */}
-                <h2 className="text-2xl font-bold mb-4 border-b pb-2">
-                    Purchase Request Details
-                </h2>
+                <h2 className="text-lg font-bold mb-4 border-b pb-2">Purchase Request Details</h2>
 
-                <div className="grid grid-cols-3 gap-3 pb-3 mb-4 border-b">
+                <div className="grid grid-cols-3 gap-2 pb-2 mb-2 border-b text-xs">
                     <Field label="MR No" value={`MR-${req.request_id}`} />
                     <Field label="Project" value={req.projectName} />
                     <Field label="Contact Person" value={req.contactPerson} />
@@ -71,21 +62,21 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                 </div>
 
                 {/* 🔷 MATERIAL BUTTONS */}
-                <div className="flex justify-between mb-4">
+                <div className="flex justify-between mb-2">
                     <div className="flex gap-2 flex-wrap ml-5">
                         {req.materials?.map((_, i) => (
-                            <Button lable={`Material ${i + 1}`} key={i} onClick={() => setActiveIndex(i)} className={`px-4 py-2 rounded-lg hover:cursor-pointer ${activeIndex === i ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"}`} />
+                            <Button lable={`Material ${i + 1}`} key={i} onClick={() => setActiveIndex(i)} className={`px-4 py-2 text-xs rounded-lg hover:cursor-pointer ${activeIndex === i ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"}`} />
                         ))}
                     </div>
 
                     <div className="mr-5">
-                        <Button lable="Action" onClick={() => { setSelectedMaterialIndex(activeIndex), setShowApprovalModal(true) }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-gray-500 hover:cursor-pointer" />
+                        <Button lable="Action" onClick={() => { setSelectedMaterialIndex(activeIndex), setShowApprovalModal(true) }} className="px-4 py-2 text-xs bg-green-600 text-white rounded-lg hover:bg-gray-500 hover:cursor-pointer" />
                     </div>
                 </div>
 
                 {/* 🔷 MATERIAL DETAILS */}
                 {material && (
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-4 gap-2 text-xs">
                         <Field label="Material" value={material.material} />
                         <Field label="Specification" value={material.specification} />
                         <Field label="Make" value={material.make} />
@@ -103,27 +94,21 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
 
                 {/* Footer */}
                 <div className="flex justify-end border-t pt-3 mt-3">
-                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
+                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
                 </div>
 
                 {showApprovalModal && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-
                         <div className="bg-white rounded-xl p-6 w-[25%] shadow-xl">
-
-                            <h3 className="text-lg font-semibold mb-4 text-center">
-                                Material Action
-                            </h3>
+                            <h3 className="text-sm font-semibold mb-4 text-center">Material Action</h3>
 
                             <div className="grid grid-cols-3 gap-3">
-                                <Button lable="Approve" icon={<i className="fa-solid fa-check"></i>} onClick={() => handleMaterialAction(material.material_id, "Approved")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
-
-                                <Button lable="Pending" icon={<i className="fa-solid fa-pause"></i>} onClick={() => handleMaterialAction(material.material_id, "Pending")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-yellow-400 text-gray-800 font-medium hover:bg-yellow-500 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
-
-                                <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
+                                <Button lable="Approve" icon={<i className="fa-solid fa-check"></i>} onClick={() => handleMaterialAction(material.material_id, "Approved")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
+                                <Button lable="Pending" icon={<i className="fa-solid fa-pause"></i>} onClick={() => handleMaterialAction(material.material_id, "Pending")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-yellow-400 text-gray-800 text-xs font-medium hover:bg-yellow-500 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
+                                <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-red-500 text-white text-xs font-medium hover:bg-red-600 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
                             </div>
 
-                            <Button lable="Cancel" onClick={() => setShowApprovalModal(false)} className="mt-4 w-full py-2 bg-gray-200 rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
+                            <Button lable="Cancel" onClick={() => setShowApprovalModal(false)} className="mt-4 w-full py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
                         </div>
                     </div>
                 )}
