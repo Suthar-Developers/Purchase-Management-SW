@@ -103,7 +103,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }));
 
         setMaterials(materialsWithNumbers || []);
-
         setExtraCharge(po.extraCharge ? {
             ...po.extraCharge,
             amount: Number(po.extraCharge.amount) || 0,
@@ -132,7 +131,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
     useEffect(() => {
         if (mode === "create" && selectedRequest && projectList.length > 0 & vendorList.length > 0) {
-
             const project = projectList.find(
                 (p) => p.projectName === selectedRequest.projectName
             );
@@ -260,7 +258,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         if (!isValid) return alert("Fill all material fields");
 
         const selectedProject = projectList.find(p => p.project_id === Number(form.project_id));
-
         const payload = {
             ...form,
             delivery_address: selectedProject?.address || "",
@@ -303,7 +300,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     po_status: "Draft",
                 });
                 setMaterials([]);
-
                 setExtraCharge(null);
                 setExtraCharges({
                     extraChargeCategory: "",
@@ -375,7 +371,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         let n = Math.floor(num);
         if (n === 0) return "Zero";
-
         let str = "";
         // Crores
         if (Math.floor(n / 10000000) > 0) {
@@ -464,32 +459,30 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
     return (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-
-            <div className="bg-white w-[80%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
+            <div className="bg-white w-[75%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
 
                 <div className="flex justify-between mb-4">
-                    <h2 className="text-2xl font-bold">{mode === "create" ? "Purchase Order" : "Purchase Order Details"}</h2>
-                    <Button lable="✕" onClick={onClose} className="py-1 px-2 rounded-xl text-2xl font-bold hover:bg-gray-100 hover:text-red-700 hover:cursor-pointer" />
+                    <h2 className="text-lg font-bold">{mode === "create" ? "Purchase Order" : "Purchase Order Details"}</h2>
+                    <Button lable="✕" onClick={onClose} className="py-1 px-2 rounded-xl text-lg font-bold hover:bg-gray-100 hover:text-red-700 hover:cursor-pointer" />
                 </div>
 
                 <form onSubmit={handleSubmit}>
 
                     {/* PDF AREA */}
-                    <div ref={pdfRef} id="po-print-area" className="py-6 bg-white text-sm">
-
+                    <div ref={pdfRef} id="po-print-area" className="py-2 bg-white text-sm">
                         {chunkArray(materials, 17).map((materialChunk, pageIndex, allPages) => (
                             <div
                                 key={pageIndex}
-                                className="bg-white mb-10 shadow-lg p-8 mx-auto border border-black"
+                                className="bg-white mb-10 shadow-lg p-3 mx-auto border border-black"
                                 style={{ width: '1000px', minHeight: '1120px', position: 'relative' }}>
 
                                 {/* HEADER */}
-                                <div className="pb-3">
+                                <div className="pb-1">
                                     <div>
-                                        <img className="w-[95%] h-18 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
+                                        <img className="w-[90%] h-16 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
                                     </div>
 
-                                    <h2 className="text-center font-bold text-lg mt-2">
+                                    <h2 className="text-center font-bold text-sm mt-2">
                                         {form.po_status === "Revised" ? "PURCHASE ORDER (REVISED)" : "PURCHASE ORDER"}
                                     </h2>
                                 </div>
@@ -500,7 +493,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
                                         <div className="col-span-4 border-r border-b pl-1">
                                             <div>
-                                                <label className="text-sm text-gray-500">To</label>
+                                                <label className="text-xs text-gray-500">To</label>
                                                 {editable ? (
                                                     <select
                                                         name="vendor_id"
@@ -550,8 +543,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </div>
 
                                         <div className="col-span-2 col-start-5 row-start-2 flex flex-col justify-evenly">
-                                            <p className="pl-1 text-ms font-bold border-b border-b-gray-400">Contact Person</p>
-                                            <p className="pl-1 text-ms font-bold">Contact Person Number</p>
+                                            <p className="pl-1 text-xs font-bold border-b border-b-gray-400">Contact Person</p>
+                                            <p className="pl-1 text-xs font-bold">Contact Person Number</p>
                                         </div>
 
                                         <div className="col-span-2 col-start-7 row-start-2 border-l flex flex-col justify-evenly">
@@ -587,7 +580,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                         <div className="col-span-4 col-start-5 row-start-4 border-b flex items-center">
                                             <div className="flex items-center gap-1 pl-1">
-                                                <p className="text-sm font-bold">Project :</p>
+                                                <p className="text-xs font-bold">Project :</p>
                                                 <div>
                                                     {(isReadOnly || selectedRequest) ? (
                                                         <p className="font-bold text-gray-800">
@@ -614,7 +607,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     </div>
 
                                     {/* Material Table */}
-                                    <table className="w-full text-sm">
+                                    <table className="w-full text-xs">
                                         <thead>
                                             <tr className="bg-gray-200">
                                                 <th className="border p-2">S.No</th>
@@ -638,7 +631,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         <tbody>
                                             {materialChunk.map((m, i) => (
                                                 <tr key={i} className="border border-b-gray-300 border-r-gray-100">
-
                                                     <td className="w-[5%] text-center">{(pageIndex * 17) + i + 1}</td>
 
                                                     <td className="w-[46.3%] text-center">
@@ -729,11 +721,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                             <Button onClick={() => handleDeleteRow(i)} className="text-red-600 rounded-lg hover:cursor-pointer" icon={<i className="fa-solid fa-xmark fa-2xl"></i>} />
                                                         </td>
                                                     )}
-
                                                 </tr>
                                             ))}
                                         </tbody>
-
                                     </table>
 
                                     {/* Calculation Part */}
@@ -746,12 +736,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                             <Button lable="+ Add New Row" type="button" onClick={handleAddRow} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
                                                         </div>
                                                     )}
-
                                                 </div>
 
                                                 <div className="flex justify-end pr-5">
                                                     <div className="w-72 space-y-1 p-2 text-xs">
-
                                                         {!extraCharge && !isReadOnly && (
                                                             <Button lable="+ Add Other Charge" type="button" onClick={() => setOpenExtraChargeModel(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-700 hover:cursor-pointer" />
                                                         )}
@@ -783,14 +771,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                             <span>₹ {(totalGst / 2).toFixed(2)}</span>
                                                         </div>
 
-                                                        <div className="flex justify-between font-bold border-t pt-2 text-sm">
+                                                        <div className="flex justify-between font-bold border-t pt-2 text-xs">
                                                             <span>Total</span>
                                                             <span>₹ {grandTotal}</span>
                                                         </div>
                                                     </div>
-
                                                 </div>
-
 
                                                 {/* AMOUNT IN WORDS */}
                                                 <div className="mt-4 text-xs px-3">
@@ -872,7 +858,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                         </td>
                                                                     </tr>
                                                                 </tfoot>
-
                                                             </table>
                                                         </>
                                                     ) : (
@@ -881,11 +866,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 </div>
                                             </div>
 
-
                                             {/* Terms & Conditions */}
-
                                             <div className="absolute bottom-10 left-8 right-8">
-                                                <div className="mb-4 font-bold text-blue-900 text-xs px-3 italic">
+                                                <div className="mb-1 font-bold text-blue-900 text-xs px-3 italic">
                                                     NOTE : REQUIRED MTC REPORT
                                                 </div>
 
@@ -900,7 +883,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 </div>
 
                                                 {/* SIGNATURE */}
-                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-4">
+                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-2">
                                                     <div>
                                                         <p>Prepared By</p>
                                                         <p className="mt-6">____________________</p>
@@ -920,7 +903,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 <div className="text-center text-[10px] text-gray-400 mt-2">
                                                     <p>This is a Computer Generated Purchase Order</p>
                                                 </div>
-
                                             </div>
                                         </div>
                                     )}
@@ -929,33 +911,31 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         ))}
 
                         {/* ACTIONS */}
-                        <div className="flex justify-end gap-3 mt-4 no-print">
+                        <div className="flex justify-end gap-3 no-print">
                             {mode === "view" && !isEditing && (
                                 <>
-                                    <Button lable={loading ? "Generating..." : "Download PDF"} icon={<i className="fa-solid fa-download"></i>} type="button" onClick={handleDownloadPDF} className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:cursor-pointer hover:bg-blue-700" disabled={loading} />
+                                    <Button lable={loading ? "Generating..." : "Download PDF"} icon={<i className="fa-solid fa-download"></i>} type="button" onClick={handleDownloadPDF} className="bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:cursor-pointer hover:bg-blue-700" disabled={loading} />
                                     {form.po_status === "Approved" && (
-                                        <Button lable="Revise PO" type="button" onClick={handleReviseClick} className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 hover:cursor-pointer" />
+                                        <Button lable="Revise PO" type="button" onClick={handleReviseClick} className="bg-orange-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-orange-600 hover:cursor-pointer" />
                                     )}
                                 </>
                             )}
 
                             {(mode === "create" || isEditing) ? (
-                                <Button lable={isEditing ? "Save Revision" : "Create PO"} type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" />
+                                <Button lable={isEditing ? "Save Revision" : "Create PO"} type="submit" className="bg-green-600 text-white text-xs px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" />
                             ) : (
                                 <>
                                     {form.po_status !== "Approved" && form.po_status !== "Revised" && (
                                         <>
-                                            <Button lable="Approve" type="button" onClick={() => handlePOStatusUpdate("Approved")} className="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" disabled={loading || form.po_status === "Approved"} />
-
-                                            <Button lable="Reject" type="button" onClick={() => handlePOStatusUpdate("Rejected")} className="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-red-700" disabled={loading || form.po_status === "Rejected"} />
-
-                                            <Button lable="Hold" type="button" onClick={() => handlePOStatusUpdate("Hold")} className="bg-yellow-600 text-white font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-yellow-700" disabled={loading || form.po_status === "Hold"} />
+                                            <Button lable="Approve" type="button" onClick={() => handlePOStatusUpdate("Approved")} className="bg-green-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" disabled={loading || form.po_status === "Approved"} />
+                                            <Button lable="Reject" type="button" onClick={() => handlePOStatusUpdate("Rejected")} className="bg-red-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-red-700" disabled={loading || form.po_status === "Rejected"} />
+                                            <Button lable="Hold" type="button" onClick={() => handlePOStatusUpdate("Hold")} className="bg-yellow-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-yellow-700" disabled={loading || form.po_status === "Hold"} />
                                         </>
                                     )}
                                 </>
                             )}
 
-                            <Button lable="Close" type="button" onClick={onClose} className="bg-gray-200 font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-gray-300" />
+                            <Button lable="Close" type="button" onClick={onClose} className="bg-gray-200 text-xs font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-gray-300" />
                         </div>
                     </div>
                 </form>
@@ -963,11 +943,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
             {openExtraChargeModel && (
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                    <div className="bg-white w-[30%] p-6 rounded-xl shadow-xl overflow-auto max-h-[95vh]">
+                    <div className="bg-white w-[30%] p-6 text-xs rounded-xl shadow-xl overflow-auto max-h-fit">
                         <div className="flex justify-end">
-                            <Button icon={<i className="fa-solid text-2xl fa-xmark"></i>} onClick={() => setOpenExtraChargeModel(false)} className="px-2 py-1 rounded-lg hover:bg-gray-100 hover:text-red-700 hover:cursor-pointer" />
+                            <Button icon={<i className="fa-solid text-2xl fa-xmark"></i>} onClick={() => setOpenExtraChargeModel(false)} className="px-2 py-1 text-xs rounded-lg hover:bg-gray-100 hover:text-red-700 hover:cursor-pointer" />
                         </div>
-                        <h2 className="text-center font-bold mb-10">Add Extra Charge</h2>
+                        <h2 className="text-center font-bold text-base mb-10">Add Extra Charge</h2>
 
                         <div className="flex justify-between mb-5 px-15">
                             <label className="font-bold">Charge Category</label>
@@ -1014,9 +994,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                         </div>
 
                         <div className="flex justify-end">
-                            <Button lable="Add Charge" type="button" onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition" />
+                            <Button lable="Add Charge" type="button" onClick={submitExtChargeModel} className="flex items-center justify-center py-2 px-6 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-800 hover:cursor-pointer transition" />
                         </div>
-
                     </div>
                 </div>
             )}
