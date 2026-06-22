@@ -7,6 +7,18 @@ import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 import Button from "../common/Button";
 
+const PDF_LAYOUT = {
+    previewWidth: 1000,
+    previewHeight: 1414,
+    rowHeight: 34,
+    maxRowsWithoutBottom: 28,
+    maxRowsWithBottom: 8,
+    maxRowsWithBottomOnMultiPage: 9,
+    finalPageTableRows: 13,
+    captureScale: 2,
+    jpegQuality: 0.9,
+};
+
 const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, onStatusUpdate }) => {
 
     const pdfRef = useRef()
@@ -24,6 +36,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     })
 
     const [loading, setLoading] = useState(false);
+    const [isPdfRendering, setIsPdfRendering] = useState(false);
 
     const [form, setForm] = useState({
         po_number: "Loading...",
@@ -393,14 +406,64 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         return str.trim() + " Rupees Only";
     };
 
-    // ... Creating chunks ...
-    const chunkArray = (array, size) => {
-        const chunks = [];
-        for (let i = 0; i < array.length; i += size) {
-            chunks.push(array.slice(i, i + size));
+    // Builds predictable A4 pages and uses empty table rows instead of blank gaps.
+    const buildPoPages = (sourceMaterials) => {
+        const rows = sourceMaterials.map((material, index) => ({ material, originalIndex: index }));
+        const gstBreakdownRows = Object.keys(totals.gstGroups).length;
+        const singlePageCapacity = Math.max(5, PDF_LAYOUT.maxRowsWithBottom - Math.max(0, gstBreakdownRows - 2));
+        const multiPageFinalCapacity = Math.max(4, PDF_LAYOUT.maxRowsWithBottomOnMultiPage - Math.max(0, gstBreakdownRows - 2));
+        const getFinalEmptyRows = (actualRows, capacity) => {
+            const targetRows = Math.max(capacity, PDF_LAYOUT.finalPageTableRows - Math.max(0, gstBreakdownRows - 2));
+            return Math.max(0, targetRows - actualRows);
+        };
+
+        if (rows.length <= singlePageCapacity) {
+            return [{
+                rows,
+                emptyRows: getFinalEmptyRows(rows.length, singlePageCapacity),
+                showBottomSections: true,
+                startIndex: 0
+            }];
         }
-        return chunks;
+
+        const pages = [];
+        let cursor = 0;
+
+        while (rows.length - cursor > PDF_LAYOUT.maxRowsWithoutBottom) {
+            const pageRows = rows.slice(cursor, cursor + PDF_LAYOUT.maxRowsWithoutBottom);
+
+            pages.push({
+                rows: pageRows,
+                emptyRows: Math.max(0, PDF_LAYOUT.maxRowsWithoutBottom - pageRows.length),
+                showBottomSections: false,
+                startIndex: cursor
+            });
+            cursor += pageRows.length;
+        }
+
+        if (rows.length - cursor > multiPageFinalCapacity) {
+            const pageRows = rows.slice(cursor);
+            pages.push({
+                rows: pageRows,
+                emptyRows: Math.max(0, PDF_LAYOUT.maxRowsWithoutBottom - pageRows.length),
+                showBottomSections: false,
+                startIndex: cursor
+            });
+            cursor += pageRows.length;
+        }
+
+        const finalRows = rows.slice(cursor);
+        pages.push({
+            rows: finalRows,
+            emptyRows: getFinalEmptyRows(finalRows.length, multiPageFinalCapacity),
+            showBottomSections: true,
+            startIndex: cursor
+        });
+
+        return pages;
     };
+
+    const poPages = buildPoPages(materials);
 
     // ... Download PO PDF ...
     const handleDownloadPDF = async () => {
@@ -408,15 +471,18 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         if (!element) return;
 
         setLoading(true);
+        setIsPdfRendering(true);
 
         try {
+            await new Promise(resolve => requestAnimationFrame(resolve));
+
             // Initialize A4 PDF
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            // Select all the page divs (mapped by chunkArray)
-            const pages = element.querySelectorAll('#po-print-area > div');
+            // Capture only fixed A4 page nodes so controls/actions never affect the PDF.
+            const pages = element.querySelectorAll('.po-pdf-page');
 
             for (let i = 0; i < pages.length; i++) {
                 const page = pages[i];
@@ -425,25 +491,29 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 const hidden = page.querySelectorAll('.no-print, button, i, select');
                 hidden.forEach(el => el.style.display = 'none');
 
-                // 1. Capture current page at Scale 2 (Sharp but safe)
-                const canvas = await html2canvas(page, {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                });
+                try {
+                    // 1. Capture current page at a controlled scale for sharp output without huge files.
+                    const canvas = await html2canvas(page, {
+                        scale: PDF_LAYOUT.captureScale,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        width: PDF_LAYOUT.previewWidth,
+                        height: PDF_LAYOUT.previewHeight,
+                        windowWidth: PDF_LAYOUT.previewWidth,
+                    });
 
-                // 2. Convert to JPEG (More stable for jsPDF than PNG)
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    // 2. JPEG keeps the PO readable while keeping the file size reasonable.
+                    const imgData = canvas.toDataURL('image/jpeg', PDF_LAYOUT.jpegQuality);
 
-                // 3. Add to PDF
-                if (i > 0) pdf.addPage();
+                    // 3. Add to PDF
+                    if (i > 0) pdf.addPage();
 
-                // Fill the full A4 page
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-
-                // Restore hidden elements
-                hidden.forEach(el => el.style.display = '');
+                    // Fill the full A4 page
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+                } finally {
+                    hidden.forEach(el => el.style.display = '');
+                }
             }
 
             // 4. Save
@@ -453,6 +523,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             console.error('PDF generation failed:', error);
             alert('Error: Data overflow. Try reducing the number of rows per page.');
         } finally {
+            setIsPdfRendering(false);
             setLoading(false);
         }
     };
@@ -470,11 +541,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                     {/* PDF AREA */}
                     <div ref={pdfRef} id="po-print-area" className="py-2 bg-white text-sm">
-                        {chunkArray(materials, 17).map((materialChunk, pageIndex, allPages) => (
+                        {poPages.map((poPage, pageIndex) => (
                             <div
                                 key={pageIndex}
-                                className="bg-white mb-10 shadow-lg p-3 mx-auto border border-black"
-                                style={{ width: '1000px', minHeight: '1120px', position: 'relative' }}>
+                                className="po-pdf-page bg-white mb-10 shadow-lg p-3 mx-auto border border-black overflow-hidden"
+                                style={{ width: `${PDF_LAYOUT.previewWidth}px`, height: `${PDF_LAYOUT.previewHeight}px`, position: 'relative', boxSizing: 'border-box' }}>
 
                                 {/* HEADER */}
                                 <div className="pb-1">
@@ -487,14 +558,17 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     </h2>
                                 </div>
 
-                                <div className="border mx-5">
+                                <div
+                                    className="border mx-5 relative"
+                                    style={{ height: 'calc(100% - 126px)' }}
+                                >
 
                                     {/* --Top Information-- */}
                                     <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
                                         <div className="col-span-4 border-r border-b pl-1">
                                             <div>
                                                 <label className="text-xs text-gray-500">To</label>
-                                                {editable ? (
+                                                {editable && !isPdfRendering ? (
                                                     <select
                                                         name="vendor_id"
                                                         className="input-line text-red-500 font-bold"
@@ -582,7 +656,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             <div className="flex items-center gap-1 pl-1">
                                                 <p className="text-xs font-bold">Project :</p>
                                                 <div>
-                                                    {(isReadOnly || selectedRequest) ? (
+                                                    {(isReadOnly || selectedRequest || isPdfRendering) ? (
                                                         <p className="font-bold text-gray-800">
                                                             {projectData?.projectName || 'N/A'}
                                                         </p>
@@ -619,8 +693,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 <th className="border p-2">GST %</th>
                                                 <th className="border p-2">Amount</th>
 
-                                                {!selectedRequest && !isReadOnly && (
-                                                    <th className="flex justify-center p-5 items-center">
+                                                {!selectedRequest && !isReadOnly && !isPdfRendering && (
+                                                    <th className="no-print flex justify-center p-5 items-center">
                                                         <i className="fa-solid fa-ellipsis"></i>
                                                     </th>
                                                 )}
@@ -629,16 +703,16 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         </thead>
 
                                         <tbody>
-                                            {materialChunk.map((m, i) => (
-                                                <tr key={i} className="border border-b-gray-300 border-r-gray-100">
-                                                    <td className="w-[5%] text-center">{(pageIndex * 17) + i + 1}</td>
+                                            {poPage.rows.map(({ material: m, originalIndex }) => (
+                                                <tr key={originalIndex} className="border border-b-gray-300 border-r-gray-100" style={{ height: `${PDF_LAYOUT.rowHeight}px`, breakInside: 'avoid' }}>
+                                                    <td className="w-[5%] text-center">{originalIndex + 1}</td>
 
                                                     <td className="w-[46.3%] text-center">
-                                                        {editable ? (
+                                                        {editable && !isPdfRendering ? (
                                                             <input
                                                                 placeholder="Enter Material"
                                                                 className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "material", e.target.value)}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "material", e.target.value)}
                                                                 value={m.material}
                                                             />
                                                         ) : (
@@ -647,11 +721,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     </td>
 
                                                     <td className="w-[8.33%] text-center">
-                                                        {editable ? (
+                                                        {editable && !isPdfRendering ? (
                                                             <input
                                                                 placeholder="Enter Unit"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "unit", e.target.value)}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "unit", e.target.value)}
                                                                 value={m.unit}
                                                             />
                                                         ) : (
@@ -660,11 +734,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     </td>
 
                                                     <td className="w-[8.33%] text-center">
-                                                        {editable ? (
+                                                        {editable && !isPdfRendering ? (
                                                             <input
                                                                 placeholder="Enter Quantity"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "qty", e.target.value)}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "qty", e.target.value)}
                                                                 value={m.qty}
                                                             />
                                                         ) : (
@@ -673,11 +747,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     </td>
 
                                                     <td className="w-[8.33%] text-center">
-                                                        {editable ? (
+                                                        {editable && !isPdfRendering ? (
                                                             <input
                                                                 placeholder="Enter Rate"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "rate", e.target.value)}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "rate", e.target.value)}
                                                                 disabled={isReadOnly}
                                                                 value={m.rate}
                                                             />
@@ -687,11 +761,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     </td>
 
                                                     <td className="w-[8.33%] text-center">
-                                                        {editable ? (
+                                                        {editable && !isPdfRendering ? (
                                                             <input
                                                                 placeholder="Enter Discount"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "discount", e.target.value)}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "discount", e.target.value)}
                                                                 disabled={isReadOnly}
                                                                 value={m.discount}
                                                             />
@@ -701,11 +775,11 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     </td>
 
                                                     <td className="w-[8.33%] text-center">
-                                                        {editable ? (
+                                                        {editable && !isPdfRendering ? (
                                                             <input
                                                                 placeholder="Enter GST"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(i, "gst", e.target.value)}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "gst", e.target.value)}
                                                                 disabled={isReadOnly}
                                                                 value={m.gst}
                                                             />
@@ -716,22 +790,35 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                     <td className="w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
 
-                                                    {!selectedRequest && !isReadOnly && (
-                                                        <td className="border-none">
-                                                            <Button onClick={() => handleDeleteRow(i)} className="text-red-600 rounded-lg hover:cursor-pointer" icon={<i className="fa-solid fa-xmark fa-2xl"></i>} />
+                                                    {!selectedRequest && !isReadOnly && !isPdfRendering && (
+                                                        <td className="no-print border-none">
+                                                            <Button onClick={() => handleDeleteRow(originalIndex)} className="text-red-600 rounded-lg hover:cursor-pointer" icon={<i className="fa-solid fa-xmark fa-2xl"></i>} />
                                                         </td>
                                                     )}
+                                                </tr>
+                                            ))}
+                                            {Array.from({ length: poPage.emptyRows }).map((_, i) => (
+                                                <tr key={`empty-${pageIndex}-${i}`} className="border border-b-gray-300 border-r-gray-100" style={{ height: `${PDF_LAYOUT.rowHeight}px`, breakInside: 'avoid' }}>
+                                                    <td className="w-[5%]">&nbsp;</td>
+                                                    <td className="w-[46.3%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    <td className="w-[8.33%]">&nbsp;</td>
+                                                    {!selectedRequest && !isReadOnly && !isPdfRendering && <td className="no-print border-none">&nbsp;</td>}
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
 
                                     {/* Calculation Part */}
-                                    {pageIndex === allPages.length - 1 && (
+                                    {poPage.showBottomSections && (
                                         <div>
                                             <div className="flex flex-col justify-between mt-4 text-xs">
                                                 <div className="flex w-full justify-around">
-                                                    {!selectedRequest && !isReadOnly && (
+                                                    {!selectedRequest && !isReadOnly && !isPdfRendering && (
                                                         <div className="flex justify-center items-center w-full">
                                                             <Button lable="+ Add New Row" type="button" onClick={handleAddRow} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
                                                         </div>
@@ -740,7 +827,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                 <div className="flex justify-end pr-5">
                                                     <div className="w-72 space-y-1 p-2 text-xs">
-                                                        {!extraCharge && !isReadOnly && (
+                                                        {!extraCharge && !isReadOnly && !isPdfRendering && (
                                                             <Button lable="+ Add Other Charge" type="button" onClick={() => setOpenExtraChargeModel(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-700 hover:cursor-pointer" />
                                                         )}
 
@@ -867,7 +954,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             </div>
 
                                             {/* Terms & Conditions */}
-                                            <div className="absolute bottom-10 left-8 right-8">
+                                            <div className="absolute bottom-3 left-3 right-3">
                                                 <div className="mb-1 font-bold text-blue-900 text-xs px-3 italic">
                                                     NOTE : REQUIRED MTC REPORT
                                                 </div>
@@ -900,12 +987,15 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     </div>
                                                 </div>
 
-                                                <div className="text-center text-[10px] text-gray-400 mt-2">
-                                                    <p>This is a Computer Generated Purchase Order</p>
-                                                </div>
                                             </div>
                                         </div>
                                     )}
+                                </div>
+
+                                <div className="absolute bottom-3 left-8 right-8 grid grid-cols-3 items-center text-[10px] text-gray-400">
+                                    <span></span>
+                                    <p className="text-center">This is a Computer Generated Purchase Order</p>
+                                    <p className="text-right text-gray-500">Page {pageIndex + 1} of {poPages.length}</p>
                                 </div>
                             </div>
                         ))}
