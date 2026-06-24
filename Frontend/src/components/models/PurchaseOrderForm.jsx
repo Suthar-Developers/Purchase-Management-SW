@@ -1012,23 +1012,31 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 </div>
 
                                                 {/* SIGNATURE */}
-                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-2">
+                                                <div className="grid grid-cols-4 text-xs text-center border-t pt-2">
                                                     <div>
+                                                        <p className="mt-6">____________________</p>
                                                         <p>Prepared By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p></p>
                                                     </div>
 
                                                     <div>
+                                                        <p className="mt-6">____________________</p>
                                                         <p>Checked By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p>Sangita Ranjavan</p>
                                                     </div>
 
                                                     <div>
-                                                        <p>Approved By</p>
                                                         <p className="mt-6">____________________</p>
+                                                        <p>Approved By</p>
+                                                        <p>Sunil Bishnoi</p>
+                                                    </div>
+
+                                                    <div>
+                                                        <p className="mt-6">____________________</p>
+                                                        <p>Approved By</p>
+                                                        <p>SIGNATORY</p>
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     )}
