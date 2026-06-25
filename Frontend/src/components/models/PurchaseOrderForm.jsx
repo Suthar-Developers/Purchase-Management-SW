@@ -585,7 +585,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 {/* HEADER */}
                                 <div className="pb-1">
                                     <div>
-                                        <img className="w-[90%] h-16 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
+                                        <img className="w-[90%] h-20 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
                                     </div>
 
                                     <h2 className="text-center font-bold text-sm mt-2">
@@ -593,10 +593,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     </h2>
                                 </div>
 
-                                <div
-                                    className="border mx-5 relative"
-                                    style={{ height: 'calc(100% - 126px)' }}
-                                >
+                                <div className="border mx-5 relative" style={{ height: 'calc(100% - 126px)' }}>
 
                                     {/* --Top Information-- */}
                                     <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
@@ -1042,7 +1039,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     )}
                                 </div>
 
-                                <div className="absolute bottom-3 left-8 right-8 grid grid-cols-3 items-center text-[10px] text-gray-400">
+                                <div className="absolute bottom-2 left-8 right-8 grid grid-cols-3 items-center text-[10px] text-gray-400">
                                     <span></span>
                                     <p className="text-center">This is a Computer Generated Purchase Order</p>
                                     <p className="text-right text-gray-500">Page {pageIndex + 1} of {poPages.length}</p>
