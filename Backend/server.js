@@ -5,6 +5,7 @@ const projectRoute = require('./routes/projectRoute')
 const vendorRoute = require('./routes/vendorRoute')
 const purchaseRequestRoute = require('./routes/purchaseRequestRoute')
 const purchaseOrderRoute = require('./routes/purchaseOrderRoute')
+const reportRoute = require('./routes/reportRoute')
 
 const app = express()
 const port = 3000;
@@ -27,6 +28,7 @@ app.use('/api', projectRoute)
 app.use('/api', vendorRoute)
 app.use('/api', purchaseRequestRoute)
 app.use('/api', purchaseOrderRoute)
+app.use('/api', reportRoute)
 
 app.listen(port, () => {
     console.log(`Your server is running on ${port}`)

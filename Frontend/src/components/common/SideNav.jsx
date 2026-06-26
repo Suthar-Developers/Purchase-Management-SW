@@ -107,12 +107,14 @@ const SideNav = () => {
                     </button>
                 </div>
 
-                <div className={`btn py-2 rounded w-3xs mb-2 ${isActive('/reports') ? 'text-white font-semibold bg-gray-800' : ''}`}>
-                    <button className='flex items-center gap-2 ml-2 text-left'>
-                        <i className="fa-solid fa-square-poll-vertical fa-lg"></i>
-                        Reports
-                    </button>
-                </div>
+                <Link to={'/reports'}>
+                    <div className={`btn py-2 rounded w-3xs mb-2 ${isActive('/reports') ? 'text-white font-semibold bg-gray-800' : ''}`}>
+                        <button className='flex items-center gap-2 ml-2 text-left'>
+                            <i className="fa-solid fa-square-poll-vertical fa-lg"></i>
+                            Reports
+                        </button>
+                    </div>
+                </Link>
             </div>
 
             <div>
