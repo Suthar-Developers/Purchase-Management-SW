@@ -37,14 +37,15 @@ const getReport = async (reportId, filters) => {
 const getFilterOptions = () => reportRepository.getFilterOptions();
 
 const getPreferences = async (userId) => {
-    const [savedFilters, templates, schedules, alerts, favorites] = await Promise.all([
+    const [savedFilters, templates, schedules, alerts, favorites, auditLogs] = await Promise.all([
         preferenceRepository.list('savedFilters', userId),
         preferenceRepository.list('templates', userId),
         preferenceRepository.list('schedules', userId),
         preferenceRepository.list('alerts', userId),
-        preferenceRepository.getFavorites(userId)
+        preferenceRepository.getFavorites(userId),
+        preferenceRepository.getAuditLogs(userId)
     ]);
-    return { savedFilters, templates, schedules, alerts, favorites };
+    return { savedFilters, templates, schedules, alerts, favorites, auditLogs };
 };
 
 const savePreference = (collection, userId, payload) => preferenceRepository.save(collection, userId, payload);

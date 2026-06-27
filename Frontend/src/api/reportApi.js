@@ -40,4 +40,7 @@ export const reportApi = {
   async toggleFavorite(reportId) {
     return unwrap(await api.post(`/reports/favorites/${reportId}`))
   },
+  async deletePreference(collection, id) {
+    return unwrap(await api.delete(`/reports/${collection}/${id}`))
+  },
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import ChartPanel from '../../features/reports/components/ChartPanel'
 import EnterprisePanels from '../../features/reports/components/EnterprisePanels'
 import GlobalFilters from '../../features/reports/components/GlobalFilters'
@@ -6,6 +6,7 @@ import InsightsPanel from '../../features/reports/components/InsightsPanel'
 import KpiGrid from '../../features/reports/components/KpiGrid'
 import ReportModuleTabs from '../../features/reports/components/ReportModuleTabs'
 import ReportTable from '../../features/reports/components/ReportTable'
+import ReportWorkspace from '../../features/reports/components/ReportWorkspace'
 import { EmptyState, ErrorState, LoadingSkeleton } from '../../features/reports/components/ReportStates'
 import { reportColumns } from '../../features/reports/data/reportConfig'
 import { useReports } from '../../features/reports/hooks/useReports'
@@ -33,13 +34,29 @@ const Reports = () => {
     saveSchedule,
     saveAlert,
     toggleFavorite,
+    deletePreference,
   } = useReports()
+  const [widgets, setWidgets] = useState(() => {
+    const saved = localStorage.getItem('reportDashboardWidgets')
+    return saved ? JSON.parse(saved) : {
+      'KPI cards': true,
+      Charts: true,
+      Insights: true,
+      Tables: true,
+      Alerts: true,
+      Timeline: true,
+    }
+  })
 
   const rows = report?.table?.rows || []
   const summary = overview?.summary || report?.overview?.summary || {}
   const analytics = report?.analytics || {}
   const activeModule = modules.find((module) => module.id === activeReport)
   const fileName = useMemo(() => `purchase-${activeReport}-${new Date().toISOString().slice(0, 10)}`, [activeReport])
+
+  useEffect(() => {
+    localStorage.setItem('reportDashboardWidgets', JSON.stringify(widgets))
+  }, [widgets])
 
   const notify = (message) => {
     setNotice(message)
@@ -49,8 +66,12 @@ const Reports = () => {
   const handleSaveFilter = async () => {
     const name = window.prompt('Filter name', `${activeModule?.title || 'Report'} Filter`)
     if (!name) return
-    await saveFilter(name)
-    notify('Filter saved')
+    try {
+      await saveFilter(name)
+      notify('Filter saved')
+    } catch (err) {
+      notify(err?.response?.data?.message || 'Filter could not be saved')
+    }
   }
 
   const exportRows = (targetRows = rows, columns = reportColumns) => {
@@ -79,6 +100,24 @@ const Reports = () => {
       notify('Table copied')
     }
     if (type === 'screenshot') screenshotElement(dashboardRef.current, fileName)
+  }
+
+  const handleKpiSelect = (key) => {
+    const filterByKpi = {
+      approvedPO: { status: 'Approved' },
+      pendingPO: { status: 'Draft,Pending' },
+      rejectedPO: { status: 'Rejected' },
+      holdPO: { status: 'Hold' },
+      itemHoldPO: { status: 'Hold' },
+      activeVendors: { search: 'Active' },
+      totalVendors: { search: '' },
+      totalProjects: { search: '' },
+      totalCities: { search: '' },
+      totalPurchaseRequests: { search: '' },
+      totalPurchaseOrders: { search: '' },
+    }
+    setFilters(filterByKpi[key] || { sortBy: key, sortOrder: 'DESC', search: '' })
+    notify('Detailed view updated')
   }
 
   return (
@@ -124,7 +163,7 @@ const Reports = () => {
           <LoadingSkeleton />
         ) : (
           <>
-            <KpiGrid summary={summary} onSelect={(key) => setFilters({ search: key })} />
+            {widgets['KPI cards'] && <KpiGrid summary={summary} onSelect={handleKpiSelect} />}
 
             <div className="grid min-w-0 grid-cols-1 gap-4 2xl:grid-cols-[minmax(0,1fr)_340px]">
               <div className="min-w-0 space-y-4">
@@ -132,25 +171,35 @@ const Reports = () => {
                   <EmptyState />
                 ) : (
                   <>
-                    <ChartPanel analytics={analytics} overview={overview || report?.overview} />
-                    <ReportTable
-                      rows={rows}
-                      pagination={report?.table?.pagination}
-                      filters={filters}
-                      setFilters={setFilters}
-                      onBulkExport={exportRows}
-                    />
+                    <ReportWorkspace activeReport={activeReport} analytics={analytics} options={options} setFilters={setFilters} />
+                    {widgets.Charts && <ChartPanel analytics={analytics} overview={overview || report?.overview} />}
+                    {widgets.Tables && (
+                      <ReportTable
+                        rows={rows}
+                        pagination={report?.table?.pagination}
+                        filters={filters}
+                        setFilters={setFilters}
+                        onBulkExport={exportRows}
+                      />
+                    )}
                   </>
                 )}
               </div>
               <div className="min-w-0 space-y-4">
-                <InsightsPanel insights={report?.insights || []} />
+                {widgets.Insights && <InsightsPanel insights={report?.insights || []} />}
                 <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">Drill-through Navigation</h3>
                   <div className="grid gap-2 text-xs">
-                    {['PO Number Report', 'Vendor Price Comparison', 'Approval Analytics', 'Project Consumption'].map((item) => (
-                      <button key={item} className="rounded-md border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700 dark:border-slate-800 dark:text-slate-200">
-                        <i className="fa-solid fa-arrow-right mr-2"></i>{item}
+                    {[
+                      ['PO Number Report', 'po-number'],
+                      ['Vendor Price Comparison', 'vendor-price-comparison'],
+                      ['Approval Analytics', 'approvals'],
+                      ['Project Consumption', 'project-consumption'],
+                      ['Rate Analysis', 'rates'],
+                      ['Cost Analytics', 'costs'],
+                    ].map(([label, id]) => (
+                      <button key={id} onClick={() => setActiveReport(id)} className="rounded-md border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700 dark:border-slate-800 dark:text-slate-200">
+                        <i className="fa-solid fa-arrow-right mr-2"></i>{label}
                       </button>
                     ))}
                   </div>
@@ -160,9 +209,45 @@ const Reports = () => {
 
             <EnterprisePanels
               preferences={preferences}
-              onSaveTemplate={async (payload) => { await saveTemplate(payload); notify('Template saved') }}
-              onSaveSchedule={async (payload) => { await saveSchedule(payload); notify('Schedule saved') }}
-              onSaveAlert={async (payload) => { await saveAlert(payload); notify('Alert saved') }}
+              widgets={widgets}
+              setWidgets={setWidgets}
+              rows={rows}
+              reportColumns={reportColumns}
+              showAlerts={widgets.Alerts}
+              showTimeline={widgets.Timeline}
+              onApplyFilter={(savedFilters) => { setFilters(savedFilters || {}); notify('Saved filter applied') }}
+              onDeletePreference={async (collection, id) => {
+                try {
+                  await deletePreference(collection, id)
+                  notify('Deleted')
+                } catch (err) {
+                  notify(err?.response?.data?.message || 'Delete failed')
+                }
+              }}
+              onSaveTemplate={async (payload) => {
+                try {
+                  await saveTemplate(payload)
+                  notify('Template saved')
+                } catch (err) {
+                  notify(err?.response?.data?.message || 'Template could not be saved')
+                }
+              }}
+              onSaveSchedule={async (payload) => {
+                try {
+                  await saveSchedule(payload)
+                  notify('Schedule saved')
+                } catch (err) {
+                  notify(err?.response?.data?.message || 'Schedule could not be saved')
+                }
+              }}
+              onSaveAlert={async (payload) => {
+                try {
+                  await saveAlert(payload)
+                  notify('Alert saved')
+                } catch (err) {
+                  notify(err?.response?.data?.message || 'Alert could not be saved')
+                }
+              }}
             />
           </>
         )}

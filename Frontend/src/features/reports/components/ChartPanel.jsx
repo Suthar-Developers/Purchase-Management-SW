@@ -6,24 +6,13 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
-  Funnel,
-  FunnelChart,
-  LabelList,
   Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
-  Radar,
-  RadarChart,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
   ResponsiveContainer,
-  Scatter,
-  ScatterChart,
   Tooltip,
-  Treemap,
   XAxis,
   YAxis,
 } from 'recharts'
@@ -44,10 +33,15 @@ const ChartPanel = ({ analytics = {}, overview = {} }) => {
   const monthly = safeData(charts.monthly)
   const vendorWise = safeData(charts.vendorWise)
   const projectWise = safeData(charts.projectWise)
-  const cityWise = safeData(charts.cityWise)
   const itemRates = safeData(charts.itemRates)
-  const quantity = safeData(charts.quantity)
   const costBreakdown = safeData(charts.costBreakdown)
+  const rateByVendor = safeData(charts.rateByVendor)
+  const rateByProject = safeData(charts.rateByProject)
+  const quantityByProject = safeData(charts.quantityByProject)
+  const quantityByVendor = safeData(charts.quantityByVendor)
+  const vendorProjectAssignments = safeData(charts.vendorProjectAssignments)
+  const cityDetails = safeData(charts.cityDetails)
+  const calendarActivity = safeData(charts.calendarActivity)
   const status = safeData(overview.charts?.status)
 
   return (
@@ -92,13 +86,15 @@ const ChartPanel = ({ analytics = {}, overview = {} }) => {
 
       <Card title="Vendor Share">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={vendorWise} outerRadius={92} dataKey="value" nameKey="label">
-              {vendorWise.map((_, index) => <Cell key={index} fill={colors[index % colors.length]} />)}
-            </Pie>
+          <BarChart data={vendorWise} layout="vertical" margin={{ left: 24, right: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" />
+            <YAxis dataKey="label" type="category" width={100} />
             <Tooltip />
             <Legend />
-          </PieChart>
+            <Bar dataKey="value" fill="#2563eb" name="Purchase Value" />
+            <Bar dataKey="orders" fill="#059669" name="PO Count" />
+          </BarChart>
         </ResponsiveContainer>
       </Card>
 
@@ -114,7 +110,7 @@ const ChartPanel = ({ analytics = {}, overview = {} }) => {
         </ResponsiveContainer>
       </Card>
 
-      <Card title="Rate Analysis">
+      <Card title="Item Rate History">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={itemRates}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -129,56 +125,129 @@ const ChartPanel = ({ analytics = {}, overview = {} }) => {
         </ResponsiveContainer>
       </Card>
 
-      <Card title="Quantity Treemap">
+      <Card title="Vendor Rate Comparison">
         <ResponsiveContainer width="100%" height="100%">
-          <Treemap data={quantity} dataKey="value" nameKey="label" stroke="#fff" fill="#2563eb" />
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Vendor Ranking Radar">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={vendorWise.slice(0, 8)}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="label" />
-            <PolarRadiusAxis />
-            <Radar dataKey="orders" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.35} />
-            <Tooltip />
-          </RadarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Approval Funnel">
-        <ResponsiveContainer width="100%" height="100%">
-          <FunnelChart>
-            <Tooltip />
-            <Funnel dataKey="value" data={status} isAnimationActive>
-              <LabelList position="right" fill="#111827" stroke="none" dataKey="label" />
-            </Funnel>
-          </FunnelChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="City Scatter">
-        <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart>
+          <ComposedChart data={rateByVendor} margin={{ left: 8, right: 8 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="orders" name="Orders" />
-            <YAxis dataKey="value" name="Value" />
-            <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-            <Scatter data={cityWise} fill="#be123c" />
-          </ScatterChart>
+            <XAxis dataKey="label" hide />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="lowestRate" fill="#059669" name="Lowest Rate" />
+            <Bar dataKey="highestRate" fill="#dc2626" name="Highest Rate" />
+            <Line dataKey="averageRate" stroke="#2563eb" name="Average Rate" />
+          </ComposedChart>
         </ResponsiveContainer>
       </Card>
 
-      <Card title="Calendar Heatmap">
-        <div className="grid h-full min-w-0 grid-cols-6 gap-1 sm:grid-cols-12">
-          {monthly.slice(-36).map((item, index) => (
+      <Card title="Project Rate Comparison">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={rateByProject} layout="vertical" margin={{ left: 24, right: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" />
+            <YAxis dataKey="label" type="category" width={100} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="lowestRate" fill="#059669" name="Lowest" />
+            <Bar dataKey="averageRate" fill="#2563eb" name="Average" />
+            <Bar dataKey="highestRate" fill="#dc2626" name="Highest" />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="Quantity by Project">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={quantityByProject} layout="vertical" margin={{ left: 24, right: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" />
+            <YAxis dataKey="label" type="category" width={100} />
+            <Tooltip />
+            <Bar dataKey="quantity" fill="#0891b2" name="Quantity" />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="Quantity by Vendor">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={quantityByVendor} layout="vertical" margin={{ left: 24, right: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" />
+            <YAxis dataKey="label" type="category" width={100} />
+            <Tooltip />
+            <Bar dataKey="quantity" fill="#7c3aed" name="Quantity" />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="Vendor Recommendation Matrix">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={rateByVendor.slice(0, 12)}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" hide />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="orders" fill="#2563eb" name="PO Count" />
+            <Bar dataKey="projects" fill="#f59e0b" name="Projects Assigned" />
+            <Line dataKey="averageRate" stroke="#dc2626" name="Average Rate" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="Vendor Project Assignment">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={vendorProjectAssignments.slice(0, 15)} layout="vertical" margin={{ left: 24, right: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" />
+            <YAxis dataKey="vendor" type="category" width={100} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="orders" fill="#059669" name="Orders" />
+            <Bar dataKey="quantity" fill="#0891b2" name="Quantity" />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="City Purchase Detail">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={cityDetails}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="projects" fill="#2563eb" name="Projects" />
+            <Bar dataKey="orders" fill="#059669" name="POs" />
+            <Line dataKey="averageRate" stroke="#dc2626" name="Avg Rate" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="City Cost and Quantity">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={cityDetails}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="cost" fill="#7c3aed" name="Cost" />
+            <Line dataKey="quantity" stroke="#0891b2" name="Quantity" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </Card>
+
+      <Card title="Purchase Activity Calendar">
+        <div className="grid h-full min-w-0 grid-cols-7 gap-1 overflow-hidden">
+          {calendarActivity.slice(0, 84).reverse().map((item, index) => (
             <div
               key={`${item.label}-${index}`}
-              title={`${item.label}: ${item.value}`}
-              className="rounded-sm bg-blue-600"
-              style={{ opacity: Math.max(0.18, Math.min(1, Number(item.value || 0) / Math.max(...monthly.map((row) => Number(row.value || 1))))) }}
-            />
+              title={`${item.label}: ${item.orders} POs, Qty ${item.quantity}, Value ${item.value}`}
+              className="flex min-h-8 items-center justify-center rounded-sm bg-blue-600 text-[10px] font-semibold text-white"
+              style={{ opacity: Math.max(0.16, Math.min(1, Number(item.orders || 0) / Math.max(...calendarActivity.map((row) => Number(row.orders || 1))))) }}
+            >
+              {item.orders || ''}
+            </div>
           ))}
         </div>
       </Card>
@@ -186,7 +255,7 @@ const ChartPanel = ({ analytics = {}, overview = {} }) => {
       <Card title="Budget Gauge">
         <div className="flex h-full flex-col items-center justify-center">
           <div className="relative h-36 w-36 rounded-full border-14 border-slate-200 dark:border-slate-800 sm:h-44 sm:w-44 sm:border-18">
-            <div className="absolute inset-4.5 rounded-full border-18 border-transparent border-t-emerald-500 border-r-amber-500"></div>
+            <div className="absolute -inset-4.5 rounded-full border-18 border-transparent border-t-emerald-500 border-r-amber-500"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-3xl font-bold text-slate-950 dark:text-white">{Math.min(100, Math.round((overview.summary?.totalCost || 0) / Math.max(overview.summary?.totalPurchaseValue || 1, 1) * 100))}%</span>
               <span className="text-xs text-slate-500">Utilization</span>

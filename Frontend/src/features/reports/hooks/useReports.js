@@ -31,14 +31,17 @@ export const useReports = () => {
   const resetFilters = useCallback(() => setFiltersState(hydrateFilters(defaultFilters)), [])
 
   const loadStaticData = useCallback(async () => {
-    const [moduleData, optionData, preferenceData] = await Promise.all([
+    const [moduleResult, optionResult, preferenceResult] = await Promise.allSettled([
       reportApi.getModules(),
       reportApi.getFilterOptions(),
       reportApi.getPreferences(),
     ])
-    setModules(moduleData)
-    setOptions(optionData)
-    setPreferences(preferenceData)
+    if (moduleResult.status === 'fulfilled') setModules(moduleResult.value)
+    if (optionResult.status === 'fulfilled') setOptions(optionResult.value)
+    if (preferenceResult.status === 'fulfilled') setPreferences(preferenceResult.value)
+    if (moduleResult.status === 'rejected' || optionResult.status === 'rejected') {
+      throw moduleResult.reason || optionResult.reason
+    }
   }, [])
 
   const loadReport = useCallback(async () => {
@@ -68,30 +71,35 @@ export const useReports = () => {
 
   const saveFilter = async (name) => {
     const saved = await reportApi.saveFilter({ name, reportId: activeReport, filters: effectiveFilters })
-    setPreferences((current) => ({ ...current, savedFilters: [saved, ...(current.savedFilters || [])] }))
+    await loadStaticData()
     return saved
   }
 
   const saveTemplate = async (payload) => {
     const saved = await reportApi.saveTemplate({ reportId: activeReport, ...payload })
-    setPreferences((current) => ({ ...current, templates: [saved, ...(current.templates || [])] }))
+    await loadStaticData()
     return saved
   }
 
   const saveSchedule = async (payload) => {
     const saved = await reportApi.saveSchedule({ reportId: activeReport, ...payload })
-    setPreferences((current) => ({ ...current, schedules: [saved, ...(current.schedules || [])] }))
+    await loadStaticData()
     return saved
   }
 
   const saveAlert = async (payload) => {
     const saved = await reportApi.saveAlert({ reportId: activeReport, ...payload })
-    setPreferences((current) => ({ ...current, alerts: [saved, ...(current.alerts || [])] }))
+    await loadStaticData()
     return saved
   }
 
   const toggleFavorite = async (reportId) => {
     await reportApi.toggleFavorite(reportId)
+    await loadStaticData()
+  }
+
+  const deletePreference = async (collection, id) => {
+    await reportApi.deletePreference(collection, id)
     await loadStaticData()
   }
 
@@ -114,5 +122,7 @@ export const useReports = () => {
     saveSchedule,
     saveAlert,
     toggleFavorite,
+    refreshPreferences: loadStaticData,
+    deletePreference,
   }
 }

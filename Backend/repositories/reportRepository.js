@@ -147,7 +147,7 @@ const getReportAnalytics = async (reportId, filters) => {
     const { whereSql, params } = buildReportFilters(filters);
     const itemWhereSql = whereSql ? `${whereSql} AND poi.item_description IS NOT NULL` : 'WHERE poi.item_description IS NOT NULL';
 
-    const [monthly, projectWise, cityWise, vendorWise, itemRates, quantity, costBreakdown] = await Promise.all([
+    const [monthly, projectWise, cityWise, vendorWise, itemRates, quantity, costBreakdown, rateByVendor, rateByProject, quantityByProject, quantityByVendor, vendorProjectAssignments, cityDetails, calendarActivity, itemVendorRates, itemProjectRates, projectItemDetails, vendorItemDetails, vendorRecommendations, costByMonth, costByProject, costByVendor, vendorShareDetails] = await Promise.all([
         query(`
             SELECT DATE_FORMAT(COALESCE(po.order_date, DATE(po.created_at)), '%Y-%m') label,
                    COUNT(DISTINCT po.po_id) orders,
@@ -219,12 +219,282 @@ const getReportAnalytics = async (reportId, filters) => {
             SELECT 'GST', COALESCE(SUM(DISTINCT po.total_gst), 0) ${BASE_FROM} ${whereSql}
             UNION ALL
             SELECT 'Grand Total', COALESCE(SUM(DISTINCT po.grand_total), 0) ${BASE_FROM} ${whereSql}
-        `, [...params, ...params, ...params, ...params])
+        `, [...params, ...params, ...params, ...params]),
+        query(`
+            SELECT COALESCE(v.vendorName, 'Unassigned') label,
+                   MIN(poi.rate) lowestRate,
+                   MAX(poi.rate) highestRate,
+                   AVG(poi.rate) averageRate,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COUNT(DISTINCT p.project_id) projects,
+                   COALESCE(SUM(poi.qty), 0) quantity,
+                   COALESCE(SUM(poi.total_amount), 0) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY label
+            ORDER BY averageRate ASC
+            LIMIT 20
+        `, params),
+        query(`
+            SELECT COALESCE(p.projectName, 'Unassigned') label,
+                   MIN(poi.rate) lowestRate,
+                   MAX(poi.rate) highestRate,
+                   AVG(poi.rate) averageRate,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COALESCE(SUM(poi.qty), 0) quantity,
+                   COALESCE(SUM(poi.total_amount), 0) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY label
+            ORDER BY averageRate DESC
+            LIMIT 20
+        `, params),
+        query(`
+            SELECT COALESCE(p.projectName, 'Unassigned') label,
+                   COALESCE(SUM(poi.qty), 0) quantity,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COALESCE(SUM(poi.total_amount), 0) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY label
+            ORDER BY quantity DESC
+            LIMIT 20
+        `, params),
+        query(`
+            SELECT COALESCE(v.vendorName, 'Unassigned') label,
+                   COALESCE(SUM(poi.qty), 0) quantity,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COALESCE(SUM(poi.total_amount), 0) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY label
+            ORDER BY quantity DESC
+            LIMIT 20
+        `, params),
+        query(`
+            SELECT COALESCE(v.vendorName, 'Unassigned') vendor,
+                   COALESCE(p.projectName, 'Unassigned') project,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COALESCE(AVG(poi.rate), 0) averageRate,
+                   COALESCE(SUM(poi.qty), 0) quantity,
+                   COALESCE(SUM(poi.total_amount), 0) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY vendor, project
+            ORDER BY orders DESC, value DESC
+            LIMIT 40
+        `, params),
+        query(`
+            SELECT COALESCE(p.city, 'Unknown') label,
+                   COUNT(DISTINCT p.project_id) projects,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COALESCE(SUM(DISTINCT po.grand_total), 0) cost,
+                   COALESCE(MIN(poi.rate), 0) lowestRate,
+                   COALESCE(MAX(poi.rate), 0) highestRate,
+                   COALESCE(AVG(poi.rate), 0) averageRate,
+                   COALESCE(SUM(poi.qty), 0) quantity
+            ${BASE_FROM}
+            ${whereSql}
+            GROUP BY label
+            ORDER BY cost DESC
+            LIMIT 20
+        `, params),
+        query(`
+            SELECT DATE(COALESCE(po.order_date, po.created_at)) label,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COALESCE(SUM(DISTINCT po.grand_total), 0) value,
+                   COALESCE(SUM(poi.qty), 0) quantity
+            ${BASE_FROM}
+            ${whereSql}
+            GROUP BY label
+            ORDER BY label DESC
+            LIMIT 90
+        `, params),
+        query(`
+            SELECT poi.item_description item,
+                   COALESCE(v.vendorName, 'Unassigned') vendor,
+                   MIN(poi.rate) lowestRate,
+                   MAX(poi.rate) highestRate,
+                   AVG(poi.rate) averageRate,
+                   SUM(poi.qty) quantity,
+                   SUM(poi.total_amount) value,
+                   COUNT(DISTINCT po.po_id) orders
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY item, vendor
+            ORDER BY item, averageRate ASC
+            LIMIT 300
+        `, params),
+        query(`
+            SELECT poi.item_description item,
+                   COALESCE(p.projectName, 'Unassigned') project,
+                   MIN(poi.rate) lowestRate,
+                   MAX(poi.rate) highestRate,
+                   AVG(poi.rate) averageRate,
+                   SUM(poi.qty) quantity,
+                   SUM(poi.total_amount) value,
+                   COUNT(DISTINCT po.po_id) orders
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY item, project
+            ORDER BY item, averageRate DESC
+            LIMIT 300
+        `, params),
+        query(`
+            SELECT COALESCE(p.projectName, 'Unassigned') project,
+                   poi.item_description item,
+                   COUNT(DISTINCT po.po_id) orders,
+                   SUM(poi.qty) quantity,
+                   AVG(poi.rate) averageRate,
+                   MIN(poi.rate) lowestRate,
+                   MAX(poi.rate) highestRate,
+                   SUM(poi.total_amount) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY project, item
+            ORDER BY project, orders DESC, quantity DESC
+            LIMIT 300
+        `, params),
+        query(`
+            SELECT COALESCE(v.vendorName, 'Unassigned') vendor,
+                   poi.item_description item,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COUNT(DISTINCT p.project_id) projects,
+                   SUM(poi.qty) quantity,
+                   AVG(poi.rate) averageRate,
+                   MIN(poi.rate) lowestRate,
+                   MAX(poi.rate) highestRate,
+                   SUM(poi.total_amount) value
+            ${BASE_FROM}
+            ${itemWhereSql}
+            GROUP BY vendor, item
+            ORDER BY vendor, averageRate ASC
+            LIMIT 300
+        `, params),
+        query(`
+            SELECT ranked.item,
+                   ranked.vendor,
+                   ranked.averageRate,
+                   ranked.lowestRate,
+                   ranked.highestRate,
+                   ranked.orders,
+                   ranked.projects,
+                   ranked.quantity,
+                   ranked.value,
+                   CASE
+                       WHEN ranked.orders >= 3 AND ranked.averageRate = best.itemLowestRate THEN 'Best repeat vendor'
+                       WHEN ranked.averageRate = best.itemLowestRate THEN 'Lowest rate vendor'
+                       WHEN ranked.orders >= 3 THEN 'Reliable vendor'
+                       ELSE 'Consider after negotiation'
+                   END recommendation
+            FROM (
+                SELECT poi.item_description item,
+                       COALESCE(v.vendorName, 'Unassigned') vendor,
+                       AVG(poi.rate) averageRate,
+                       MIN(poi.rate) lowestRate,
+                       MAX(poi.rate) highestRate,
+                       COUNT(DISTINCT po.po_id) orders,
+                       COUNT(DISTINCT p.project_id) projects,
+                       SUM(poi.qty) quantity,
+                       SUM(poi.total_amount) value
+                ${BASE_FROM}
+                ${itemWhereSql}
+                GROUP BY poi.item_description, vendor
+            ) ranked
+            INNER JOIN (
+                SELECT item, MIN(averageRate) itemLowestRate
+                FROM (
+                    SELECT poi.item_description item,
+                           COALESCE(v.vendorName, 'Unassigned') vendor,
+                           AVG(poi.rate) averageRate
+                    ${BASE_FROM}
+                    ${itemWhereSql}
+                    GROUP BY poi.item_description, vendor
+                ) item_rates
+                GROUP BY item
+            ) best ON best.item = ranked.item
+            ORDER BY ranked.item, ranked.averageRate ASC, ranked.orders DESC
+            LIMIT 300
+        `, [...params, ...params]),
+        query(`
+            SELECT DATE_FORMAT(COALESCE(po.order_date, DATE(po.created_at)), '%Y-%m') label,
+                   SUM(DISTINCT po.subtotal) subtotal,
+                   SUM(DISTINCT po.total_discount) discount,
+                   SUM(DISTINCT po.total_gst) tax,
+                   SUM(DISTINCT po.grand_total) grandTotal
+            ${BASE_FROM}
+            ${whereSql}
+            GROUP BY label
+            ORDER BY label
+            LIMIT 36
+        `, params),
+        query(`
+            SELECT COALESCE(p.projectName, 'Unassigned') label,
+                   SUM(DISTINCT po.grand_total) grandTotal,
+                   SUM(DISTINCT po.total_discount) discount,
+                   SUM(DISTINCT po.total_gst) tax,
+                   COUNT(DISTINCT po.po_id) orders
+            ${BASE_FROM}
+            ${whereSql}
+            GROUP BY label
+            ORDER BY grandTotal DESC
+            LIMIT 25
+        `, params),
+        query(`
+            SELECT COALESCE(v.vendorName, 'Unassigned') label,
+                   SUM(DISTINCT po.grand_total) grandTotal,
+                   SUM(DISTINCT po.total_discount) discount,
+                   SUM(DISTINCT po.total_gst) tax,
+                   COUNT(DISTINCT po.po_id) orders
+            ${BASE_FROM}
+            ${whereSql}
+            GROUP BY label
+            ORDER BY grandTotal DESC
+            LIMIT 25
+        `, params),
+        query(`
+            SELECT COALESCE(v.vendorName, 'Unassigned') vendor,
+                   COUNT(DISTINCT po.po_id) orders,
+                   COUNT(DISTINCT p.project_id) projects,
+                   COUNT(DISTINCT poi.item_description) items,
+                   SUM(DISTINCT po.grand_total) grandTotal,
+                   SUM(poi.qty) quantity,
+                   AVG(poi.rate) averageRate
+            ${BASE_FROM}
+            ${whereSql}
+            GROUP BY vendor
+            ORDER BY grandTotal DESC
+            LIMIT 50
+        `, params)
     ]);
 
     return {
         reportId,
-        charts: { monthly, projectWise, cityWise, vendorWise, itemRates, quantity, costBreakdown }
+        charts: {
+            monthly,
+            projectWise,
+            cityWise,
+            vendorWise,
+            itemRates,
+            quantity,
+            costBreakdown,
+            rateByVendor,
+            rateByProject,
+            quantityByProject,
+            quantityByVendor,
+            vendorProjectAssignments,
+            cityDetails,
+            calendarActivity,
+            itemVendorRates,
+            itemProjectRates,
+            projectItemDetails,
+            vendorItemDetails,
+            vendorRecommendations,
+            costByMonth,
+            costByProject,
+            costByVendor,
+            vendorShareDetails
+        }
     };
 };
 

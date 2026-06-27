@@ -344,6 +344,13 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     await updatePRStatus(prId, { requestStatus: "PO Drafted" });
                 }
 
+                const matchedAlerts = res?.data?.thresholdAlerts || res?.thresholdAlerts || [];
+                if (matchedAlerts.length) {
+                    alert(`${res?.data?.message || res?.message || "PO Created successfully"}\n\nThreshold Alerts:\n${matchedAlerts.map(alertItem => `- ${alertItem.name}: ${alertItem.metric} ${alertItem.operator} ${alertItem.thresholdValue}`).join('\n')}`);
+                } else {
+                    alert(res?.data?.message || res?.message || "PO Created successfully");
+                }
+
                 alert(res?.data?.message || res?.message || "PO Created successfully");
 
                 if (onStatusUpdate) onStatusUpdate();

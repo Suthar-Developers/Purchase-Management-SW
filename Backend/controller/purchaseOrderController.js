@@ -1,5 +1,36 @@
 const db = require('../config/db')
 
+const evaluateThresholdAlerts = async ({ grandTotal, quantity, totalGst, totalDiscount }) => {
+    try {
+        const [alerts] = await db.query(`
+            SELECT alert_id id, name, metric, operator, threshold_value thresholdValue, severity
+            FROM report_threshold_alerts
+            WHERE is_active = 1
+        `);
+
+        const values = {
+            grand_total: Number(grandTotal || 0),
+            quantity: Number(quantity || 0),
+            total_gst: Number(totalGst || 0),
+            total_discount: Number(totalDiscount || 0),
+            averageRate: grandTotal && quantity ? Number(grandTotal) / Math.max(Number(quantity), 1) : 0
+        };
+
+        const compare = (left, operator, right) => {
+            if (operator === '>') return left > right;
+            if (operator === '>=') return left >= right;
+            if (operator === '<') return left < right;
+            if (operator === '<=') return left <= right;
+            return left === right;
+        };
+
+        return alerts.filter((alert) => compare(values[alert.metric] || 0, alert.operator, Number(alert.thresholdValue || 0)));
+    } catch (error) {
+        if (error.code === 'ER_NO_SUCH_TABLE') return [];
+        throw error;
+    }
+};
+
 const fetchApprovedPR = async (req, res) => {
     try {
         const sql = `
@@ -176,7 +207,23 @@ const newPurchaseOrder = async (req, res) => {
             }
         }
 
-        return res.status(201).json({ message: "New purchase order placed successfully..", po_id })
+        const totalQuantity = Array.isArray(materials)
+            ? materials.reduce((sum, item) => sum + Number(item.qty || 0), 0)
+            : 0;
+        const thresholdAlerts = await evaluateThresholdAlerts({
+            grandTotal: grand_total,
+            quantity: totalQuantity,
+            totalGst: total_gst,
+            totalDiscount: total_discount
+        });
+
+        return res.status(201).json({
+            message: thresholdAlerts.length
+                ? "New purchase order placed successfully. Threshold alert matched."
+                : "New purchase order placed successfully..",
+            po_id,
+            thresholdAlerts
+        })
 
     } catch (error) {
         console.error(error)
