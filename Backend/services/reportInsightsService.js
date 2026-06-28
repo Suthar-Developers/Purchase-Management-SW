@@ -4,6 +4,8 @@ const formatCurrency = (value) => new Intl.NumberFormat('en-IN', {
     maximumFractionDigits: 0
 }).format(Number(value || 0));
 
+// Rule-based insights generated from report analytics.
+// Add new business rules here for budget risk, vendor risk, duplicate purchases, etc.
 const buildInsights = ({ overview, analytics }) => {
     const insights = [];
     const vendors = analytics.charts.vendorWise || [];
@@ -12,6 +14,7 @@ const buildInsights = ({ overview, analytics }) => {
 
     const topVendor = vendors[0];
     if (topVendor) {
+        // Flags when one vendor dominates purchase value.
         insights.push({
             type: 'vendor-dependency-risk',
             severity: vendors.length > 1 && topVendor.value > vendors.slice(1).reduce((sum, item) => sum + Number(item.value || 0), 0) ? 'high' : 'medium',
@@ -23,6 +26,7 @@ const buildInsights = ({ overview, analytics }) => {
 
     const volatileRate = rates.find((item) => Number(item.highestRate || 0) > Number(item.lowestRate || 0) * 1.12);
     if (volatileRate) {
+        // Flags items where the rate spread is more than 12%.
         const saving = (Number(volatileRate.highestRate) - Number(volatileRate.lowestRate)) * Number(volatileRate.quantity || 0);
         insights.push({
             type: 'items-with-rising-prices',
@@ -35,6 +39,7 @@ const buildInsights = ({ overview, analytics }) => {
 
     const largestProject = projects[0];
     if (largestProject) {
+        // Highlights the highest-spend project for quick budget review.
         insights.push({
             type: 'budget-risk',
             severity: 'medium',

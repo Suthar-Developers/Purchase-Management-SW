@@ -1,6 +1,8 @@
 const db = require('../config/db')
 
 const evaluateThresholdAlerts = async ({ grandTotal, quantity, totalGst, totalDiscount }) => {
+    // Report threshold alerts are checked during PO creation.
+    // If a PO crosses a saved rule, the API returns thresholdAlerts in the response.
     try {
         const [alerts] = await db.query(`
             SELECT alert_id id, name, metric, operator, threshold_value thresholdValue, severity
@@ -16,6 +18,7 @@ const evaluateThresholdAlerts = async ({ grandTotal, quantity, totalGst, totalDi
             averageRate: grandTotal && quantity ? Number(grandTotal) / Math.max(Number(quantity), 1) : 0
         };
 
+        // Supports the operators available in the Reports threshold alert panel.
         const compare = (left, operator, right) => {
             if (operator === '>') return left > right;
             if (operator === '>=') return left >= right;
@@ -115,7 +118,7 @@ const getNextSequence = async () => {
     return `${prefix}${nextSerial.toString().padStart(4, '0')}`;
 };
 
-// 1. New endpoint to just FETCH the number for display
+// New endpoint to just FETCH the number for display
 const fetchNextPONumber = async (req, res) => {
     try {
         const nextPO = await getNextSequence();

@@ -1,3 +1,5 @@
+// Only fields in this allow-list can be used in ORDER BY.
+// Add a new sortable report column here before accepting it from the frontend.
 const VALID_SORT_FIELDS = new Set([
     'po_number',
     'order_date',
@@ -12,6 +14,8 @@ const VALID_SORT_FIELDS = new Set([
     'total_amount'
 ]);
 
+// Frontend filter names are mapped to real SQL columns here.
+// If you add a new filter input in React, add its database column mapping here.
 const FIELD_MAP = {
     projectId: 'po.project_id',
     vendorId: 'po.vendor_id',
@@ -32,18 +36,24 @@ const FIELD_MAP = {
     maxQuantity: 'poi.qty'
 };
 
+// Multi-select fields arrive either as arrays or comma-separated strings.
+// This keeps both formats working for query params like status=Draft,Approved.
 const toArray = (value) => {
     if (value === undefined || value === null || value === '') return [];
     if (Array.isArray(value)) return value.filter(Boolean);
     return String(value).split(',').map((item) => item.trim()).filter(Boolean);
 };
 
+// Adds safe "column IN (?, ?, ?)" SQL and pushes values into params.
+// Do not manually concatenate values into SQL; keep using params for injection safety.
 const addInFilter = (where, params, column, values) => {
     if (!values.length) return;
     where.push(`${column} IN (${values.map(() => '?').join(', ')})`);
     params.push(...values);
 };
 
+// Every report query uses this function so all KPI, chart, table, and export data
+// follow the same global filters.
 const buildReportFilters = (query = {}) => {
     const where = [];
     const params = [];
@@ -75,6 +85,8 @@ const buildReportFilters = (query = {}) => {
         }
     });
 
+    // Requester lives on purchase_request, while most reports start from purchase_orders.
+    // EXISTS avoids duplicating PO rows when a project has multiple requests.
     if (query.requester) {
         where.push(`EXISTS (
             SELECT 1 FROM purchase_request prx
@@ -120,12 +132,14 @@ const buildReportFilters = (query = {}) => {
     };
 };
 
+// Hard-limit report page size so a browser cannot accidentally request millions of rows.
 const getPagination = (query = {}) => {
     const page = Math.max(Number(query.page || 1), 1);
     const limit = Math.min(Math.max(Number(query.limit || 25), 1), 250);
     return { page, limit, offset: (page - 1) * limit };
 };
 
+// Sort direction is normalized here; invalid sort columns fall back safely.
 const getSort = (query = {}, fallback = 'created_at') => {
     const rawField = String(query.sortBy || fallback);
     const field = VALID_SORT_FIELDS.has(rawField) ? rawField : fallback;

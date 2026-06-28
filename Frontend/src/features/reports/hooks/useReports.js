@@ -3,12 +3,14 @@ import { reportApi } from '../../../api/reportApi'
 import { defaultFilters } from '../data/reportConfig'
 import { resolveDatePreset } from '../utils/dateRanges'
 
+// Date presets are converted to real dates before API calls.
 const hydrateFilters = (filters) => ({
   ...filters,
   ...(filters.datePreset && filters.datePreset !== 'custom' ? resolveDatePreset(filters.datePreset) : {}),
 })
 
 export const useReports = () => {
+  // Single data/state controller for the whole Reports page.
   const [filters, setFiltersState] = useState(() => hydrateFilters(defaultFilters))
   const [activeReport, setActiveReport] = useState('purchase-orders')
   const [modules, setModules] = useState([])
@@ -22,6 +24,7 @@ export const useReports = () => {
   const effectiveFilters = useMemo(() => hydrateFilters(filters), [filters])
 
   const setFilters = useCallback((next) => {
+    // Any filter change returns to page 1 unless caller sends an explicit page.
     setFiltersState((current) => {
       const updated = typeof next === 'function' ? next(current) : next
       return hydrateFilters({ ...current, ...updated, page: updated.page ?? 1 })
@@ -31,6 +34,7 @@ export const useReports = () => {
   const resetFilters = useCallback(() => setFiltersState(hydrateFilters(defaultFilters)), [])
 
   const loadStaticData = useCallback(async () => {
+    // Load independently so preference errors do not blank dropdown filters.
     const [moduleResult, optionResult, preferenceResult] = await Promise.allSettled([
       reportApi.getModules(),
       reportApi.getFilterOptions(),
@@ -45,6 +49,7 @@ export const useReports = () => {
   }, [])
 
   const loadReport = useCallback(async () => {
+    // Reloads report data whenever filters or selected report tab change.
     setLoading(true)
     setError('')
     try {
@@ -70,6 +75,7 @@ export const useReports = () => {
   }, [loadReport])
 
   const saveFilter = async (name) => {
+    // Reload preferences after saving so the Saved Filters panel updates.
     const saved = await reportApi.saveFilter({ name, reportId: activeReport, filters: effectiveFilters })
     await loadStaticData()
     return saved
@@ -98,6 +104,7 @@ export const useReports = () => {
     await loadStaticData()
   }
 
+  // collection matches backend route names: templates, schedules, alerts, savedFilters.
   const deletePreference = async (collection, id) => {
     await reportApi.deletePreference(collection, id)
     await loadStaticData()

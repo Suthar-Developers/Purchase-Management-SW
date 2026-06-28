@@ -1,6 +1,8 @@
 const db = require('../config/db');
 const { buildReportFilters, getPagination, getSort } = require('../utils/reportQueryBuilder');
 
+// Shared reporting join. Most report queries start from purchase_orders and enrich
+// with items, project, and vendor fields. Keep this join small because it is used a lot.
 const BASE_FROM = `
     FROM purchase_orders po
     LEFT JOIN purchase_order_items poi ON po.po_id = poi.po_id
@@ -8,6 +10,8 @@ const BASE_FROM = `
     LEFT JOIN vendors v ON po.vendor_id = v.vendor_id
 `;
 
+// Small in-memory cache for dashboard overview calls.
+// Reduce TTL if you need instant KPI updates after every PO creation.
 const withCache = (() => {
     const cache = new Map();
     return async (key, ttlMs, resolver) => {
@@ -29,6 +33,8 @@ const queryOne = async (sql, params = []) => {
     return rows[0] || {};
 };
 
+// Returns the top KPI cards and small overview charts.
+// Add new dashboard KPI SQL aliases in this SELECT and in frontend kpiDefinitions.
 const getOverview = async (filters) => {
     const { whereSql, params } = buildReportFilters(filters);
 
@@ -92,11 +98,14 @@ const getOverview = async (filters) => {
     });
 };
 
+// Returns the paginated table rows. Report-specific table SQL can be added
+// in selectByReport; everything else uses the PO summary default.
 const getReportRows = async (reportId, filters) => {
     const { whereSql, params } = buildReportFilters(filters);
     const { page, limit, offset } = getPagination(filters);
     const { field, order } = getSort(filters, 'created_at');
 
+    // Purchase request does not start from purchase_orders, so it has its own query.
     const selectByReport = {
         'purchase-requests': `
             SELECT pr.request_id id, p.projectName project, pr.contactPerson requester,
@@ -143,11 +152,15 @@ const getReportRows = async (reportId, filters) => {
     };
 };
 
+// Returns all chart/table datasets used by the report workspace.
+// Most frontend report buttons reuse this same payload but display different sections.
 const getReportAnalytics = async (reportId, filters) => {
     const { whereSql, params } = buildReportFilters(filters);
+    // Item comparison charts need item rows only; this prevents null item names in tables.
     const itemWhereSql = whereSql ? `${whereSql} AND poi.item_description IS NOT NULL` : 'WHERE poi.item_description IS NOT NULL';
 
     const [monthly, projectWise, cityWise, vendorWise, itemRates, quantity, costBreakdown, rateByVendor, rateByProject, quantityByProject, quantityByVendor, vendorProjectAssignments, cityDetails, calendarActivity, itemVendorRates, itemProjectRates, projectItemDetails, vendorItemDetails, vendorRecommendations, costByMonth, costByProject, costByVendor, vendorShareDetails] = await Promise.all([
+        // Monthly trend used by overview, cost, and financial analysis.
         query(`
             SELECT DATE_FORMAT(COALESCE(po.order_date, DATE(po.created_at)), '%Y-%m') label,
                    COUNT(DISTINCT po.po_id) orders,
@@ -158,6 +171,7 @@ const getReportAnalytics = async (reportId, filters) => {
             ORDER BY label
             LIMIT 36
         `, params),
+        // Project spend comparison; used by Project Report.
         query(`
             SELECT COALESCE(p.projectName, 'Unassigned') label,
                    COUNT(DISTINCT po.po_id) orders,
@@ -168,6 +182,7 @@ const getReportAnalytics = async (reportId, filters) => {
             ORDER BY value DESC
             LIMIT 15
         `, params),
+        // Vendor share summary; used by Vendor Analytics and the general chart panel.
         query(`
             SELECT COALESCE(p.city, 'Unknown') label,
                    COUNT(DISTINCT po.po_id) orders,
@@ -178,6 +193,7 @@ const getReportAnalytics = async (reportId, filters) => {
             ORDER BY value DESC
             LIMIT 15
         `, params),
+        // Item rate high/low/average across all vendors/projects.
         query(`
             SELECT COALESCE(v.vendorName, 'Unassigned') label,
                    COUNT(DISTINCT po.po_id) orders,
@@ -189,6 +205,7 @@ const getReportAnalytics = async (reportId, filters) => {
             ORDER BY value DESC
             LIMIT 15
         `, params),
+        // Same item compared across vendors. This answers: "Who sells this item cheaper?"
         query(`
             SELECT poi.item_description label,
                    MIN(poi.rate) lowestRate,
@@ -202,6 +219,7 @@ const getReportAnalytics = async (reportId, filters) => {
             ORDER BY purchases DESC
             LIMIT 20
         `, params),
+        // Same item compared across projects. This answers: "Which project paid more?"
         query(`
             SELECT poi.item_description label,
                    COALESCE(SUM(poi.qty), 0) value
@@ -211,6 +229,7 @@ const getReportAnalytics = async (reportId, filters) => {
             ORDER BY value DESC
             LIMIT 15
         `, params),
+        // Recommendation table: for each item, rank vendors by average rate and repeat usage.
         query(`
             SELECT 'Subtotal' label, COALESCE(SUM(DISTINCT po.subtotal), 0) value ${BASE_FROM} ${whereSql}
             UNION ALL
@@ -498,6 +517,7 @@ const getReportAnalytics = async (reportId, filters) => {
     };
 };
 
+// Populates dropdowns in GlobalFilters. If a dropdown is empty, check these queries first.
 const getFilterOptions = async () => {
     const [projects, vendors, cities, states, statuses, gstRates, creators, approvers, items] = await Promise.all([
         query('SELECT project_id value, projectName label FROM projects ORDER BY projectName'),

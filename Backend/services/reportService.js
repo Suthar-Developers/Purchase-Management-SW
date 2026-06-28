@@ -3,6 +3,8 @@ const reportRepository = require('../repositories/reportRepository');
 const preferenceRepository = require('../repositories/reportPreferenceRepository');
 const { buildInsights } = require('./reportInsightsService');
 
+// Report button metadata comes from constants/reportModules.js.
+// Favorites are merged here so the frontend can render stars.
 const getModules = async (userId) => {
     const favorites = await preferenceRepository.getFavorites(userId);
     return REPORT_MODULES.map((module) => ({ ...module, favorite: favorites.includes(module.id) }));
@@ -10,6 +12,8 @@ const getModules = async (userId) => {
 
 const getOverview = async (filters) => reportRepository.getOverview(filters);
 
+// Main report endpoint: validates selected report id, loads overview, analytics,
+// table rows, then generates procurement insights.
 const getReport = async (reportId, filters) => {
     const module = REPORT_MODULES.find((item) => item.id === reportId);
     if (!module) {
@@ -36,6 +40,7 @@ const getReport = async (reportId, filters) => {
 
 const getFilterOptions = () => reportRepository.getFilterOptions();
 
+// Loads all saved user-specific report settings in one API response.
 const getPreferences = async (userId) => {
     const [savedFilters, templates, schedules, alerts, favorites, auditLogs] = await Promise.all([
         preferenceRepository.list('savedFilters', userId),

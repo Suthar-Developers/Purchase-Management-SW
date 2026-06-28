@@ -13,8 +13,11 @@ import {
 } from 'recharts'
 import { formatCurrency, formatNumber } from '../utils/formatters'
 
+// Local helper for selector-driven comparison tables.
 const pickRows = (rows = [], key, value) => (!value ? rows : rows.filter((row) => row[key] === value))
 
+// Small comparison table used inside report-specific workspaces.
+// The main paginated PO table lives in ReportTable.jsx.
 const DataTable = ({ title, rows = [], columns = [] }) => (
   <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div className="mb-3 flex items-center justify-between gap-3">
@@ -52,6 +55,7 @@ const DataTable = ({ title, rows = [], columns = [] }) => (
   </section>
 )
 
+// Local selector used for item/vendor/project comparisons inside one report.
 const Select = ({ label, value, onChange, options }) => (
   <label className="flex min-w-0 flex-col gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
     {label}
@@ -62,6 +66,7 @@ const Select = ({ label, value, onChange, options }) => (
   </label>
 )
 
+// Reusable chart wrapper with a visible empty state when selected filters have no data.
 const ChartCard = ({ title, data, children }) => (
   <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">{title}</h3>
@@ -72,11 +77,14 @@ const ChartCard = ({ title, data, children }) => (
 )
 
 const ReportWorkspace = ({ activeReport, analytics = {}, setFilters }) => {
+  // This is where each report tab gets unique behavior.
+  // Add a new if (activeReport === '...') block to create a custom workspace.
   const charts = analytics.charts || {}
   const [selectedItem, setSelectedItem] = useState('')
   const [selectedVendor, setSelectedVendor] = useState('')
   const [selectedProject, setSelectedProject] = useState('')
 
+  // Selector options come from the filtered analytics payload, so they match current data.
   const itemOptions = useMemo(() => [...new Set((charts.itemVendorRates || []).map((row) => row.item).filter(Boolean))], [charts.itemVendorRates])
   const vendorOptions = useMemo(() => [...new Set((charts.vendorProjectAssignments || []).map((row) => row.vendor).filter(Boolean))], [charts.vendorProjectAssignments])
   const projectOptions = useMemo(() => [...new Set((charts.projectItemDetails || []).map((row) => row.project).filter(Boolean))], [charts.projectItemDetails])
@@ -101,6 +109,7 @@ const ReportWorkspace = ({ activeReport, analytics = {}, setFilters }) => {
   ]
 
   if (activeReport === 'projects') {
+    // Project Report: project spend comparison and most-purchased item detail.
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -133,6 +142,7 @@ const ReportWorkspace = ({ activeReport, analytics = {}, setFilters }) => {
   }
 
   if (activeReport === 'vendors' || activeReport === 'vendor-price-comparison') {
+    // Vendor reports: compare rates, recommend vendors, and show project assignments.
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -169,6 +179,7 @@ const ReportWorkspace = ({ activeReport, analytics = {}, setFilters }) => {
   }
 
   if (activeReport === 'items' || activeReport === 'rates' || activeReport === 'quantities') {
+    // Item/rate/quantity reports: compare the same item across vendors and projects.
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -196,6 +207,7 @@ const ReportWorkspace = ({ activeReport, analytics = {}, setFilters }) => {
   }
 
   if (activeReport === 'costs' || activeReport === 'financials') {
+    // Cost and financial reports: monthly cost, tax, discount, project and vendor cost.
     return (
       <div className="space-y-4">
         <ChartCard title="Monthly Cost Breakdown" data={charts.costByMonth}>

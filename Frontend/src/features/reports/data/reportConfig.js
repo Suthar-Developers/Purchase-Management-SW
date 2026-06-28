@@ -1,3 +1,4 @@
+// Date presets shown in GlobalFilters. Logic lives in utils/dateRanges.js.
 export const datePresets = [
   { label: 'Today', value: 'today' },
   { label: 'Yesterday', value: 'yesterday' },
@@ -10,6 +11,7 @@ export const datePresets = [
   { label: 'Custom Date', value: 'custom' },
 ]
 
+// Default filter object sent to report APIs. Add new filter keys here and in query builder.
 export const defaultFilters = {
   datePreset: 'financialYear',
   startDate: '',
@@ -46,6 +48,7 @@ export const defaultFilters = {
   limit: 25,
 }
 
+// KPI card configuration. Backend aliases in getOverview must match these keys.
 export const kpiDefinitions = [
   ['totalPurchaseRequests', 'Total Purchase Requests'],
   ['totalPurchaseOrders', 'Total Purchase Orders'],
@@ -68,6 +71,7 @@ export const kpiDefinitions = [
   ['totalQuantityPurchased', 'Total Quantity Purchased', 'number'],
 ]
 
+// Main ReportTable columns. Keys must match row fields returned by backend getReportRows.
 export const reportColumns = [
   { key: 'po_number', label: 'PO Number', sticky: true },
   { key: 'po_status', label: 'Status' },
@@ -85,6 +89,7 @@ export const reportColumns = [
   { key: 'grand_total', label: 'Grand Total', align: 'right', type: 'currency' },
 ]
 
+// Custom Report Builder labels. Map these labels to row keys in EnterprisePanels.fieldToColumn.
 export const builderFields = [
   'PO Number',
   'Status',

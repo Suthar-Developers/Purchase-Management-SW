@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { reportColumns } from '../data/reportConfig'
 import { formatCurrency, formatNumber } from '../utils/formatters'
 
+// Formats a table cell and highlights matching search text.
 const renderCell = (row, column, search) => {
   const raw = row[column.key]
   const value = column.type === 'currency' ? formatCurrency(raw) : typeof raw === 'number' ? formatNumber(raw) : raw ?? '-'
@@ -18,10 +19,12 @@ const renderCell = (row, column, search) => {
 }
 
 const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkExport }) => {
+  // Main paginated report table. Column visibility changes only affect the UI/export.
   const [visibleColumns, setVisibleColumns] = useState(() => reportColumns.map((column) => column.key))
   const [selectedRows, setSelectedRows] = useState([])
   const [density, setDensity] = useState('normal')
 
+  // Recalculate visible columns only when user changes the column list.
   const columns = useMemo(
     () => reportColumns.filter((column) => visibleColumns.includes(column.key)),
     [visibleColumns],
@@ -65,6 +68,7 @@ const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkEx
               ))}
             </div>
           </details>
+          {/* If rows are selected, export selected rows; otherwise export current page. */}
           <button onClick={() => onBulkExport(selectedData.length ? selectedData : rows, columns)} className="rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">
             <i className="fa-solid fa-download mr-2"></i>Bulk Export
           </button>
@@ -88,6 +92,7 @@ const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkEx
                   className={`${index === 0 ? 'sticky left-12 z-20 bg-slate-100 dark:bg-slate-950' : ''} resize-x overflow-hidden border-b border-slate-200 p-3 font-semibold dark:border-slate-800`}
                   style={{ minWidth: column.sticky ? 140 : 112 }}
                 >
+                  {/* Header click updates backend sorting and reloads rows. */}
                   <button
                     onClick={() => setFilters({ sortBy: column.key, sortOrder: filters.sortOrder === 'ASC' ? 'DESC' : 'ASC' })}
                     className="flex items-center gap-2"

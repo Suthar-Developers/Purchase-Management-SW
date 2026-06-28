@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { builderFields } from '../data/reportConfig'
 import { exportCsv } from '../utils/exporters'
 
+// Shared panel wrapper for templates, schedules, alerts, personalization, and timeline.
 const Panel = ({ title, icon, children }) => (
   <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
     <h3 className="mb-3 flex min-w-0 items-center gap-2 text-sm font-bold text-slate-950 dark:text-white">
@@ -12,6 +13,7 @@ const Panel = ({ title, icon, children }) => (
   </section>
 )
 
+// Backend audit action names are translated to readable text here.
 const timelineLabels = {
   REPORT_OVERVIEW_VIEWED: 'Overview loaded',
   REPORT_VIEWED: 'Report opened',
@@ -31,6 +33,7 @@ const timeAgo = (value) => {
   return `${Math.round(hours / 24)} day ago`
 }
 
+// Custom Report Builder display labels mapped to actual row keys.
 const fieldToColumn = {
   'PO Number': 'po_number',
   Status: 'po_status',
@@ -45,6 +48,7 @@ const fieldToColumn = {
   'Grand Total': 'grand_total',
 }
 
+// Enterprise actions: templates, schedules, alert rules, personalization, and audit log.
 const EnterprisePanels = ({
   preferences = {},
   onSaveTemplate,
@@ -67,6 +71,7 @@ const EnterprisePanels = ({
   const [alertOperator, setAlertOperator] = useState('>')
   const [alertValue, setAlertValue] = useState(500000)
   const auditLogs = useMemo(() => preferences.auditLogs || [], [preferences.auditLogs])
+  // Preview/export uses this mapping to pull selected columns out of current rows.
   const templateColumns = (activeTemplate?.columns || selectedFields).map((field) => ({
     key: fieldToColumn[field] || field,
     label: field,
@@ -141,6 +146,7 @@ const EnterprisePanels = ({
               <p className="truncate font-semibold">{item.name}</p>
               <p className="truncate capitalize">{item.frequency} | {item.exportFormat || item.export_format || 'pdf'}</p>
               <div className="mt-2 flex gap-2">
+                {/* Run Now exports immediately. Real email/cron dispatch can be added in backend later. */}
                 <button onClick={() => exportCsv(rows, [{ key: 'po_number', label: 'PO Number' }, { key: 'vendorName', label: 'Vendor' }, { key: 'projectName', label: 'Project' }, { key: 'grand_total', label: 'Grand Total' }], item.name)} className="rounded bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white">Run Now</button>
                 <button onClick={() => onDeletePreference('schedules', item.id)} className="rounded border border-red-300 px-2 py-1 text-[11px] font-semibold text-red-700">Delete</button>
               </div>
@@ -164,6 +170,7 @@ const EnterprisePanels = ({
           </select>
           <input type="number" value={alertValue} onChange={(event) => setAlertValue(event.target.value)} className="h-10 rounded-md border border-slate-300 px-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
         </div>
+        {/* Alerts are evaluated in Backend/controller/purchaseOrderController.js during PO creation. */}
         <button onClick={() => onSaveAlert({ name: alertName, metric: alertMetric, operator: alertOperator, threshold_value: Number(alertValue), severity: Number(alertValue) > 500000 ? 'high' : 'medium' })} className="w-full rounded-md bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700">
           Create Alert
         </button>

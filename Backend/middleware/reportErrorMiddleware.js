@@ -1,4 +1,6 @@
 const reportErrorMiddleware = (err, req, res, next) => {
+    // Centralized error response for report routes.
+    // Keeps SQL/internal errors out of browser console while logging details on server.
     if (!err) return next();
 
     const status = err.statusCode || 500;

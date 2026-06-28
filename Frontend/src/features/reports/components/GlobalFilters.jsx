@@ -1,5 +1,7 @@
 import { datePresets } from '../data/reportConfig'
 
+// Generic select used by all report filters.
+// Multi-select values are stored as comma-separated strings for query params.
 const Select = ({ label, value, onChange, options = [], multiple = false }) => (
   <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
     {label}
@@ -25,6 +27,7 @@ const Select = ({ label, value, onChange, options = [], multiple = false }) => (
   </label>
 )
 
+// Generic input wrapper keeps all filter controls visually consistent.
 const Input = ({ label, value, onChange, type = 'text', placeholder = '' }) => (
   <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
     {label}
@@ -38,6 +41,8 @@ const Input = ({ label, value, onChange, type = 'text', placeholder = '' }) => (
   </label>
 )
 
+// Global filters feed every KPI, chart, workspace table, and export.
+// When adding a new filter here, map it in Backend/utils/reportQueryBuilder.js.
 const GlobalFilters = ({ filters, setFilters, resetFilters, options, onSaveFilter, onExportView }) => (
   <div className="sticky top-0 z-20 max-w-full rounded-lg border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
     <div className="mb-3 flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -67,6 +72,7 @@ const GlobalFilters = ({ filters, setFilters, resetFilters, options, onSaveFilte
     </div>
 
     <details className="mt-3">
+      {/* Advanced filters are collapsed by default to keep mobile layout usable. */}
       <summary className="cursor-pointer text-xs font-semibold text-blue-700 dark:text-blue-300">Advanced Filters, Sorting, Grouping</summary>
       <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
         <Select label="Project" value={filters.projectId} onChange={(value) => setFilters({ projectId: value })} options={options.projects || []} multiple />

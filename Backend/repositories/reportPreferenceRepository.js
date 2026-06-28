@@ -1,5 +1,7 @@
 const db = require('../config/db');
 
+// Used only if the reporting preference tables cannot be created/read.
+// Normal usage persists to MySQL through the tableConfig definitions below.
 const fallbackStore = {
     savedFilters: [],
     templates: [],
@@ -9,6 +11,8 @@ const fallbackStore = {
     favorites: new Set()
 };
 
+// Configuration for all report preference tables.
+// Add a new preference type by adding one entry with create/select/insert SQL.
 const tableConfig = {
     savedFilters: {
         table: 'report_saved_filters',
@@ -99,6 +103,7 @@ const tableConfig = {
 const stamp = () => new Date().toISOString();
 const createId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 const parseJson = (value, fallback) => {
+    // MySQL returns LONGTEXT JSON as strings; frontend expects arrays/objects.
     if (value === null || value === undefined) return fallback;
     if (typeof value !== 'string') return value;
     try {
@@ -108,6 +113,7 @@ const parseJson = (value, fallback) => {
     }
 };
 
+// Converts saved JSON columns back to usable JS objects for the frontend.
 const normalizeRows = (collection, rows) => rows.map((row) => {
     if (collection === 'savedFilters') return { ...row, filters: parseJson(row.filters, {}) };
     if (collection === 'templates') return { ...row, columns: parseJson(row.columns, []), filters: parseJson(row.filters, {}), grouping: parseJson(row.grouping, []), aggregations: parseJson(row.aggregations, []) };
@@ -116,6 +122,7 @@ const normalizeRows = (collection, rows) => rows.map((row) => {
     return row;
 });
 
+// Auto-creates report module tables so users do not get 500 errors before migration.
 const ensureTable = async (collection) => {
     const config = tableConfig[collection];
     if (!config?.create) return;
@@ -138,6 +145,7 @@ const fallbackSave = (collection, userId, payload) => {
     return record;
 };
 
+// Reads persisted filters/templates/schedules/alerts for the current user.
 const list = async (collection, userId) => {
     const config = tableConfig[collection];
     if (!config) return [];
@@ -151,6 +159,7 @@ const list = async (collection, userId) => {
     }
 };
 
+// Saves a user preference and returns the saved record to React.
 const save = async (collection, userId, payload) => {
     const config = tableConfig[collection];
     if (!config) return fallbackSave(collection, userId, payload);
@@ -164,6 +173,7 @@ const save = async (collection, userId, payload) => {
     }
 };
 
+// Deletes a saved template/filter/schedule/alert from the matching table.
 const remove = async (collection, userId, id) => {
     const config = tableConfig[collection];
     if (!config) return false;
@@ -224,6 +234,7 @@ const toggleFavorite = async (userId, reportId) => {
     }
 };
 
+// Every report view/save action is logged here for the Activity Timeline.
 const addAuditLog = async (userId, action, metadata = {}) => {
     try {
         await db.query(`CREATE TABLE IF NOT EXISTS report_audit_logs (

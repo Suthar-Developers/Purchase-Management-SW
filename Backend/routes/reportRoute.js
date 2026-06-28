@@ -5,12 +5,15 @@ const { reportsAuth, reportsAuthorize, reportsRateLimit, REPORT_ROLES } = requir
 
 const router = express.Router();
 
+// Every reports endpoint passes through auth, role check, and light rate limiting.
 router.use('/reports', reportsAuth, reportsAuthorize(REPORT_ROLES), reportsRateLimit());
 
 router.get('/reports/modules', reportController.getModules);
 router.get('/reports/overview', reportController.getOverview);
 router.get('/reports/filter-options', reportController.getFilterOptions);
 router.get('/reports/preferences', reportController.getPreferences);
+
+// Keep this dynamic route after fixed routes like /preferences and /filter-options.
 router.get('/reports/:reportId', reportController.getReport);
 
 router.post('/reports/saved-filters', reportController.saveFilter);

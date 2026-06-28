@@ -19,6 +19,7 @@ import {
 
 const colors = ['#2563eb', '#059669', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#be123c', '#65a30d']
 
+// Reusable chart card. Fixed height is important because Recharts needs dimensions.
 const Card = ({ title, children, className = '' }) => (
   <section className={`min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4 ${className}`}>
     <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">{title}</h3>
@@ -28,6 +29,7 @@ const Card = ({ title, children, className = '' }) => (
 
 const safeData = (data = []) => (data.length ? data : [{ label: 'No Data', value: 0 }])
 
+// Shared visual dashboard. Report-specific selectors/tables live in ReportWorkspace.
 const ChartPanel = ({ analytics = {}, overview = {} }) => {
   const charts = analytics.charts || {}
   const monthly = safeData(charts.monthly)
@@ -237,6 +239,7 @@ const ChartPanel = ({ analytics = {}, overview = {} }) => {
         </ResponsiveContainer>
       </Card>
 
+      {/* Each square is a purchase date; the number is PO count for that day. */}
       <Card title="Purchase Activity Calendar">
         <div className="grid h-full min-w-0 grid-cols-7 gap-1 overflow-hidden">
           {calendarActivity.slice(0, 84).reverse().map((item, index) => (

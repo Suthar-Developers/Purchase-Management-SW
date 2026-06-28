@@ -5,6 +5,7 @@ import { formatCurrency } from './formatters'
 
 const sanitize = (value) => String(value ?? '').replaceAll('"', '""')
 
+// Converts any table rows + column config into CSV text.
 export const rowsToCsv = (rows, columns) => {
   const header = columns.map((column) => `"${sanitize(column.label)}"`).join(',')
   const body = rows.map((row) => columns.map((column) => `"${sanitize(row[column.key])}"`).join(',')).join('\n')
@@ -12,6 +13,7 @@ export const rowsToCsv = (rows, columns) => {
 }
 
 const downloadBlob = (blob, fileName) => {
+  // Browser-only download helper used by CSV, Excel, and screenshot exports.
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
@@ -24,6 +26,7 @@ export const exportCsv = (rows, columns, fileName) => {
   downloadBlob(new Blob([rowsToCsv(rows, columns)], { type: 'text/csv;charset=utf-8' }), `${fileName}.csv`)
 }
 
+// Generates an HTML table with .xls extension so Excel can open it directly.
 export const exportExcel = (rows, columns, fileName) => {
   const table = `
     <table>
@@ -37,6 +40,7 @@ export const exportExcel = (rows, columns, fileName) => {
   downloadBlob(new Blob([table], { type: 'application/vnd.ms-excel' }), `${fileName}.xls`)
 }
 
+// PDF export uses jsPDF + autoTable. Add header/footer changes here.
 export const exportPdf = (rows, columns, fileName, summary = {}) => {
   const doc = new jsPDF({ orientation: 'landscape' })
   doc.setFontSize(14)
@@ -60,11 +64,13 @@ export const copyTable = async (rows, columns) => {
 
 export const printCurrentView = () => window.print()
 
+// Lightweight email sharing: opens user's mail client with CSV text in body.
 export const emailReport = (rows, columns) => {
   const csv = encodeURIComponent(rowsToCsv(rows, columns).slice(0, 12000))
   window.location.href = `mailto:?subject=Purchase Report&body=${csv}`
 }
 
+// Captures the visible dashboard area as a PNG.
 export const screenshotElement = async (node, fileName) => {
   if (!node) return
   const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 })

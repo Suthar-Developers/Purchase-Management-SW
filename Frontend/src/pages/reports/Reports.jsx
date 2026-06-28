@@ -13,6 +13,7 @@ import { useReports } from '../../features/reports/hooks/useReports'
 import { copyTable, emailReport, exportCsv, exportExcel, exportPdf, printCurrentView, screenshotElement } from '../../features/reports/utils/exporters'
 
 const Reports = () => {
+  // Main shell for the Reports module. Data is loaded by useReports.
   const dashboardRef = useRef(null)
   const [notice, setNotice] = useState('')
   const {
@@ -37,6 +38,7 @@ const Reports = () => {
     deletePreference,
   } = useReports()
   const [widgets, setWidgets] = useState(() => {
+    // Dashboard personalization is saved in the browser for quick UI customization.
     const saved = localStorage.getItem('reportDashboardWidgets')
     return saved ? JSON.parse(saved) : {
       'KPI cards': true,
@@ -63,6 +65,7 @@ const Reports = () => {
     window.setTimeout(() => setNotice(''), 2400)
   }
 
+  // Saves current GlobalFilters to the backend saved-filters table.
   const handleSaveFilter = async () => {
     const name = window.prompt('Filter name', `${activeModule?.title || 'Report'} Filter`)
     if (!name) return
@@ -74,6 +77,7 @@ const Reports = () => {
     }
   }
 
+  // Used by table bulk export and "Export Current View".
   const exportRows = (targetRows = rows, columns = reportColumns) => {
     exportExcel(targetRows, columns, fileName)
     notify('Current view exported to Excel')
@@ -89,6 +93,7 @@ const Reports = () => {
     ['Screenshot', 'screenshot', 'fa-camera'],
   ]
 
+  // Header export buttons are routed here. Add new export types in exportMenu too.
   const handleExport = async (type) => {
     if (type === 'pdf') exportPdf(rows, reportColumns, fileName, summary)
     if (type === 'excel') exportExcel(rows, reportColumns, fileName)
@@ -102,6 +107,7 @@ const Reports = () => {
     if (type === 'screenshot') screenshotElement(dashboardRef.current, fileName)
   }
 
+  // KPI cards apply quick filters. Add mappings here for any new KPI cards.
   const handleKpiSelect = (key) => {
     const filterByKpi = {
       approvedPO: { status: 'Approved' },
@@ -171,6 +177,7 @@ const Reports = () => {
                   <EmptyState />
                 ) : (
                   <>
+                    {/* ReportWorkspace changes its content based on the selected report tab. */}
                     <ReportWorkspace activeReport={activeReport} analytics={analytics} options={options} setFilters={setFilters} />
                     {widgets.Charts && <ChartPanel analytics={analytics} overview={overview || report?.overview} />}
                     {widgets.Tables && (
@@ -187,6 +194,7 @@ const Reports = () => {
               </div>
               <div className="min-w-0 space-y-4">
                 {widgets.Insights && <InsightsPanel insights={report?.insights || []} />}
+                {/* Drill-through buttons are quick links to related report tabs. */}
                 <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">Drill-through Navigation</h3>
                   <div className="grid gap-2 text-xs">

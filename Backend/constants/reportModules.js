@@ -1,3 +1,4 @@
+// Report tab/button list shown in the frontend.
 const REPORT_MODULES = [
     { id: 'purchase-requests', title: 'Purchase Request Report', category: 'Procurement', icon: 'ClipboardList' },
     { id: 'purchase-orders', title: 'Purchase Order Report', category: 'Procurement', icon: 'FileCheck' },
