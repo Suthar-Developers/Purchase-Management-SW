@@ -1,13 +1,11 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import Button from '../../components/common/Button'
 import { State, City } from "country-state-city"
+import api, { unwrap } from '../../api/http'
 
 
 const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
-    if (!isOpen) return null
-
     const [formData, setFormData] = useState({
         projectName: "",
         projectCode: "",
@@ -70,11 +68,9 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
         console.log("Project Data:", formData);
 
         try {
-            const res = await axios.post(
-                "http://localhost:3000/api/createProject", formData
-            )
+            const res = unwrap(await api.post("/createProject", formData))
 
-            alert(res.data.message);
+            alert(res.message);
 
             setFormData({
                 projectName: "",
@@ -106,6 +102,8 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
     };
 
     const inputStyle = "w-full rounded-lg border border-gray-300 px-4 py-2 text-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none";
+
+    if (!isOpen) return null
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">

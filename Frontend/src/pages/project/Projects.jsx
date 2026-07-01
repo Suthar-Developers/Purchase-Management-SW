@@ -3,6 +3,7 @@ import { fetchProjects } from '../../api/projectApi'
 import Button from '../../components/common/Button'
 import ProjectCreate from '../../components/models/ProjectCreate'
 import ProjectView from '../../components/models/ProjectView'
+import { exportPagePdf, filterRowsByDateRange } from '../../utils/pagePdfExport'
 
 const Projects = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -11,6 +12,7 @@ const Projects = () => {
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
     const [startEditing, setStartEditing] = useState(false)
     const [searchProject, setSearchProject] = useState('');
+    const [downloadRange, setDownloadRange] = useState({ startDate: '', endDate: '' })
 
     const getProjects = async () => {
         try {
@@ -68,18 +70,60 @@ const Projects = () => {
         )
     })
 
+    const downloadProjectsPdf = () => {
+        const rows = filterRowsByDateRange(filteredProjects, downloadRange.startDate, downloadRange.endDate, (project) => project.created_at || project.startDate)
+        exportPagePdf({
+            title: 'Projects Data',
+            fileName: 'projects-data',
+            rows,
+            startDate: downloadRange.startDate,
+            endDate: downloadRange.endDate,
+            columns: [
+                { label: 'Project Name', key: 'projectName' },
+                { label: 'Project Code', key: 'projectCode' },
+                { label: 'Client', key: 'clientName' },
+                { label: 'State', key: 'state' },
+                { label: 'City', key: 'city' },
+                { label: 'Status', key: 'status' },
+                { label: 'Start Date', render: (project) => project.startDate ? formatDate(project.startDate) : '-' },
+                { label: 'End Date', render: (project) => project.endDate ? formatDate(project.endDate) : '-' },
+            ],
+        })
+    }
+
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-base font-bold px-6 py-2'>All Projects</h1>
-                <div className='flex justify-around items-center w-full px-15 text-center mb-3'>
+                <div className='flex flex-wrap items-center gap-2 w-full px-6 text-center mb-3'>
                     <input
-                        className='rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200 w-full mr-5'
+                        className='min-w-60 flex-1 rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200'
                         type="search"
                         name="ProjectSearch"
                         placeholder='Search projects...'
                         value={searchProject}
                         onChange={(e) => setSearchProject(e.target.value)}
+                    />
+                    <input
+                        type="date"
+                        value={downloadRange.startDate}
+                        onChange={(e) => setDownloadRange((current) => ({ ...current, startDate: e.target.value }))}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-xs"
+                        title="Download from date"
+                    />
+                    <input
+                        type="date"
+                        value={downloadRange.endDate}
+                        onChange={(e) => setDownloadRange((current) => ({ ...current, endDate: e.target.value }))}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-xs"
+                        title="Download to date"
+                    />
+                    <Button
+                        icon={<i className="fa-solid fa-download"></i>}
+                        onClick={downloadProjectsPdf}
+                        className='grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 hover:cursor-pointer'
+                        title="Download projects PDF"
+                        aria-label="Download projects PDF"
                     />
                     <Button lable='+ Add' className='w-25 px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
                 </div>

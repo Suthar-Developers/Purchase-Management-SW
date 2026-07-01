@@ -119,9 +119,6 @@ const Field = ({ label, name, value, isEditing, handleChange, options, type, for
 }
 
 const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
-
-  if (!project) return null
-
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({})
 
@@ -185,6 +182,8 @@ const ProjectView = ({ project, onClose, refreshProjects, startEditing }) => {
     { label: "Address", name: "address" },
     { label: "Description", name: "description" }
   ]
+
+  if (!project) return null
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">

@@ -27,7 +27,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const [vendorList, setVendorList] = useState([])
     const [projectList, setProjectList] = useState([])
     const [materials, setMaterials] = useState([])
-    const [extraCharge, setExtraCharge] = useState(null)
+    const [extraChargeList, setExtraChargeList] = useState([])
     const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false)
     const [extraCharges, setExtraCharges] = useState({
         extraChargeCategory: "",
@@ -116,11 +116,21 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }));
 
         setMaterials(materialsWithNumbers || []);
-        setExtraCharge(po.extraCharge ? {
-            ...po.extraCharge,
-            amount: Number(po.extraCharge.amount) || 0,
-            gst: Number(po.extraCharge.gst) || 0
-        } : null);
+
+        // Support both the legacy single "extraCharge" object and the new
+        // "extraCharges" array, normalizing everything into a list.
+        let loadedCharges = [];
+        if (Array.isArray(po.extraCharges)) {
+            loadedCharges = po.extraCharges;
+        } else if (po.extraCharge) {
+            loadedCharges = [po.extraCharge];
+        }
+
+        setExtraChargeList(loadedCharges.map(c => ({
+            category: c.category,
+            amount: Number(c.amount) || 0,
+            gst: Number(c.gst) || 0
+        })));
     };
 
     useEffect(() => {
@@ -210,19 +220,27 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         return acc;
     }, { amount: 0, discount: 0, subtotal: 0, totalGst: 0, gstGroups: {} });
 
-    // Add Extra Charge to Totals
-    const eAmount = Number(extraCharge?.amount || 0);
-    const eGstPercent = Number(extraCharge?.gst || 0);
-    const eGstAmt = (eAmount * eGstPercent) / 100;
+    // Add Extra Charges to Totals (now supports multiple charges)
+    const eAmount = extraChargeList.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+    const eGstAmt = extraChargeList.reduce((sum, c) => {
+        const amt = Number(c.amount) || 0;
+        const gstPercent = Number(c.gst) || 0;
+        return sum + (amt * gstPercent) / 100;
+    }, 0);
 
-    if (eAmount > 0 && eGstPercent > 0) {
-        if (!totals.gstGroups[eGstPercent]) {
-            totals.gstGroups[eGstPercent] = { taxable: 0, gstAmount: 0 };
+    extraChargeList.forEach(c => {
+        const amt = Number(c.amount) || 0;
+        const gstPercent = Number(c.gst) || 0;
+        const gstAmt = (amt * gstPercent) / 100;
+
+        if (amt > 0 && gstPercent > 0) {
+            if (!totals.gstGroups[gstPercent]) {
+                totals.gstGroups[gstPercent] = { taxable: 0, gstAmount: 0 };
+            }
+            totals.gstGroups[gstPercent].taxable += amt;
+            totals.gstGroups[gstPercent].gstAmount += gstAmt;
         }
-        // Add the extra charge taxable amount and its GST to the grouping
-        totals.gstGroups[eGstPercent].taxable += eAmount;
-        totals.gstGroups[eGstPercent].gstAmount += eGstAmt;
-    }
+    });
 
     const subtotal = totals.amount - totals.discount;
     const taxableAmount = subtotal + eAmount;
@@ -277,7 +295,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             initiator: selectedProject?.contactPersonName || "",
             initiator_number: selectedProject?.contactPersonNumber || "",
             materials,
-            extraCharge,
+            extraCharges: extraChargeList,
             total_amount: totals.amount,
             total_discount: totals.discount,
             subtotal: subtotal,
@@ -313,7 +331,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     po_status: "Draft",
                 });
                 setMaterials([]);
-                setExtraCharge(null);
+                setExtraChargeList([]);
                 setExtraCharges({
                     extraChargeCategory: "",
                     extraChargeAmount: "",
@@ -346,7 +364,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     );
 
     // ✅ EXTRA CHARGE (MODAL CALCULATION)
-    const extraBase = Number(extraCharge?.amount || 0)
     const modalBase = Number(extraCharges.extraChargeAmount || 0)
     const modalGst = Number(extraCharges.extraChargeGst || 0)
 
@@ -354,12 +371,30 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const extraChargeTotalAmount = modalBase + extraChargeTotalGst
 
     const submitExtChargeModel = () => {
-        setExtraCharge({
-            category: extraCharges.extraChargeCategory,
-            amount: modalBase,
-            gst: modalGst
+        if (!extraCharges.extraChargeCategory) return alert("Please select a charge category");
+        if (!modalBase || modalBase <= 0) return alert("Please enter a valid charge amount");
+
+        setExtraChargeList(prev => [
+            ...prev,
+            {
+                category: extraCharges.extraChargeCategory,
+                amount: modalBase,
+                gst: modalGst
+            }
+        ])
+
+        // Reset the draft form so the next charge starts blank
+        setExtraCharges({
+            extraChargeCategory: "",
+            extraChargeAmount: "",
+            extraChargeGst: ""
         })
+
         setOpenExtraChargeModel(false)
+    }
+
+    const handleDeleteExtraCharge = (index) => {
+        setExtraChargeList(prev => prev.filter((_, i) => i !== index))
     }
 
     const handleAddRow = () => {
@@ -550,7 +585,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 {/* HEADER */}
                                 <div className="pb-1">
                                     <div>
-                                        <img className="w-[90%] h-16 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
+                                        <img className="w-[90%] h-20 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
                                     </div>
 
                                     <h2 className="text-center font-bold text-sm mt-2">
@@ -558,10 +593,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     </h2>
                                 </div>
 
-                                <div
-                                    className="border mx-5 relative"
-                                    style={{ height: 'calc(100% - 126px)' }}
-                                >
+                                <div className="border mx-5 relative" style={{ height: 'calc(100% - 126px)' }}>
 
                                     {/* --Top Information-- */}
                                     <div className="grid grid-cols-8 grid-rows-4 mb-1 text-xs">
@@ -797,6 +829,13 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     )}
                                                 </tr>
                                             ))}
+                                            {poPage.showBottomSections && !selectedRequest && !isReadOnly && !isPdfRendering && (
+                                                <tr className="no-print">
+                                                    <td colSpan={9} className="py-2 text-center">
+                                                        <Button lable="+ Add New Row" type="button" onClick={handleAddRow} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
+                                                    </td>
+                                                </tr>
+                                            )}
                                             {Array.from({ length: poPage.emptyRows }).map((_, i) => (
                                                 <tr key={`empty-${pageIndex}-${i}`} className="border border-b-gray-300 border-r-gray-100" style={{ height: `${PDF_LAYOUT.rowHeight}px`, breakInside: 'avoid' }}>
                                                     <td className="w-[5%]">&nbsp;</td>
@@ -817,17 +856,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                     {poPage.showBottomSections && (
                                         <div>
                                             <div className="flex flex-col justify-between mt-4 text-xs">
-                                                <div className="flex w-full justify-around">
-                                                    {!selectedRequest && !isReadOnly && !isPdfRendering && (
-                                                        <div className="flex justify-center items-center w-full">
-                                                            <Button lable="+ Add New Row" type="button" onClick={handleAddRow} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:cursor-pointer" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
                                                 <div className="flex justify-end pr-5">
                                                     <div className="w-72 space-y-1 p-2 text-xs">
-                                                        {!extraCharge && !isReadOnly && !isPdfRendering && (
+                                                        {!isReadOnly && !isPdfRendering && (
                                                             <Button lable="+ Add Other Charge" type="button" onClick={() => setOpenExtraChargeModel(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-700 hover:cursor-pointer" />
                                                         )}
 
@@ -836,12 +867,20 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                             <span>₹ {subtotal.toFixed(2)}</span>
                                                         </div>
 
-                                                        {extraCharge && (
-                                                            <div className="flex justify-between">
-                                                                <span>{extraCharge.category}</span>
-                                                                <span>₹ {extraBase.toFixed(2)}</span>
+                                                        {extraChargeList.map((charge, idx) => (
+                                                            <div key={idx} className="flex justify-between items-center">
+                                                                <span>{charge.category}</span>
+                                                                <span className="flex items-center gap-2">
+                                                                    ₹ {Number(charge.amount).toFixed(2)}
+                                                                    {!isReadOnly && !isPdfRendering && (
+                                                                        <i
+                                                                            className="fa-solid fa-xmark text-red-600 hover:cursor-pointer no-print"
+                                                                            onClick={() => handleDeleteExtraCharge(idx)}
+                                                                        ></i>
+                                                                    )}
+                                                                </span>
                                                             </div>
-                                                        )}
+                                                        ))}
 
                                                         <div className="flex justify-between">
                                                             <span>Taxable Amount</span>
@@ -970,29 +1009,37 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 </div>
 
                                                 {/* SIGNATURE */}
-                                                <div className="grid grid-cols-3 text-xs text-center border-t pt-2">
+                                                <div className="grid grid-cols-4 text-xs text-center border-t pt-2">
                                                     <div>
+                                                        <p className="mt-6">____________________</p>
                                                         <p>Prepared By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p></p>
                                                     </div>
 
                                                     <div>
+                                                        <p className="mt-6">____________________</p>
                                                         <p>Checked By</p>
-                                                        <p className="mt-6">____________________</p>
+                                                        <p>Sangita Ranjavan</p>
                                                     </div>
 
                                                     <div>
-                                                        <p>Approved By</p>
                                                         <p className="mt-6">____________________</p>
+                                                        <p>Approved By</p>
+                                                        <p>Sunil Bishnoi</p>
+                                                    </div>
+
+                                                    <div>
+                                                        <p className="mt-6">____________________</p>
+                                                        <p>Approved By</p>
+                                                        <p>SIGNATORY</p>
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="absolute bottom-3 left-8 right-8 grid grid-cols-3 items-center text-[10px] text-gray-400">
+                                <div className="absolute bottom-2 left-8 right-8 grid grid-cols-3 items-center text-[10px] text-gray-400">
                                     <span></span>
                                     <p className="text-center">This is a Computer Generated Purchase Order</p>
                                     <p className="text-right text-gray-500">Page {pageIndex + 1} of {poPages.length}</p>
@@ -1041,7 +1088,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                         <div className="flex justify-between mb-5 px-15">
                             <label className="font-bold">Charge Category</label>
-                            <select name="extraChargeCategory" onChange={(e) => setExtraCharges({ ...extraCharges, extraChargeCategory: e.target.value })} >
+                            <select name="extraChargeCategory" value={extraCharges.extraChargeCategory} onChange={(e) => setExtraCharges({ ...extraCharges, extraChargeCategory: e.target.value })} >
                                 <option value="">Select Category</option>
                                 <option name="Transport" value="Transport">Transport</option>
                                 <option name="Cartage" value="Cartage">Cartage</option>

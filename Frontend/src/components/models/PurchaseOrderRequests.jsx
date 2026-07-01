@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import dayjs from 'dayjs';
-import { fetchDraftedPurchaseOrders } from "../../api/purchaseOrderApi";
+import { fetchDraftedPurchaseOrders, updatePOStatus } from "../../api/purchaseOrderApi";
 import PurchaseOrderForm from "../../components/models/PurchaseOrderForm";
 import Button from "../common/Button";
 
@@ -8,6 +8,7 @@ const PurchaseOrderRequests = () => {
     const [draftedPOs, setDraftedPOs] = useState([])
     const [selectedPO, setSelectedPO] = useState(null)
     const [isOpenPOForm, setIsOpenPOForm] = useState(false)
+    const [loadingId, setLoadingId] = useState(null)
 
     const loadDraftedPO = async () => {
         try {
@@ -34,67 +35,121 @@ const PurchaseOrderRequests = () => {
         setSelectedPO(null);
         loadDraftedPO();
     }
+
+    const handleStatusUpdate = async (po, poStatus) => {
+        const action = poStatus === "Approved" ? "approve" : "reject"
+        if (!window.confirm(`Are you sure you want to ${action} ${po.po_number}?`)) return
+
+        try {
+            setLoadingId(po.po_id)
+            await updatePOStatus(po.po_id, { po_status: poStatus })
+            await loadDraftedPO()
+        } catch (error) {
+            console.error(error)
+            alert(error?.response?.data?.message || `Unable to ${action} purchase order`)
+        } finally {
+            setLoadingId(null)
+        }
+    }
+
     return (
-        <div>
-            <div className="mx-5 my-3 pb-4 border-b">
-                <h1 className="text-base font-bold">Purchase Order Requests for Approval</h1>
+        <main className="min-h-full bg-slate-50 px-5 py-5 lg:px-8">
+            <div className="mb-5 flex flex-col justify-between gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">Approval queue</p>
+                    <h1 className="mt-1 text-2xl font-bold text-slate-950">Purchase Order Requests</h1>
+                    <p className="mt-1 text-sm text-slate-600">Review drafted purchase orders and take approval action.</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={loadDraftedPO}
+                    className="grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100"
+                    title="Refresh purchase order requests"
+                    aria-label="Refresh purchase order requests"
+                >
+                    <i className="fa-solid fa-rotate-right"></i>
+                </button>
             </div>
 
-            <div className="">
-                <div className="bg-white h-[90%] rounded-xl px-6">
-                    <div className="flex justify-between items-center mb-3">
-                        <h2 className="text-sm font-semibold">Drafted Purchase Orders :-</h2>
+            <section className="rounded-md border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-slate-950">Drafted Purchase Orders</h2>
+                        <p className="mt-1 text-xs text-slate-500">{draftedPOs.length} request{draftedPOs.length === 1 ? "" : "s"} waiting</p>
                     </div>
+                </div>
 
-                    <div className="h-[85%] overflow-auto rounded-t-lg">
-                        <table className="w-full">
-                            <thead className="bg-[#4b5ea3] text-white text-xs">
+                <div className="overflow-x-auto">
+                        <table className="min-w-[980px] w-full border-collapse text-left text-sm">
+                            <thead className="bg-slate-100 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th className="w-[10%] p-1 text-center">PO No</th>
-                                    <th className="w-[8%] p-1 text-center">PO Date</th>
-                                    <th className="w-[14%] p-1 text-center">Project</th>
-                                    <th className="w-[12%] p-1 text-center">Vendor</th>
-                                    <th className="w-[12%] p-1 text-center">Order Placed By</th>
-                                    <th className="w-[12%] p-1 text-center">Initiator</th>
-                                    <th className="w-[8%] p-1 text-center">Initiator Number</th>
-                                    <th className="w-[8%] p-1 text-center">Total Amount</th>
-                                    <th className="w-[6%] p-1 text-center">PO Status</th>
-                                    <th className="w-[6%] p-1 text-center">Action</th>
+                                    <th className="px-5 py-3 font-semibold">PO No</th>
+                                    <th className="px-5 py-3 font-semibold">PO Date</th>
+                                    <th className="px-5 py-3 font-semibold">Project</th>
+                                    <th className="px-5 py-3 font-semibold">Vendor</th>
+                                    <th className="px-5 py-3 font-semibold">Order Placed By</th>
+                                    <th className="px-5 py-3 font-semibold">Initiator</th>
+                                    <th className="px-5 py-3 font-semibold text-right">Total Amount</th>
+                                    <th className="px-5 py-3 font-semibold">Status</th>
+                                    <th className="px-5 py-3 font-semibold text-center">Action</th>
                                 </tr>
                             </thead>
 
-                            <tbody>
+                            <tbody className="divide-y divide-slate-100">
                                 {draftedPOs.length === 0 ? (
                                     <tr>
-                                        <td colSpan="12" className="text-center py-6 text-gray-400">
+                                        <td colSpan="9" className="px-5 py-10 text-center text-sm text-slate-500">
                                             No drafted PO found
                                         </td>
                                     </tr>
                                 ) : (
                                     draftedPOs.map((po) => (
-                                        <tr className="border border-b-gray-300 border-x-gray-100 text-xs" key={po.po_id}>
+                                        <tr className="hover:bg-slate-50" key={po.po_id}>
 
-                                            <td className="w-[10%] py-3 text-center font-medium">{po.po_number}</td>
-                                            <td className="w-[8%] py-3 text-center">{po.order_date ? dayjs(po.order_date).format('DD MMM YYYY') : '-'}</td>
-                                            <td className="w-[14%] py-3 text-center">{po.projectName}</td>
-                                            <td className="w-[12%] py-3 text-center">{po.vendorName}</td>
-                                            <td className="w-[12%] py-3 text-center">{po.order_placed_by}</td>
-                                            <td className="w-[12%] py-3 text-center">{po.initiator}</td>
-                                            <td className="w-[8%] py-3 text-center">{po.initiator_number}</td>
-                                            <td className="w-[8%] py-3 text-center">{po.grand_total}</td>
-                                            <td className="w-[6%] py-3 text-center font-medium">{po.po_status}</td>
+                                            <td className="px-5 py-3 font-semibold text-slate-950">{po.po_number}</td>
+                                            <td className="px-5 py-3 text-slate-600">{po.order_date ? dayjs(po.order_date).format('DD MMM YYYY') : '-'}</td>
+                                            <td className="px-5 py-3 text-slate-600">{po.projectName || "-"}</td>
+                                            <td className="px-5 py-3 text-slate-600">{po.vendorName || "-"}</td>
+                                            <td className="px-5 py-3 text-slate-600">{po.order_placed_by || "-"}</td>
+                                            <td className="px-5 py-3 text-slate-600">{po.initiator || "-"}</td>
+                                            <td className="px-5 py-3 text-right font-semibold text-slate-950">{Number(po.grand_total || 0).toLocaleString('en-IN')}</td>
+                                            <td className="px-5 py-3">
+                                                <span className="rounded-md bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
+                                                    {po.po_status}
+                                                </span>
+                                            </td>
 
-                                            <td className="w-[6%] py-3 text-center">
-                                                <Button icon={<i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>} onClick={() => openPOViewModel(po)} className="text-blue-700 hover:text-green-600 ml-2 hover:scale-110" />
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Button
+                                                        icon={<i className="fa-solid fa-eye"></i>}
+                                                        onClick={() => openPOViewModel(po)}
+                                                        className="grid h-8 w-8 place-items-center rounded-md border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100"
+                                                        title="View details"
+                                                    />
+                                                    <Button
+                                                        icon={<i className="fa-solid fa-check"></i>}
+                                                        onClick={() => handleStatusUpdate(po, "Approved")}
+                                                        className="grid h-8 w-8 place-items-center rounded-md border border-emerald-100 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+                                                        disabled={loadingId === po.po_id}
+                                                        title="Approve"
+                                                    />
+                                                    <Button
+                                                        icon={<i className="fa-solid fa-xmark"></i>}
+                                                        onClick={() => handleStatusUpdate(po, "Rejected")}
+                                                        className="grid h-8 w-8 place-items-center rounded-md border border-rose-100 bg-rose-50 text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
+                                                        disabled={loadingId === po.po_id}
+                                                        title="Reject"
+                                                    />
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
                                 )}
                             </tbody>
                         </table>
-                    </div>
                 </div>
-            </div>
+            </section>
 
             {/* 🔷 OPEN PO FORM */}
             {isOpenPOForm && selectedPO && (
@@ -107,7 +162,7 @@ const PurchaseOrderRequests = () => {
                 />
             )}
 
-        </div>
+        </main>
     )
 }
 

@@ -1,11 +1,9 @@
 import React from 'react'
 import { useState } from 'react'
-import axios from 'axios'
 import Button from '../common/Button'
+import api, { unwrap } from '../../api/http'
 
 const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
-    if (!isOpen) return null
-
     const [formData, setFormData] = useState({
         vendorName: "",
         vendorContactNumber: "",
@@ -33,11 +31,9 @@ const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
         console.log("Vendor Data:", formData);
 
         try {
-            const res = await axios.post(
-                "http://localhost:3000/api/createVendor", formData
-            )
+            const res = unwrap(await api.post("/createVendor", formData))
 
-            alert(res.data.message);
+            alert(res.message);
 
             setFormData({
                 vendorName: "",
@@ -68,6 +64,8 @@ const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
 
     const inputStyle =
         "w-full rounded-lg border border-gray-300 px-4 py-2 text-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none";
+
+    if (!isOpen) return null
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">

@@ -99,7 +99,7 @@ const newPurchaseOrder = async (req, res) => {
         // Re-generate the number at the moment of saving to ensure no duplicates
         const finalPONumber = await getNextSequence();
 
-        const {vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status, materials, extraCharge } = req.body
+        const { vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status, materials, extraCharges } = req.body
 
         if (!finalPONumber || !project_id) {
             return res.status(400).json({ message: "Required field is missing.." })
@@ -150,27 +150,30 @@ const newPurchaseOrder = async (req, res) => {
             );
         }
 
-        // 3. EXTRA CHARGE
-        if (extraCharge && extraCharge.amount > 0) {
+        // 3. EXTRA CHARGES (now supports multiple charges per PO)
+        if (Array.isArray(extraCharges)) {
+            for (const charge of extraCharges) {
+                const eAmount = Number(charge.amount || 0);
+                if (eAmount <= 0) continue;
 
-            const eAmount = Number(extraCharge.amount || 0);
-            const eGstPercent = Number(extraCharge.gst || 0);
-            const eGstAmount = (eAmount * eGstPercent) / 100;
-            const eTotalAmount = (eAmount + eGstAmount);
+                const eGstPercent = Number(charge.gst || 0);
+                const eGstAmount = (eAmount * eGstPercent) / 100;
+                const eTotalAmount = (eAmount + eGstAmount);
 
-            await db.query(
-                `INSERT INTO purchase_order_extra_charges
-        (po_id, category, amount, gst_percent, gst_amount, total_amount)
-        VALUES (?, ?, ?, ?, ?, ?)`,
-                [
-                    po_id,
-                    extraCharge.category,
-                    eAmount,
-                    eGstPercent,
-                    eGstAmount,
-                    eTotalAmount
-                ]
-            );
+                await db.query(
+                    `INSERT INTO purchase_order_extra_charges
+            (po_id, category, amount, gst_percent, gst_amount, total_amount)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+                    [
+                        po_id,
+                        charge.category,
+                        eAmount,
+                        eGstPercent,
+                        eGstAmount,
+                        eTotalAmount
+                    ]
+                );
+            }
         }
 
         return res.status(201).json({ message: "New purchase order placed successfully..", po_id })
@@ -249,20 +252,19 @@ const fetchPurchaseOrderById = async (req, res) => {
             [id]
         );
 
-        // 3. Fetching extra charge (if any)
+        // 3. Fetching extra charges (if any) - a PO can have multiple
         const [extraRows] = await db.query(
             `SELECT category, amount, gst_percent AS gst
              FROM purchase_order_extra_charges
              WHERE po_id = ?`,
             [id]
         );
-        const extraCharge = extraRows[0] || null;
 
         // 4. Return complete PO object
         const fullPO = {
             ...po,
             materials: items,
-            extraCharge: extraCharge
+            extraCharges: extraRows
         };
 
         return res.status(200).json(fullPO);

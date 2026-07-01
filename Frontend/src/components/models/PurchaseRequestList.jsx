@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { fetchPurchaseRequests } from "../../api/purchaseRequestApi"
 import Button from "../common/Button"
 import PurchaseRequestView from "./PurchaseRequestView"
+import { exportPagePdf, filterRowsByDateRange } from "../../utils/pagePdfExport"
 
 const StatusBadge = ({ status }) => {
 
@@ -23,6 +24,7 @@ const PurchaseRequestList = ({ onCreate }) => {
   const [purchaseRequest, setPurchaseRequest] = useState([])
   const [isViewModelOpen, setIsViewModelOpen] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState()
+  const [downloadRange, setDownloadRange] = useState({ startDate: '', endDate: '' })
 
   const getPurchaseRequests = async () => {
     try {
@@ -47,16 +49,59 @@ const PurchaseRequestList = ({ onCreate }) => {
     setIsViewModelOpen(false)
   }
 
+  const downloadRequestsPdf = () => {
+    const rows = filterRowsByDateRange(purchaseRequest, downloadRange.startDate, downloadRange.endDate, (request) => request.created_pr_at || request.deliverBefore)
+    exportPagePdf({
+      title: 'Purchase Requests Data',
+      fileName: 'purchase-requests-data',
+      rows,
+      startDate: downloadRange.startDate,
+      endDate: downloadRange.endDate,
+      columns: [
+        { label: 'PR No', render: (request) => `PR-${request.request_id}` },
+        { label: 'Project', key: 'projectName' },
+        { label: 'Initiator', key: 'contactPerson' },
+        { label: 'Contact Info', key: 'contactInfo' },
+        { label: 'Status', key: 'requestStatus' },
+        { label: 'Deliver Before', key: 'deliverBefore' },
+        { label: 'Items', render: (request) => request.materials?.length || 0 },
+      ],
+    })
+  }
+
   return (
     <div className="w-full h-full bg-slate-200 p-4">
       <div className="bg-white rounded-2xl shadow-2xl h-[85%] flex flex-col p-6 overflow-auto">
 
         {/* Header */}
-        <div className="px-6 flex justify-between items-center">
+        <div className="px-6 flex flex-wrap justify-between items-center gap-2">
           <h1 className="text-lg font-bold pb-3">
             Purchase Requests
           </h1>
-          <Button lable={"+ New Request"} className='px-4 py-2 mb-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="date"
+              value={downloadRange.startDate}
+              onChange={(e) => setDownloadRange((current) => ({ ...current, startDate: e.target.value }))}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs"
+              title="Download from date"
+            />
+            <input
+              type="date"
+              value={downloadRange.endDate}
+              onChange={(e) => setDownloadRange((current) => ({ ...current, endDate: e.target.value }))}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs"
+              title="Download to date"
+            />
+            <Button
+              icon={<i className="fa-solid fa-download"></i>}
+              onClick={downloadRequestsPdf}
+              className='grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 hover:cursor-pointer'
+              title="Download purchase requests PDF"
+              aria-label="Download purchase requests PDF"
+            />
+            <Button lable={"+ New Request"} className='px-4 py-2 mb-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
+          </div>
         </div>
 
         {/* Table Card */}
