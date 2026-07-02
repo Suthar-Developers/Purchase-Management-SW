@@ -3,6 +3,7 @@ import { fetchVendors } from '../../api/vendorApi'
 import Button from '../../components/common/Button'
 import VendorCreate from '../../components/models/VendorCreate'
 import VendorView from '../../components/models/VendorView'
+import { exportPagePdf, filterRowsByDateRange } from '../../utils/pagePdfExport'
 
 const Vendors = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -11,6 +12,7 @@ const Vendors = () => {
     const [isViewModelOpen, setIsViewModelOpen] = useState(false)
     const [startEditing, setStartEditing] = useState(false)
     const [searchVendor, setSearchVendor] = useState('')
+    const [downloadRange, setDownloadRange] = useState({ startDate: '', endDate: '' })
 
     const getVendors = async() => {
         try {
@@ -68,19 +70,44 @@ const Vendors = () => {
         )
     })
 
+    // Downloads only the currently searched vendors inside the selected date range.
+    const downloadVendorsPdf = () => {
+        const rows = filterRowsByDateRange(filteredVendors, downloadRange.startDate, downloadRange.endDate, (vendor) => vendor.created_at || vendor.updated_at)
+        exportPagePdf({
+            title: 'Vendors Data',
+            fileName: 'vendors-data',
+            rows,
+            startDate: downloadRange.startDate,
+            endDate: downloadRange.endDate,
+            columns: [
+                { label: 'Vendor Name', key: 'vendorName' },
+                { label: 'Type', key: 'vendorType' },
+                { label: 'Tag', key: 'vendorTag' },
+                { label: 'Email', key: 'vendorEmail' },
+                { label: 'Contact', key: 'vendorContactNumber' },
+                { label: 'Location', key: 'location' },
+                { label: 'Status', key: 'status' },
+                { label: 'Updated On', render: (vendor) => vendor.updated_at ? formatDate(vendor.updated_at) : '-' },
+            ],
+        })
+    }
+
     return (
         <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
             <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
                 <h1 className='text-base font-bold px-6 py-2'>All Vendors</h1>
-                <div className='flex justify-around w-full items-center px-15 text-center mb-3'>
+                <div className='flex flex-wrap w-full items-center gap-2 px-6 text-center mb-3'>
                     <input
-                        className='rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200 w-full mr-5'
+                        className='min-w-60 flex-1 rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200'
                         type="search"
                         name="VendorSearch"
                         placeholder='Search vendors...'
                         value={searchVendor}
                         onChange={(e) => setSearchVendor(e.target.value)}
                     />
+                    <input type="date" value={downloadRange.startDate} onChange={(e) => setDownloadRange((current) => ({ ...current, startDate: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-xs" title="Download from date" />
+                    <input type="date" value={downloadRange.endDate} onChange={(e) => setDownloadRange((current) => ({ ...current, endDate: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-xs" title="Download to date" />
+                    <Button icon={<i className="fa-solid fa-download"></i>} onClick={downloadVendorsPdf} className='grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 hover:cursor-pointer' title="Download vendors PDF" aria-label="Download vendors PDF" />
                     <Button lable='+ Add' className='w-25 px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
                 </div>
 

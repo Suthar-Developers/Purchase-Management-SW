@@ -1,52 +1,67 @@
 import React from 'react'
 
-const RecentItemsTable = () => {
+const formatDate = (dateValue) => {
+      if (!dateValue) return '-'
+      return new Intl.DateTimeFormat('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+      }).format(new Date(dateValue))
+}
+
+const RecentItemsTable = ({ requests = [], isLoading = false }) => {
+      // Flatten request materials so the dashboard can show item-level activity.
+      const rows = requests
+            .flatMap((request) =>
+                  (request.materials || []).map((material, index) => ({
+                        key: `${request.request_id}-${material.material_id || index}`,
+                        itemName: material.material || '-',
+                        category: material.category || '-',
+                        projectName: request.projectName || '-',
+                        qty: material.qty || '-',
+                        unit: material.unit || '-',
+                        status: material.materialStatus || request.requestStatus || '-',
+                        deliverBefore: request.deliverBefore,
+                  }))
+            )
+            .slice(0, 8)
+
+      if (isLoading) {
+            return <div className='px-5 py-10 text-center text-sm text-slate-500'>Loading latest items...</div>
+      }
+
+      if (rows.length === 0) {
+            return <div className='px-5 py-10 text-center text-sm text-slate-500'>No purchase request items found.</div>
+      }
+
       return (
-            <div className='flex flex-col gap-3 w-full overflow-y-auto'>
-                  <div className='flex justify-around text-sm font-bold bg-slate-200 py-2'>
-                        <div className='w-1/4 text-center'>Item Name</div>
-                        <div className='w-1/4 text-center'>Category</div>
-                        <div className='w-1/4 text-center'>Location</div>
-                        <div className='w-1/4 text-center'>Qty</div>
-                        <div className='w-1/4 text-center'>Unit</div>
-                        <div className='w-1/4 text-center'>Amount</div>
-                  </div>
-
-                  <div className='flex justify-around text-sm'>
-                        <div className='w-1/4 text-center'>Green Ply</div>
-                        <div className='w-1/4 text-center'>Wood </div>
-                        <div className='w-1/4 text-center'>T2 Adani Airport AHMD</div>
-                        <div className='w-1/4 text-center'>50</div>
-                        <div className='w-1/4 text-center'>Pcs</div>
-                        <div className='w-1/4 text-center'>35,000</div>
-                  </div>
-
-                  <div className='flex justify-around text-sm'>
-                        <div className='w-1/4 text-center'>Fevicol </div>
-                        <div className='w-1/4 text-center'>Adhesive </div>
-                        <div className='w-1/4 text-center'>J Kumar</div>
-                        <div className='w-1/4 text-center'>100</div>
-                        <div className='w-1/4 text-center'>Kg</div>
-                        <div className='w-1/4 text-center'>35,000</div>
-                  </div>
-
-                  <div className='flex justify-around text-sm'>
-                        <div className='w-1/4 text-center'>Marine Ply</div>
-                        <div className='w-1/4 text-center'>Wood </div>
-                        <div className='w-1/4 text-center'>Reliance JWC</div>
-                        <div className='w-1/4 text-center'>100</div>
-                        <div className='w-1/4 text-center'>Pcs</div>
-                        <div className='w-1/4 text-center'>80,000</div>
-                  </div>
-
-                  <div className='flex justify-around text-sm'>
-                        <div className='w-1/4 text-center'>Fevicol </div>
-                        <div className='w-1/4 text-center'>Adhesive </div>
-                        <div className='w-1/4 text-center'>Palais Royale</div>
-                        <div className='w-1/4 text-center'>100</div>
-                        <div className='w-1/4 text-center'>Kg</div>
-                        <div className='w-1/4 text-center'>35,000</div>
-                  </div>
+            <div className='w-full overflow-x-auto'>
+                  <table className='min-w-[760px] w-full border-collapse text-left text-sm'>
+                        <thead className='bg-slate-100 text-xs uppercase text-slate-500'>
+                              <tr>
+                                    <th className='px-5 py-3 font-semibold'>Item Name</th>
+                                    <th className='px-5 py-3 font-semibold'>Category</th>
+                                    <th className='px-5 py-3 font-semibold'>Project</th>
+                                    <th className='px-5 py-3 font-semibold'>Qty</th>
+                                    <th className='px-5 py-3 font-semibold'>Status</th>
+                                    <th className='px-5 py-3 font-semibold'>Delivery</th>
+                              </tr>
+                        </thead>
+                        <tbody className='divide-y divide-slate-100'>
+                              {rows.map((row) => (
+                                    <tr key={row.key} className='hover:bg-slate-50'>
+                                          <td className='px-5 py-3 font-medium text-slate-950'>{row.itemName}</td>
+                                          <td className='px-5 py-3 text-slate-600'>{row.category}</td>
+                                          <td className='px-5 py-3 text-slate-600'>{row.projectName}</td>
+                                          <td className='px-5 py-3 text-slate-600'>{row.qty} {row.unit}</td>
+                                          <td className='px-5 py-3'>
+                                                <span className='rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700'>{row.status}</span>
+                                          </td>
+                                          <td className='px-5 py-3 text-slate-600'>{formatDate(row.deliverBefore)}</td>
+                                    </tr>
+                              ))}
+                        </tbody>
+                  </table>
             </div>
       )
 }

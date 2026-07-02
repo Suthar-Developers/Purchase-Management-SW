@@ -16,13 +16,12 @@ import Reports from './pages/reports/Reports'
 
 const App = () => {
   return (
-    <div className='flex h-screen overflow-hidden'>
+    <div className='flex h-screen overflow-hidden bg-slate-50 text-slate-900'>
       <SideNav />
       <div className='flex min-w-0 flex-1 flex-col h-screen overflow-hidden'>
         <Header />
 
         <div className='scroller min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden'>
-
           <Routes>
             <Route path='/' element={<Dashboard />} />
             <Route path='/projects' element={<Projects />} />
@@ -35,11 +34,9 @@ const App = () => {
             <Route path='/purchase-orders/approved-purchase-orders' element={<ApprovedPurchaseOrders />} />
             <Route path='/reports' element={<Reports />} />
           </Routes>
+          <Footer />
         </div>
       </div>
-
-      <Footer />
-
     </div>
   )
 }

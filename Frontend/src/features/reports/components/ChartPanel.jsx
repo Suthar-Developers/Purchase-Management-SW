@@ -1,283 +1,213 @@
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ComposedChart,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-
 const colors = ['#2563eb', '#059669', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2', '#be123c', '#65a30d']
 
-// Reusable chart card. Fixed height is important because Recharts needs dimensions.
+// Report charts are built with normal React/CSS instead of Recharts.
+// Recharts was causing an invalid-hook white screen in this React setup.
 const Card = ({ title, children, className = '' }) => (
   <section className={`min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4 ${className}`}>
     <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">{title}</h3>
-    <div className="h-60 min-w-0 sm:h-72">{children}</div>
+    <div className="min-h-60 min-w-0">{children}</div>
   </section>
 )
 
-const safeData = (data = []) => (data.length ? data : [{ label: 'No Data', value: 0 }])
+const safeData = (data = []) => (Array.isArray(data) && data.length ? data : [{ label: 'No Data', value: 0, orders: 0 }])
+const getValue = (item) => Number(item?.value ?? item?.orders ?? item?.quantity ?? item?.averageRate ?? 0)
+const maxValue = (data) => Math.max(...data.map(getValue), 1)
 
-// Shared visual dashboard. Report-specific selectors/tables live in ReportWorkspace.
+const formatCompact = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    notation: Number(value) >= 100000 ? 'compact' : 'standard',
+    maximumFractionDigits: 1,
+  }).format(Number(value || 0))
+
+const EmptyHint = () => (
+  <div className="flex min-h-48 items-center justify-center rounded-md border border-dashed border-slate-200 text-xs text-slate-500">
+    No chart data available
+  </div>
+)
+
+// Horizontal bar rows for ranked data like vendor, project, city, and status.
+const BarList = ({ data, valueKey = 'value', color = '#2563eb' }) => {
+  const rows = safeData(data).slice(0, 8)
+  const max = Math.max(...rows.map((row) => Number(row[valueKey] || getValue(row))), 1)
+
+  if (rows.every((row) => Number(row[valueKey] || getValue(row)) === 0)) return <EmptyHint />
+
+  return (
+    <div className="space-y-3">
+      {rows.map((row, index) => {
+        const value = Number(row[valueKey] || getValue(row))
+        return (
+          <div key={`${row.label}-${index}`} className="min-w-0">
+            <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+              <span className="truncate font-medium text-slate-700 dark:text-slate-200">{row.label || 'Unknown'}</span>
+              <span className="shrink-0 font-semibold text-slate-950 dark:text-white">{formatCompact(value)}</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${Math.max(4, (value / max) * 100)}%`, backgroundColor: color || colors[index % colors.length] }}
+              />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// Compact monthly bar chart used for trend and cost overview panels.
+const MonthlyTrend = ({ data }) => {
+  const rows = safeData(data).slice(-12)
+  const max = maxValue(rows)
+
+  if (rows.every((row) => getValue(row) === 0)) return <EmptyHint />
+
+  return (
+    <div className="flex min-h-60 items-end gap-2">
+      {rows.map((row, index) => {
+        const value = getValue(row)
+        const height = Math.max(8, (value / max) * 100)
+        return (
+          <div key={`${row.label}-${index}`} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+            <div className="flex h-44 w-full items-end rounded-md bg-slate-50 px-1 dark:bg-slate-800">
+              <div
+                className="w-full rounded-t-md bg-blue-600"
+                title={`${row.label}: ${formatCompact(value)}`}
+                style={{ height: `${height}%` }}
+              />
+            </div>
+            <span className="w-full truncate text-center text-[10px] text-slate-500">{row.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// CSS conic-gradient donut so the status summary stays visual without chart libraries.
+const DonutLegend = ({ data }) => {
+  const rows = safeData(data).filter((item) => getValue(item) > 0)
+  const total = rows.reduce((sum, item) => sum + getValue(item), 0)
+
+  if (!rows.length || total === 0) return <EmptyHint />
+
+  const gradient = rows.map((row, index) => {
+    const start = rows.slice(0, index).reduce((sum, item) => sum + (getValue(item) / total) * 100, 0)
+    const end = start + (getValue(row) / total) * 100
+    return `${colors[index % colors.length]} ${start}% ${end}%`
+  }).join(', ')
+
+  return (
+    <div className="grid min-h-60 items-center gap-5 sm:grid-cols-[160px_minmax(0,1fr)]">
+      <div className="mx-auto h-36 w-36 rounded-full" style={{ background: `conic-gradient(${gradient})` }}>
+        <div className="grid h-full place-items-center rounded-full p-7">
+          <div className="grid h-full w-full place-items-center rounded-full bg-white text-center dark:bg-slate-900">
+            <span className="text-lg font-bold text-slate-950 dark:text-white">{formatCompact(total)}</span>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {rows.map((row, index) => (
+          <div key={`${row.label}-${index}`} className="flex items-center justify-between gap-3 text-xs">
+            <span className="flex min-w-0 items-center gap-2 text-slate-600 dark:text-slate-300">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
+              <span className="truncate">{row.label}</span>
+            </span>
+            <span className="font-semibold text-slate-950 dark:text-white">{formatCompact(getValue(row))}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Heatmap gives a quick activity view without depending on external chart components.
+const Heatmap = ({ data }) => {
+  const rows = safeData(data).slice(-36)
+  const max = maxValue(rows)
+
+  return (
+    <div className="grid min-h-60 grid-cols-6 gap-1 sm:grid-cols-12">
+      {rows.map((item, index) => (
+        <div
+          key={`${item.label}-${index}`}
+          title={`${item.label}: ${formatCompact(getValue(item))}`}
+          className="rounded-sm bg-blue-600"
+          style={{ opacity: Math.max(0.16, Math.min(1, getValue(item) / max)) }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// Gauge compares total cost against total purchase value.
+const Gauge = ({ overview = {} }) => {
+  const totalCost = Number(overview.summary?.totalCost || 0)
+  const totalPurchaseValue = Number(overview.summary?.totalPurchaseValue || 0)
+  const percentage = Math.min(100, Math.round((totalCost / Math.max(totalPurchaseValue, 1)) * 100))
+
+  return (
+    <div className="flex min-h-60 flex-col items-center justify-center">
+      <div className="relative h-40 w-40 rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="absolute inset-0 rounded-full" style={{ background: `conic-gradient(#059669 0 ${percentage}%, #e2e8f0 ${percentage}% 100%)` }} />
+        <div className="absolute inset-5 grid place-items-center rounded-full bg-white text-center dark:bg-slate-900">
+          <div>
+            <span className="block text-3xl font-bold text-slate-950 dark:text-white">{percentage}%</span>
+            <span className="text-xs text-slate-500">Utilization</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Shows item rate ranges when lowest/average/highest rate data is available.
+const RateList = ({ data }) => {
+  const rows = safeData(data).slice(0, 8)
+  if (rows.every((row) => !row.lowestRate && !row.averageRate && !row.highestRate)) return <EmptyHint />
+
+  return (
+    <div className="space-y-3">
+      {rows.map((row, index) => (
+        <div key={`${row.label}-${index}`} className="rounded-md border border-slate-100 p-2 text-xs dark:border-slate-800">
+          <p className="truncate font-semibold text-slate-800 dark:text-slate-100">{row.label}</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 text-slate-500">
+            <span>Low: {formatCompact(row.lowestRate)}</span>
+            <span>Avg: {formatCompact(row.averageRate)}</span>
+            <span>High: {formatCompact(row.highestRate)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Main chart grid consumed by Reports.jsx.
 const ChartPanel = ({ analytics = {}, overview = {} }) => {
   const charts = analytics.charts || {}
   const monthly = safeData(charts.monthly)
   const vendorWise = safeData(charts.vendorWise)
   const projectWise = safeData(charts.projectWise)
   const itemRates = safeData(charts.itemRates)
+  const quantity = safeData(charts.quantity || charts.quantityByProject)
   const costBreakdown = safeData(charts.costBreakdown)
-  const rateByVendor = safeData(charts.rateByVendor)
-  const rateByProject = safeData(charts.rateByProject)
-  const quantityByProject = safeData(charts.quantityByProject)
-  const quantityByVendor = safeData(charts.quantityByVendor)
-  const vendorProjectAssignments = safeData(charts.vendorProjectAssignments)
-  const cityDetails = safeData(charts.cityDetails)
-  const calendarActivity = safeData(charts.calendarActivity)
   const status = safeData(overview.charts?.status)
 
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-      <Card title="Monthly Trend" className="xl:col-span-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={monthly}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="orders" fill="#2563eb" name="Orders" />
-            <Line type="monotone" dataKey="value" stroke="#059669" name="Value" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="PO Status Donut">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={status} innerRadius={55} outerRadius={92} dataKey="value" nameKey="label" paddingAngle={2}>
-              {status.map((_, index) => <Cell key={index} fill={colors[index % colors.length]} />)}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Project Comparison">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={projectWise} layout="vertical" margin={{ left: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="label" type="category" width={90} />
-            <Tooltip />
-            <Bar dataKey="value" fill="#7c3aed" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Vendor Share">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={vendorWise} layout="vertical" margin={{ left: 24, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="label" type="category" width={100} />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#2563eb" name="Purchase Value" />
-            <Bar dataKey="orders" fill="#059669" name="PO Count" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Cost Analytics Area">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={monthly}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
-            <Tooltip />
-            <Area type="monotone" dataKey="value" stroke="#0891b2" fill="#bae6fd" />
-          </AreaChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Item Rate History">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={itemRates}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" hide />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line dataKey="lowestRate" stroke="#059669" name="Lowest" />
-            <Line dataKey="averageRate" stroke="#2563eb" name="Average" />
-            <Line dataKey="highestRate" stroke="#dc2626" name="Highest" />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Vendor Rate Comparison">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rateByVendor} margin={{ left: 8, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" hide />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="lowestRate" fill="#059669" name="Lowest Rate" />
-            <Bar dataKey="highestRate" fill="#dc2626" name="Highest Rate" />
-            <Line dataKey="averageRate" stroke="#2563eb" name="Average Rate" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Project Rate Comparison">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rateByProject} layout="vertical" margin={{ left: 24, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="label" type="category" width={100} />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="lowestRate" fill="#059669" name="Lowest" />
-            <Bar dataKey="averageRate" fill="#2563eb" name="Average" />
-            <Bar dataKey="highestRate" fill="#dc2626" name="Highest" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Quantity by Project">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={quantityByProject} layout="vertical" margin={{ left: 24, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="label" type="category" width={100} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#0891b2" name="Quantity" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Quantity by Vendor">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={quantityByVendor} layout="vertical" margin={{ left: 24, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="label" type="category" width={100} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#7c3aed" name="Quantity" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Vendor Recommendation Matrix">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rateByVendor.slice(0, 12)}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" hide />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="orders" fill="#2563eb" name="PO Count" />
-            <Bar dataKey="projects" fill="#f59e0b" name="Projects Assigned" />
-            <Line dataKey="averageRate" stroke="#dc2626" name="Average Rate" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Vendor Project Assignment">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={vendorProjectAssignments.slice(0, 15)} layout="vertical" margin={{ left: 24, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="vendor" type="category" width={100} />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="orders" fill="#059669" name="Orders" />
-            <Bar dataKey="quantity" fill="#0891b2" name="Quantity" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="City Purchase Detail">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={cityDetails}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="projects" fill="#2563eb" name="Projects" />
-            <Bar dataKey="orders" fill="#059669" name="POs" />
-            <Line dataKey="averageRate" stroke="#dc2626" name="Avg Rate" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="City Cost and Quantity">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={cityDetails}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="cost" fill="#7c3aed" name="Cost" />
-            <Line dataKey="quantity" stroke="#0891b2" name="Quantity" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </Card>
-
-      {/* Each square is a purchase date; the number is PO count for that day. */}
-      <Card title="Purchase Activity Calendar">
-        <div className="grid h-full min-w-0 grid-cols-7 gap-1 overflow-hidden">
-          {calendarActivity.slice(0, 84).reverse().map((item, index) => (
-            <div
-              key={`${item.label}-${index}`}
-              title={`${item.label}: ${item.orders} POs, Qty ${item.quantity}, Value ${item.value}`}
-              className="flex min-h-8 items-center justify-center rounded-sm bg-blue-600 text-[10px] font-semibold text-white"
-              style={{ opacity: Math.max(0.16, Math.min(1, Number(item.orders || 0) / Math.max(...calendarActivity.map((row) => Number(row.orders || 1))))) }}
-            >
-              {item.orders || ''}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card title="Budget Gauge">
-        <div className="flex h-full flex-col items-center justify-center">
-          <div className="relative h-36 w-36 rounded-full border-14 border-slate-200 dark:border-slate-800 sm:h-44 sm:w-44 sm:border-18">
-            <div className="absolute -inset-4.5 rounded-full border-18 border-transparent border-t-emerald-500 border-r-amber-500"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold text-slate-950 dark:text-white">{Math.min(100, Math.round((overview.summary?.totalCost || 0) / Math.max(overview.summary?.totalPurchaseValue || 1, 1) * 100))}%</span>
-              <span className="text-xs text-slate-500">Utilization</span>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Card title="Cost Breakdown">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={costBreakdown}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="value" fill="#059669" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+      <Card title="Monthly Trend" className="xl:col-span-2"><MonthlyTrend data={monthly} /></Card>
+      <Card title="PO Status Donut"><DonutLegend data={status} /></Card>
+      <Card title="Project Comparison"><BarList data={projectWise} color="#7c3aed" /></Card>
+      <Card title="Vendor Share"><BarList data={vendorWise} color="#059669" /></Card>
+      <Card title="Cost Analytics Area"><MonthlyTrend data={monthly} /></Card>
+      <Card title="Rate Analysis"><RateList data={itemRates} /></Card>
+      <Card title="Quantity Treemap"><BarList data={quantity} color="#2563eb" /></Card>
+      <Card title="Vendor Ranking"><BarList data={vendorWise} valueKey="orders" color="#f59e0b" /></Card>
+      <Card title="Approval Funnel"><BarList data={status} color="#dc2626" /></Card>
+      <Card title="City Summary"><BarList data={safeData(charts.cityWise || charts.cityDetails)} color="#be123c" /></Card>
+      <Card title="Calendar Heatmap"><Heatmap data={monthly} /></Card>
+      <Card title="Budget Gauge"><Gauge overview={overview} /></Card>
+      <Card title="Cost Breakdown"><BarList data={costBreakdown} color="#059669" /></Card>
     </div>
   )
 }

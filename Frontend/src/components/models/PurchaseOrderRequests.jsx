@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import dayjs from 'dayjs';
-import { fetchDraftedPurchaseOrders } from "../../api/purchaseOrderApi";
+import { fetchDraftedPurchaseOrders, updatePOStatus } from "../../api/purchaseOrderApi";
 import PurchaseOrderForm from "../../components/models/PurchaseOrderForm";
 import Button from "../common/Button";
 
@@ -8,6 +8,7 @@ const PurchaseOrderRequests = () => {
     const [draftedPOs, setDraftedPOs] = useState([])
     const [selectedPO, setSelectedPO] = useState(null)
     const [isOpenPOForm, setIsOpenPOForm] = useState(false)
+    const [loadingId, setLoadingId] = useState(null)
 
     const loadDraftedPO = async () => {
         try {
@@ -33,6 +34,23 @@ const PurchaseOrderRequests = () => {
         setIsOpenPOForm(false)
         setSelectedPO(null);
         loadDraftedPO();
+    }
+
+    // Quick action buttons update status without opening the full PO view.
+    const handleStatusUpdate = async (po, poStatus) => {
+        const action = poStatus === "Approved" ? "approve" : "reject"
+        if (!window.confirm(`Are you sure you want to ${action} ${po.po_number}?`)) return
+
+        try {
+            setLoadingId(po.po_id)
+            await updatePOStatus(po.po_id, { po_status: poStatus })
+            await loadDraftedPO()
+        } catch (error) {
+            console.error(error)
+            alert(error?.response?.data?.message || `Unable to ${action} purchase order`)
+        } finally {
+            setLoadingId(null)
+        }
     }
     return (
         <div>
@@ -85,7 +103,11 @@ const PurchaseOrderRequests = () => {
                                             <td className="w-[6%] py-3 text-center font-medium">{po.po_status}</td>
 
                                             <td className="w-[6%] py-3 text-center">
-                                                <Button icon={<i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>} onClick={() => openPOViewModel(po)} className="text-blue-700 hover:text-green-600 ml-2 hover:scale-110" />
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Button icon={<i className="fa-solid fa-eye"></i>} onClick={() => openPOViewModel(po)} className="grid h-8 w-8 place-items-center rounded-md border border-blue-100 bg-blue-50 text-blue-700 transition hover:bg-blue-100" title="View details" />
+                                                    <Button icon={<i className="fa-solid fa-check"></i>} onClick={() => handleStatusUpdate(po, "Approved")} className="grid h-8 w-8 place-items-center rounded-md border border-emerald-100 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50" disabled={loadingId === po.po_id} title="Approve" />
+                                                    <Button icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleStatusUpdate(po, "Rejected")} className="grid h-8 w-8 place-items-center rounded-md border border-rose-100 bg-rose-50 text-rose-700 transition hover:bg-rose-100 disabled:opacity-50" disabled={loadingId === po.po_id} title="Reject" />
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
