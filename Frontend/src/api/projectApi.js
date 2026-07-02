@@ -1,9 +1,9 @@
-import api, { unwrap } from './http'
+import axios from 'axios'
 
 export const fetchProjects = async () => {
     try {
-        const res = await api.get("/projects")
-        return unwrap(res)
+        const res = await axios.get("http://localhost:3000/api/projects")
+        return res.data
     } catch (error) {
         console.error("Error fetching projects", error)
         throw error
@@ -12,10 +12,14 @@ export const fetchProjects = async () => {
 
 export const updateProject = async (id, data) => {
     try {
-        const res = await api.put(`/projects/${id}`, data)
-        return unwrap(res)
+        const res = axios.put(`http://localhost:3000/api/projects/${id}`, data)
+
+        return res.data
     } catch (error) {
-        console.error("Error updating project:", error.response?.data?.message || error.message)
+        console.error(
+            "Error updating project:",
+            error.response?.data?.message || error.message
+        )
         throw error
     }
 }

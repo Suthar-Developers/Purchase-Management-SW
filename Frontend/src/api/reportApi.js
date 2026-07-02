@@ -1,4 +1,15 @@
-import api, { unwrap } from './http'
+import axios from 'axios'
+
+// Change VITE_API_BASE_URL in .env if the backend URL changes in production.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+})
+
+// Backend responses use { success, data }; components only need the data payload.
+const unwrap = (response) => response.data?.data ?? response.data
 
 export const reportApi = {
   // Report tab metadata: id, title, category, icon, and favorite state.
