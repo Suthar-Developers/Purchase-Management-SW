@@ -1,10 +1,10 @@
-import axios from 'axios'
+import api, { unwrap } from './http'
 
 export const fetchApprovedPR = async () => {
     try {
-        const res = await axios.get('http://localhost:3000/api/approvedPurchaseRequests');
+        const res = await api.get('/approvedPurchaseRequests');
 
-        return res.data
+        return unwrap(res)
 
     } catch (error) {
         console.error(error)
@@ -12,15 +12,15 @@ export const fetchApprovedPR = async () => {
 }
 
 export const fetchNextPONumber = async () => {
-    const res = await axios.get('http://localhost:3000/api/generate-po-number');
-    return res.data;
+    const res = await api.get('/generate-po-number');
+    return unwrap(res);
 }
 
 export const newPurchaseOrder = async (payload) => {
     try {
-        const res = await axios.post('http://localhost:3000/api/new-purchase-order', payload)
+        const res = await api.post('/new-purchase-order', payload)
 
-        return res.data
+        return unwrap(res)
     } catch (error) {
         console.error(error);
         return{error: error?.response?.data?.message || "Error while creating purchase order"};
@@ -28,22 +28,22 @@ export const newPurchaseOrder = async (payload) => {
 }
 
 export const fetchDraftedPurchaseOrders = async () => {
-  const res = await axios.get("http://localhost:3000/api/purchase-orders/drafted-purchase-orders");
-  return res.data;
+  const res = await api.get("/purchase-orders/drafted-purchase-orders");
+  return unwrap(res);
 };
 
 export const fetchApprovedPurchaseOrders = async () => {
-  const res = await axios.get("http://localhost:3000/api/purchase-orders/approved-purchase-orders");
-  return res.data;
+  const res = await api.get("/purchase-orders/approved-purchase-orders");
+  return unwrap(res);
 };
 
 
 export const fetchPurchaseOrderById = async (id) => {
-    const res = await axios.get(`http://localhost:3000/api/purchase-orders/${id}`);
-    return res.data;
+    const res = await api.get(`/purchase-orders/${id}`);
+    return unwrap(res);
 };
 
 export const updatePOStatus = async (id, data) => {
-  const res = await axios.put(`http://localhost:3000/api/purchase-orders/${id}/updatePOStatus`, data);
-  return res.data;
+  const res = await api.put(`/purchase-orders/${id}/updatePOStatus`, data);
+  return unwrap(res);
 };
