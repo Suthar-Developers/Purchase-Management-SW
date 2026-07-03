@@ -56,21 +56,7 @@ const SideNav = () => {
                                 {section.title}
                             </p>
                         )}
-                        <div className='space-y-1'>
-                            {section.items.map((item) => (
-                                <NavLinkItem
-                                    key={item.path}
-                                    path={item.path}
-                                    label={item.label}
-                                    icon={item.icon}
-                                    active={isActive(item.path)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                ))}
-
-                <div>
+                                        <div>
                     <button
                         type='button'
                         onClick={() => setOpenPO(!openPO)}
@@ -103,6 +89,20 @@ const SideNav = () => {
                         </Link>
                     </div>
                 </div>
+                        <div className='space-y-1'>
+                            {section.items.map((item) => (
+                                <NavLinkItem
+                                    key={item.path}
+                                    path={item.path}
+                                    label={item.label}
+                                    icon={item.icon}
+                                    active={isActive(item.path)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ))}
+
             </nav>
 
             <div className='mt-5 hidden rounded-md border border-slate-800 bg-slate-900 p-3 sm:block'>
