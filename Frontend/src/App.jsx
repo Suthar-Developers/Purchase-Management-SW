@@ -36,10 +36,8 @@ const App = () => {
             <Route path='/reports' element={<Reports />} />
           </Routes>
         </div>
+        <Footer />
       </div>
-
-      <Footer />
-
     </div>
   )
 }
