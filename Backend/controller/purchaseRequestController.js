@@ -67,6 +67,7 @@ const fetchPurchaseRequests = async (req, res) => {
                     contactPerson: row.contactPerson,
                     contactInfo: row.contactInfo,
                     requestStatus: row.requestStatus,
+                    created_pr_at: row.created_pr_at,
                     materials: []
                 };
             }
