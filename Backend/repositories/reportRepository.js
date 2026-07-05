@@ -53,13 +53,10 @@ const getOverview = async (filters) => {
                 COUNT(DISTINCT p.project_id) totalProjects,
                 COUNT(DISTINCT p.city) totalCities,
                 COALESCE(SUM(DISTINCT po.grand_total), 0) totalPurchaseValue,
-                COALESCE(AVG(DISTINCT po.grand_total), 0) averagePOValue,
-                COALESCE(AVG(TIMESTAMPDIFF(HOUR, po.created_at, po.order_approved_date)), 0) averageApprovalTime,
                 COALESCE(SUM(DISTINCT po.total_discount), 0) totalDiscount,
                 COALESCE(SUM(DISTINCT po.total_gst), 0) totalTax,
                 COALESCE(SUM(DISTINCT po.total_discount), 0) totalSavings,
-                COALESCE(SUM(DISTINCT po.total_amount), 0) totalCost,
-                COALESCE(SUM(poi.qty), 0) totalQuantityPurchased
+                COALESCE(SUM(DISTINCT po.total_amount), 0) totalCost
             ${BASE_FROM}
             ${whereSql}
         `, params);

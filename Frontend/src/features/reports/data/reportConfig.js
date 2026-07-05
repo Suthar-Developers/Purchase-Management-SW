@@ -62,13 +62,10 @@ export const kpiDefinitions = [
   ['totalProjects', 'Total Projects'],
   ['totalCities', 'Total Cities'],
   ['totalPurchaseValue', 'Total Purchase Value', 'currency'],
-  ['averagePOValue', 'Average PO Value', 'currency'],
-  ['averageApprovalTime', 'Average Approval Time', 'hours'],
   ['totalDiscount', 'Total Discount', 'currency'],
   ['totalTax', 'Total Tax', 'currency'],
   ['totalSavings', 'Total Savings', 'currency'],
   ['totalCost', 'Total Cost', 'currency'],
-  ['totalQuantityPurchased', 'Total Quantity Purchased', 'number'],
 ]
 
 // Main ReportTable columns. Keys must match row fields returned by backend getReportRows.
