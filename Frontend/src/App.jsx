@@ -21,7 +21,7 @@ const App = () => {
       <div className='flex min-w-0 flex-1 flex-col h-screen overflow-hidden'>
         <Header />
 
-        <div className='scroller min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden'>
+        <div className='min-h-0 w-full flex-1 overflow-hidden'>
 
           <Routes>
             <Route path='/' element={<Dashboard />} />
