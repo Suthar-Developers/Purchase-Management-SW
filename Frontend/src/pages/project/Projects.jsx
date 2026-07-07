@@ -14,10 +14,6 @@ const Projects = () => {
     // Stores all projects selected by the user using checkboxes.
     // This list is used when downloading the PDF.
     const [selectedProjects, setSelectedProjects] = useState([]);
-    // Controls whether the table is in selection mode.
-    // false = Normal table (checkboxes hidden)
-    // true  = Selection mode (checkboxes visible)
-    const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [searchProject, setSearchProject] = useState('');
 
     const getProjects = async () => {
@@ -75,21 +71,9 @@ const Projects = () => {
             project.clientName?.toLowerCase().includes(searchProject.toLocaleLowerCase())
         )
     })
+    
     // Download PDF
-    //
-    // First click:
-    //     -> Enables selection mode (checkboxes appear)
-    //
-    // Second click:
-    //     -> Downloads only the selected projects
-    //     -> Hides checkboxes again
     const downloadProjectsPdf = () => {
-
-    // First click
-    if (!isSelectionMode) {
-        setIsSelectionMode(true);
-        return;
-    }
 
     // User didn't select anything
     if (selectedProjects.length === 0) {
@@ -131,9 +115,8 @@ const Projects = () => {
         ],
     });
 
-    // Reset selection mode after download
+    // Reset selected project after download
     setSelectedProjects([]);
-    setIsSelectionMode(false);
  };
     return (
         <div className='main-screen h-screen bg-slate-200 overflow-hidden'>
@@ -182,7 +165,6 @@ const Projects = () => {
                         
                         {/* Serial Number */}
                         <div className='w-1/15 text-center'>#</div>
-                        
                         <div className='w-1/4'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
                         <div className='w-1/4 text-center'>State</div>
@@ -224,9 +206,7 @@ const Projects = () => {
                             )}
                             
                             {/* Serial Number */}
-                            <div className='w-1/15 text-center'>
-                                {index + 1}
-                            </div>
+                            <div className='w-1/15 text-center'>{index + 1}</div>
                             <div className='w-1/4'>{project.projectName}</div>
                             <div className='w-1/4 text-center'>{project.projectCode}</div>
                             <div className='w-1/4 text-center'>{project.state}</div>
@@ -237,7 +217,6 @@ const Projects = () => {
                             <div className='w-1/4 text-center'>{project.status}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.updated_at)}</div>
                             <div className='flex w-1/4 justify-center'>
-
                                 <Button onClick={() => openView(project)} className="text-blue-700" icon={<i className="fa-notdog fa-solid fa-eye mr-3 hover:cursor-pointer hover:text-green-600 hover:scale-110"></i>} />
                                 <Button onClick={() => handleEdit(project)} className="text-green-600" icon={<i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i>} />
                             </div>
