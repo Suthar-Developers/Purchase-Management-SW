@@ -160,9 +160,9 @@ const Projects = () => {
 
                 <div className='flex-1 overflow-auto rounded-lg'>
                     <div className='flex justify-around sticky top-0 z-20 rounded-t-lg text-xs font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
-                        {/* Select All Checkbox */}
-                        <div className='w-1/8 text-center'>
-                            {isSelectionMode && (
+                        {/* Selection Column */}
+                        { (
+                            <div className='w-1/20 flex justify-center'>
                                 <input
                                     type="checkbox"
                                     checked={
@@ -171,18 +171,18 @@ const Projects = () => {
                                     }
                                     onChange={(e) => {
                                         if (e.target.checked) {
-                                            // Select every visible project
                                             setSelectedProjects(filteredProjects);
                                         } else {
-                                            // Remove all selections
                                             setSelectedProjects([]);
                                         }
                                     }}
                                 />
-                            )}
-                        </div>
-                        {/* Row Number */}
-                        <div className='w-1/8 text-center'>#</div>
+                            </div>
+                        )}
+                        
+                        {/* Serial Number */}
+                        <div className='w-1/15 text-center'>#</div>
+                        
                         <div className='w-1/4'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
                         <div className='w-1/4 text-center'>State</div>
@@ -197,9 +197,9 @@ const Projects = () => {
 
                     {filteredProjects.map((project, index) => (
                         <div key={project.project_id} className='flex justify-around items-center py-3 mx-2 text-xs border-b border-slate-300'>
-                            {/* Checkbox for selecting this project */}
-                            <div className='w-1/8 text-center'>
-                                {isSelectionMode && (
+                            {/* Selection Column */}
+                            { (
+                                <div className='w-1/20 flex justify-center'>
                                     <input
                                         type="checkbox"
                                         checked={selectedProjects.some(
@@ -207,13 +207,11 @@ const Projects = () => {
                                         )}
                                         onChange={(e) => {
                                             if (e.target.checked) {
-                                                // Add this project
                                                 setSelectedProjects([
                                                     ...selectedProjects,
-                                                    project
+                                                    project,
                                                 ]);
                                             } else {
-                                                // Remove this project
                                                 setSelectedProjects(
                                                     selectedProjects.filter(
                                                         item => item.project_id !== project.project_id
@@ -222,10 +220,13 @@ const Projects = () => {
                                             }
                                         }}
                                     />
-                                )}
-                            </div>
+                                </div>
+                            )}
+                            
                             {/* Serial Number */}
-                            <div className='w-1/8 text-center'>{index + 1}</div>
+                            <div className='w-1/15 text-center'>
+                                {index + 1}
+                            </div>
                             <div className='w-1/4'>{project.projectName}</div>
                             <div className='w-1/4 text-center'>{project.projectCode}</div>
                             <div className='w-1/4 text-center'>{project.state}</div>
