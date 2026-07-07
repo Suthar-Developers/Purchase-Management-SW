@@ -136,8 +136,8 @@ const Projects = () => {
     setIsSelectionMode(false);
  };
     return (
-        <div className='main-screen h-screen bg-slate-200 overflow-hidden'>
-            <div className='flex flex-col max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-hidden'>
+        <div className='main-screen h-full bg-slate-200 overflow-hidden'>
+            <div className='flex flex-col h-[95%] bg-white m-5 rounded-2xl overflow-hidden'>
                 <h1 className='text-base font-bold px-6 py-2 shrink-0'>All Projects</h1>
                 <div className='flex flex-wrap items-center gap-2 w-full px-6 text-center mb-3 shrink-0'>
                     <input
