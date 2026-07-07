@@ -14,10 +14,6 @@ const Projects = () => {
     // Stores all projects selected by the user using checkboxes.
     // This list is used when downloading the PDF.
     const [selectedProjects, setSelectedProjects] = useState([]);
-    // Controls whether the table is in selection mode.
-    // false = Normal table (checkboxes hidden)
-    // true  = Selection mode (checkboxes visible)
-    const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [searchProject, setSearchProject] = useState('');
 
     const getProjects = async () => {
@@ -75,21 +71,9 @@ const Projects = () => {
             project.clientName?.toLowerCase().includes(searchProject.toLocaleLowerCase())
         )
     })
+    
     // Download PDF
-    //
-    // First click:
-    //     -> Enables selection mode (checkboxes appear)
-    //
-    // Second click:
-    //     -> Downloads only the selected projects
-    //     -> Hides checkboxes again
     const downloadProjectsPdf = () => {
-
-    // First click
-    if (!isSelectionMode) {
-        setIsSelectionMode(true);
-        return;
-    }
 
     // User didn't select anything
     if (selectedProjects.length === 0) {
@@ -131,9 +115,8 @@ const Projects = () => {
         ],
     });
 
-    // Reset selection mode after download
+    // Reset selected project after download
     setSelectedProjects([]);
-    setIsSelectionMode(false);
  };
     return (
         <div className='main-screen h-screen bg-slate-200 overflow-hidden'>
@@ -160,9 +143,9 @@ const Projects = () => {
 
                 <div className='flex-1 overflow-auto rounded-lg'>
                     <div className='flex justify-around sticky top-0 z-20 rounded-t-lg text-xs font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
-                        {/* Select All Checkbox */}
-                        <div className='w-1/8 text-center'>
-                            {isSelectionMode && (
+                        {/* Selection Column */}
+                        { (
+                            <div className='w-1/20 flex justify-center'>
                                 <input
                                     type="checkbox"
                                     checked={
@@ -171,18 +154,17 @@ const Projects = () => {
                                     }
                                     onChange={(e) => {
                                         if (e.target.checked) {
-                                            // Select every visible project
                                             setSelectedProjects(filteredProjects);
                                         } else {
-                                            // Remove all selections
                                             setSelectedProjects([]);
                                         }
                                     }}
                                 />
-                            )}
-                        </div>
-                        {/* Row Number */}
-                        <div className='w-1/8 text-center'>#</div>
+                            </div>
+                        )}
+                        
+                        {/* Serial Number */}
+                        <div className='w-1/15 text-center'>#</div>
                         <div className='w-1/4'>Project Name</div>
                         <div className='w-1/4 text-center'>Project Code</div>
                         <div className='w-1/4 text-center'>State</div>
@@ -197,9 +179,9 @@ const Projects = () => {
 
                     {filteredProjects.map((project, index) => (
                         <div key={project.project_id} className='flex justify-around items-center py-3 mx-2 text-xs border-b border-slate-300'>
-                            {/* Checkbox for selecting this project */}
-                            <div className='w-1/8 text-center'>
-                                {isSelectionMode && (
+                            {/* Selection Column */}
+                            { (
+                                <div className='w-1/20 flex justify-center'>
                                     <input
                                         type="checkbox"
                                         checked={selectedProjects.some(
@@ -207,13 +189,11 @@ const Projects = () => {
                                         )}
                                         onChange={(e) => {
                                             if (e.target.checked) {
-                                                // Add this project
                                                 setSelectedProjects([
                                                     ...selectedProjects,
-                                                    project
+                                                    project,
                                                 ]);
                                             } else {
-                                                // Remove this project
                                                 setSelectedProjects(
                                                     selectedProjects.filter(
                                                         item => item.project_id !== project.project_id
@@ -222,10 +202,11 @@ const Projects = () => {
                                             }
                                         }}
                                     />
-                                )}
-                            </div>
+                                </div>
+                            )}
+                            
                             {/* Serial Number */}
-                            <div className='w-1/8 text-center'>{index + 1}</div>
+                            <div className='w-1/15 text-center'>{index + 1}</div>
                             <div className='w-1/4'>{project.projectName}</div>
                             <div className='w-1/4 text-center'>{project.projectCode}</div>
                             <div className='w-1/4 text-center'>{project.state}</div>
@@ -236,7 +217,6 @@ const Projects = () => {
                             <div className='w-1/4 text-center'>{project.status}</div>
                             <div className='w-1/4 text-center'>{formatDate(project.updated_at)}</div>
                             <div className='flex w-1/4 justify-center'>
-
                                 <Button onClick={() => openView(project)} className="text-blue-700" icon={<i className="fa-notdog fa-solid fa-eye mr-3 hover:cursor-pointer hover:text-green-600 hover:scale-110"></i>} />
                                 <Button onClick={() => handleEdit(project)} className="text-green-600" icon={<i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i>} />
                             </div>
