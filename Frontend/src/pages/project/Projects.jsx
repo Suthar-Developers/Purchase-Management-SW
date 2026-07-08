@@ -117,7 +117,7 @@ const Projects = () => {
 
     // Reset selected project after download
     setSelectedProjects([]);
- };
+    };
     return (
         <div className='main-screen h-full bg-slate-200 overflow-hidden'>
             <div className='flex flex-col h-[95%] bg-white m-5 rounded-2xl overflow-hidden'>
