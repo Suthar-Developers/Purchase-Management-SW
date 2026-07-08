@@ -102,16 +102,16 @@ const Vendors = () => {
                 ],
             });
         
-            // Clear selection after download
+            // Reset selected vendors after download
             setSelectedVendorsPdf([]);
         };
     return (
-        <div className='main-screen w-full h-screen bg-slate-200 overflow-y-auto'>
-            <div className='max-w-full h-[80%] bg-white m-5 rounded-2xl overflow-auto'>
-                <h1 className='text-base font-bold px-6 py-2'>All Vendors</h1>
-                <div className='flex items-center gap-3 px-6 mb-3'>
+        <div className='main-screen h-full bg-slate-200 overflow-hidden'>
+            <div className='flex flex-col h-[95%] bg-white m-5 rounded-2xl overflow-hidden'>
+                <h1 className='text-base font-bold px-6 py-2 shrink-0'>All Vendors</h1>
+                <div className='flex flex-wrap items-center gap-2 w-full px-6 text-center mb-3 shrink-0'>
                     <input
-                        className='flex-1 rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200'
+                        className='min-w-60 flex-1 rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200'
                         type="search"
                         name="VendorSearch"
                         placeholder='Search vendors...'
@@ -132,10 +132,10 @@ const Vendors = () => {
                     />
                 </div>
 
-                <div className='flex flex-col gap-3 w-full overflow-auto rounded-lg'>
-                    <div className='flex justify-around rounded-t-lg text-xs font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
+                <div className='flex-1 overflow-auto rounded-lg'>
+                    <div className='flex justify-around sticky top-0 z-20 rounded-t-lg text-xs font-medium bg-[#4b5ea3] text-white py-3 mx-2'>
                         {/* Select All Checkbox */}
-                        <div className='w-12 flex justify-center'>
+                        <div className='w-1/20 flex justify-center'>
                             <input
                                 type="checkbox"
                                 checked={
@@ -153,7 +153,7 @@ const Vendors = () => {
                         </div>
                         
                         {/* Serial Number */}
-                        <div className='w-12 text-center'>#</div>
+                        <div className='w-1/15 text-center'>#</div>
                         <div className='w-1/4'>Vendor Name</div>
                         <div className='w-1/4 text-center'>Type</div>
                         <div className='w-1/4 text-center'>Vendor Tag</div>
@@ -164,9 +164,9 @@ const Vendors = () => {
                     </div>
 
                     {filteredVendors.map((vendor, index) => (
-                        <div key={vendor.vendor_id} className='flex justify-around items-center pb-2 mx-2 text-xs border-b border-slate-300'>
+                        <div key={vendor.vendor_id} className='flex justify-around items-center py-3 mx-2 text-xs border-b border-slate-300'>
                             {/* Vendor Selection */}
-                            <div className='w-12 flex justify-center'>
+                            <div className='w-1/20 flex justify-center'>
                                 <input
                                     type="checkbox"
                                     checked={selectedVendorsPdf.some(
@@ -190,9 +190,7 @@ const Vendors = () => {
                             </div>
                             
                             {/* Serial Number */}
-                            <div className='w-12 text-center'>
-                                {index + 1}
-                            </div>
+                            <div className='w-1/15 text-center'>{index + 1}</div>
                             <div className='w-1/4'>{vendor.vendorName}</div>
                             <div className='w-1/4 text-center'>{vendor.vendorType}</div>
                             <div className='w-1/4 text-center'>{vendor.vendorTag}</div>
