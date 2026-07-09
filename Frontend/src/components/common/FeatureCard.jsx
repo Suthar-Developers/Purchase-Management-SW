@@ -22,13 +22,9 @@ const FeatureCard = ({ title, desc }) => {
             </div>
 
             <div>
-                <h4 className="text-white font-semibold">
-                    {title}
-                </h4>
+                <h4 className="text-white font-semibold">{title}</h4>
 
-                <p className="text-gray-400 text-sm">
-                    {desc}
-                </p>
+                <p className="text-gray-400 text-sm">{desc}</p>
             </div>
         </div>
     )
