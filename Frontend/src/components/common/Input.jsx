@@ -13,9 +13,7 @@ const InputField = ({ label, placeholder, icon, rightText, name, value, onChange
 
             <div className="relative">
                 {icon && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                        {icon}
-                    </div>
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
                 )}
 
                 <input
