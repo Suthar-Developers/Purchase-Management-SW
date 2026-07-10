@@ -2,17 +2,8 @@ import React, { useState } from "react";
 import FeatureCard from "../../../components/common/FeatureCard";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
-import {
-    ArrowRight,
-    AtSign,
-    Check,
-    Eye,
-    EyeOff,
-    Lock,
-    Shield,
-    Square,
-    User,
-} from "lucide-react";
+import { createNewUser } from "../../../api/userApi"
+import { ArrowRight, AtSign, Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 
 const CreateUser = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +22,29 @@ const CreateUser = () => {
         }));
     };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!formData.username || !formData.password) {
+            return alert("Please write username and password")
+        }
+
+        try {
+            const data = await createNewUser(formData);
+            alert(data.message);
+
+            setFormData({
+                fullName: "",
+                username: "",
+                password: "",
+                role: "",
+            })
+        } catch (error) {
+            console.error("Failed to create new user", error)
+            console.log(error)
+        }
+    }
+
     const password = formData.password;
 
     const passwordRules = {
@@ -41,37 +55,37 @@ const CreateUser = () => {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row min-h-screen font-sans bg-white">
+        <div className="flex flex-col lg:flex-row lg:h-screen min-h-screen font-sans bg-white overflow-hidden">
             {/* LEFT PANEL */}
-            <div className="relative hidden lg:flex lg:w-2/5 xl:w-[42%] p-8 xl:p-10 2xl:p-14 min-h-screen overflow-hidden">
+            <div className="relative hidden lg:flex lg:w-2/5 xl:w-[42%] h-full overflow-hidden">
 
                 {/* Background */}
-                <div className="absolute inset-0 bg-linear-to-br from-[#10172B] via-[#171D39] to-[#2A2D63]" />
+                <div className="absolute inset-0 bg-linear-to-br from-[#060713] via-[#212549] to-[#0c0b20]" />
 
                 {/* Grid */}
                 <div
-                    className="absolute inset-0 opacity-15"
-                    style={{backgroundImage: `linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)`, backgroundSize: "58px 58px",}}
+                    className="absolute inset-0 opacity-10"
+                    style={{ backgroundImage: `linear-gradient(rgba(255,255,255,.72) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.62) 1px, transparent 1px)`, backgroundSize: "58px 58px", }}
                 />
 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col justify-between w-full p-10">
+                <div className="relative z-10 flex flex-col justify-between w-full p-8 xl:p-10">
 
                     {/* Logo */}
                     <div>
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 xl:w-12 xl:h-12 rounded-xl bg-white flex items-center justify-center">
-                                <Square className="text-[#10172B]" fill="#10172B" size={18}/>
+                            <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center">
+                                <img src="/Logo.jpeg" width={58} height={58} alt="" />
                             </div>
 
                             <div>
-                                <h2 className="text-white text-xl xl:text-2xl 2xl:text-3xl font-bold leading-tight mt-10">JRC Interiors</h2>
+                                <h2 className="text-white text-2xl font-bold">JRC Interiors</h2>
 
-                                <p className="uppercase tracking-[5px] text-indigo-300 text-xs mt-1">Team Management</p>
+                                <p className="uppercase tracking-[5px] text-indigo-300 text-[clamp(.95rem,1vw,1.1rem)] mt-1">Team Management</p>
                             </div>
                         </div>
 
-                        <h1 className="text-white text-4xl xl:text-5xl 2xl:text-6xl font-bold leading-tight mt-10">
+                        <h1 className="text-white text-[clamp(2rem,2.8vw,2.5rem)] font-bold tracking-[5px] leading-[1.05] mt-10">
                             Invite a new
                             <br />
                             member to your
@@ -79,33 +93,33 @@ const CreateUser = () => {
                             workspace.
                         </h1>
 
-                        <p className="text-gray-300 text-base xl:text-lg leading-7 mt-6 max-w-md">
+                        <p className="text-gray-300 text-base leading-6 mt-5 max-w-md">
                             Configure their identity, credentials and role.
                             They'll receive access as soon as you finish this form.
                         </p>
 
                         {/* Feature Cards */}
-                        <div className="space-y-4 xl:space-y-5 mt-8">
+                        <div className="space-y-2.5 mt-4">
                             <FeatureCard
-                                title="SSO ready"
-                                desc="SAML & OIDC supported"
-                            />
-
-                            <FeatureCard
-                                title="Audit logged"
-                                desc="Every action recorded"
+                                title="Enterprise secure"
+                                desc="End-to-end data protection"
                             />
 
                             <FeatureCard
                                 title="Role-based access"
                                 desc="Least privilege by default"
                             />
+
+                            <FeatureCard
+                                title="Easy collaboration"
+                                desc="Work better together"
+                            />
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="flex flex-col xl:flex-row gap-4 xl:gap-0 justify-between items-center mt-10 text-gray-400 text-sm">
-                        <p>© 2026 JRC Interiors</p>
+                    <div className="flex justify-between mt-6 text-gray-400 text-sm">
+                        <p>© {new Date().getFullYear()} Site Management System — All rights reserved.</p>
 
                         <div className="flex gap-8">
                             <button>Docs</button>
@@ -116,20 +130,20 @@ const CreateUser = () => {
             </div>
 
             {/* RIGHT PANEL */}
-            <div className="flex-1 flex justify-center items-start lg:items-center bg-white px-4 sm:px-8 lg:px-10 py-10 lg:py-0">
-                <div className="w-full max-w-md lg:max-w-lg xl:max-w-2xl">
+            <div className="flex-1 flex justify-center items-center bg-white px-4 sm:px-6 lg:px-8 xl:px-10 py-6 lg:py-0 overflow-hidden">
+                <form onSubmit={handleSubmit} className="w-full max-w-md md:max-w-lg xl:max-w-xl flex flex-col justify-center">
                     <p className="uppercase text-indigo-600 tracking-widest font-semibold text-sm">Step 1 of 1</p>
 
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">Create a new user</h1>
+                    <h1 className="text-[clamp(2rem,3vw,3rem)] font-bold text-slate-900 mt-3">Create a new user</h1>
 
-                    <p className="text-gray-500 mt-2 text-base sm:text-lg">Set up an account and assign a role.</p>
+                    <p className="text-gray-500 mt-1 text-lg">Set up an account and assign a role.</p>
 
-                    <div className="space-y-4 mt-4">
+                    <div className="space-y-3 mt-4">
                         {/* Full Name */}
                         <Input
                             label="Full name"
                             placeholder="Alex Morgan"
-                            icon={<User size={18} />}
+                            icon={<User size={16} />}
                             name="fullName"
                             value={formData.fullName}
                             onChange={handleChange}
@@ -139,7 +153,7 @@ const CreateUser = () => {
                         <Input
                             label="Username"
                             placeholder="@alex.morgan"
-                            icon={<AtSign size={18} />}
+                            icon={<AtSign size={16} />}
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
@@ -151,7 +165,7 @@ const CreateUser = () => {
                             <label className="font-medium text-sm mb-1 block">Password</label>
 
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18}/>
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
 
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -159,7 +173,7 @@ const CreateUser = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full h-12 md:h-14 rounded-xl border border-gray-300 pl-12 pr-12 outline-none focus:border-indigo-500"
+                                    className="w-full h-10 xl:h-12 rounded-xl border border-gray-300 pl-12 pr-12 outline-none focus:border-indigo-500"
                                 />
 
                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
@@ -169,10 +183,9 @@ const CreateUser = () => {
                                         <Eye size={18} />
                                     )}
                                 </button>
-
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
                                 <PasswordRule
                                     valid={passwordRules.length}
                                     text="At least 8 characters"
@@ -200,32 +213,32 @@ const CreateUser = () => {
                             <label className="font-medium text-sm block mb-2">Role</label>
 
                             <div className="relative">
-                                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18}/>
+                                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
 
                                 <select
                                     name="role"
                                     value={formData.role}
                                     onChange={handleChange}
-                                    className="w-full h-12 md:h-14 rounded-xl border border-gray-300 pl-12 pr-5 outline-none focus:border-indigo-500"
+                                    className="w-full h-10 xl:h-12 rounded-xl border border-gray-300 pl-12 pr-5 outline-none focus:border-indigo-500"
                                 >
                                     <option value="">Select a role</option>
                                     <option>Admin</option>
                                     <option>Purchase Manager</option>
-                                    <option>Project Manager</option>
-                                    <option>Store Manager</option>
+                                    <option>Purchase Senior Executive</option>
+                                    <option>Purchase Executive</option>
+                                    <option>Purchase Junior Executive</option>
                                     <option>Site Supervisor</option>
-                                    <option>Account Manager</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     {/* Footer Buttons */}
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-10">
-                        <button className="w-full sm:w-auto text-gray-600 font-medium py-3">Cancel</button>
-                        <button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 transition text-white px-8 py-3 rounded-xl flex items-center justify-center gap-2">Create User<ArrowRight size={18} /></button>
+                    <div className="flex justify-end gap-5 mt-8 xl:mt-10">
+                        <button type="button" className="text-gray-600 font-medium">Cancel</button>
+                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 transition text-white px-8 py-3 rounded-xl flex items-center gap-2">Create User<ArrowRight size={18} /></button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     );
