@@ -6,6 +6,6 @@ export const createNewUser = async (data) => {
         return unwrap(res)
     } catch (error) {
         console.error("Failed to create new user", error)
-        throw error
+        throw error 
     }
 }

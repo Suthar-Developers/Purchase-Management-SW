@@ -183,7 +183,6 @@ const CreateUser = () => {
                                         <Eye size={18} />
                                     )}
                                 </button>
-
                             </div>
 
                             <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-3">
