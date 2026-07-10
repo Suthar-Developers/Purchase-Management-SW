@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import FeatureCard from "../../../components/common/FeatureCard";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
+import { createNewUser } from "../../../api/userApi"
 import { ArrowRight, AtSign, Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 
 const CreateUser = () => {
@@ -21,6 +22,29 @@ const CreateUser = () => {
         }));
     };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!formData.username || !formData.password) {
+            return alert("Please write username and password")
+        }
+
+        try {
+            const data = await createNewUser(formData);
+            alert(data.message);
+
+            setFormData({
+                fullName: "",
+                username: "",
+                password: "",
+                role: "",
+            })
+        } catch (error) {
+            console.error("Failed to create new user", error)
+            console.log(error)
+        }
+    }
+
     const password = formData.password;
 
     const passwordRules = {
@@ -36,12 +60,12 @@ const CreateUser = () => {
             <div className="relative hidden lg:flex lg:w-2/5 xl:w-[42%] h-full overflow-hidden">
 
                 {/* Background */}
-                <div className="absolute inset-0 bg-linear-to-br from-[#12182e] via-[#171d57] to-[#2a2960]" />
+                <div className="absolute inset-0 bg-linear-to-br from-[#060713] via-[#212549] to-[#0c0b20]" />
 
                 {/* Grid */}
                 <div
                     className="absolute inset-0 opacity-10"
-                    style={{ backgroundImage: `linear-gradient(rgba(255,255,255,.62) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.62) 1px, transparent 1px)`, backgroundSize: "58px 58px", }}
+                    style={{ backgroundImage: `linear-gradient(rgba(255,255,255,.72) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.62) 1px, transparent 1px)`, backgroundSize: "58px 58px", }}
                 />
 
                 {/* Content */}
@@ -77,25 +101,25 @@ const CreateUser = () => {
                         {/* Feature Cards */}
                         <div className="space-y-2.5 mt-4">
                             <FeatureCard
-                                title="SSO ready"
-                                desc="SAML & OIDC supported"
-                            />
-
-                            <FeatureCard
-                                title="Audit logged"
-                                desc="Every action recorded"
+                                title="Enterprise secure"
+                                desc="End-to-end data protection"
                             />
 
                             <FeatureCard
                                 title="Role-based access"
                                 desc="Least privilege by default"
                             />
+
+                            <FeatureCard
+                                title="Easy collaboration"
+                                desc="Work better together"
+                            />
                         </div>
                     </div>
 
                     {/* Footer */}
                     <div className="flex justify-between mt-6 text-gray-400 text-sm">
-                        <p>© 2026 JRC Interiors</p>
+                        <p>© {new Date().getFullYear()} Site Management System — All rights reserved.</p>
 
                         <div className="flex gap-8">
                             <button>Docs</button>
@@ -107,7 +131,7 @@ const CreateUser = () => {
 
             {/* RIGHT PANEL */}
             <div className="flex-1 flex justify-center items-center bg-white px-4 sm:px-6 lg:px-8 xl:px-10 py-6 lg:py-0 overflow-hidden">
-                <div className="w-full max-w-md md:max-w-lg xl:max-w-xl flex flex-col justify-center">
+                <form onSubmit={handleSubmit} className="w-full max-w-md md:max-w-lg xl:max-w-xl flex flex-col justify-center">
                     <p className="uppercase text-indigo-600 tracking-widest font-semibold text-sm">Step 1 of 1</p>
 
                     <h1 className="text-[clamp(2rem,3vw,3rem)] font-bold text-slate-900 mt-3">Create a new user</h1>
@@ -212,10 +236,10 @@ const CreateUser = () => {
 
                     {/* Footer Buttons */}
                     <div className="flex justify-end gap-5 mt-8 xl:mt-10">
-                        <button className="text-gray-600 font-medium">Cancel</button>
-                        <button className="bg-indigo-600 hover:bg-indigo-700 transition text-white px-8 py-3 rounded-xl flex items-center gap-2">Create User<ArrowRight size={18} /></button>
+                        <button type="button" className="text-gray-600 font-medium">Cancel</button>
+                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 transition text-white px-8 py-3 rounded-xl flex items-center gap-2">Create User<ArrowRight size={18} /></button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     );
