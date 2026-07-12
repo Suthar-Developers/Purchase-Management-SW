@@ -4,6 +4,8 @@ import Button from '../../components/common/Button'
 import ProjectCreate from '../../components/models/ProjectCreate'
 import ProjectView from '../../components/models/ProjectView'
 import { exportPagePdf } from '../../utils/pagePdfExport'
+import SearchInput from "../../components/common/SearchInput";
+import DownloadButton from "../../components/common/DownloadButton";
 
 const Projects = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -123,20 +125,15 @@ const Projects = () => {
             <div className='flex flex-col h-[95%] bg-white m-5 rounded-2xl overflow-hidden'>
                 <h1 className='text-base font-bold px-6 py-2 shrink-0'>All Projects</h1>
                 <div className='flex flex-wrap items-center gap-2 w-full px-6 text-center mb-3 shrink-0'>
-                    <input
-                        className='min-w-60 flex-1 rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200'
-                        type="search"
-                        name="ProjectSearch"
-                        placeholder='Search projects...'
+                    <SearchInput
                         value={searchProject}
                         onChange={(e) => setSearchProject(e.target.value)}
+                        placeholder="Search projects..."
+                        className="min-w-60 flex-1"
                     />
-                    <Button
-                        icon={<i className="fa-solid fa-download"></i>}
+                    <DownloadButton
                         onClick={downloadProjectsPdf}
-                        className='grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 hover:cursor-pointer'
                         title="Download projects PDF"
-                        aria-label="Download projects PDF"
                     />
                     <Button lable='+ Add' className='w-25 px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
                 </div>
