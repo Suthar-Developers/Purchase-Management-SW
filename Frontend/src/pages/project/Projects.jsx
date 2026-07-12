@@ -5,7 +5,6 @@ import ProjectCreate from '../../components/models/ProjectCreate'
 import ProjectView from '../../components/models/ProjectView'
 import { exportPagePdf } from '../../utils/pagePdfExport'
 import SearchInput from "../../components/common/SearchInput";
-import DownloadButton from "../../components/common/DownloadButton";
 
 const Projects = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -130,11 +129,11 @@ const Projects = () => {
                         onChange={(e) => setSearchProject(e.target.value)}
                         placeholder="Search projects..."
                         className="min-w-60 flex-1"
+                        inputClassName="w-full rounded-lg px-4 py-2 bg-gray-200 text-black text-xs font-bold hover:bg-gray-300 outline-none"
                     />
-                    <DownloadButton
-                        onClick={downloadProjectsPdf}
-                        title="Download projects PDF"
-                    />
+                    
+                    <Button icon={<i className="fa-solid fa-download"></i>} onClick={downloadProjectsPdf} className='h-9 w-12 rounded-lg border border-slate-300 hover:bg-slate-200 hover:cursor-pointer' />
+                    
                     <Button lable='+ Add' className='w-25 px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
                 </div>
 
