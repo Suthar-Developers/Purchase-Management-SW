@@ -4,6 +4,7 @@ import Button from '../../components/common/Button'
 import VendorCreate from '../../components/models/VendorCreate'
 import VendorView from '../../components/models/VendorView'
 import { exportPagePdf } from '../../utils/pagePdfExport'
+import SearchInput from "../../components/common/SearchInput";
 
 const Vendors = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
@@ -110,26 +111,17 @@ const Vendors = () => {
             <div className='flex flex-col h-[95%] bg-white m-5 rounded-2xl overflow-hidden'>
                 <h1 className='text-base font-bold px-6 py-2 shrink-0'>All Vendors</h1>
                 <div className='flex flex-wrap items-center gap-2 w-full px-6 text-center mb-3 shrink-0'>
-                    <input
-                        className='min-w-60 flex-1 rounded-lg px-4 py-2 bg-gray-100 text-black text-xs font-bold hover:bg-gray-200'
-                        type="search"
-                        name="VendorSearch"
-                        placeholder='Search vendors...'
+                    <SearchInput
                         value={searchVendor}
                         onChange={(e) => setSearchVendor(e.target.value)}
-                     />
-                    <Button
-                        icon={<i className="fa-solid fa-download"></i>}
-                        onClick={downloadVendorsPdf}
-                        className='grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 hover:cursor-pointer'
-                        title="Download Vendors PDF"
+                        placeholder="Search vendors..."
+                        className="min-w-60 flex-1"
+                        inputClassName="w-full rounded-lg px-4 py-2 bg-gray-200 text-black text-xs font-bold hover:bg-gray-300 outline-none"
                     />
+
+                    <Button icon={<i className="fa-solid fa-download"></i>} onClick={downloadVendorsPdf} className='h-9 w-12 rounded-lg border border-slate-300 hover:bg-slate-200 hover:cursor-pointer'/>
                     
-                    <Button
-                        lable='+ Add'
-                        className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer'
-                        onClick={openModel}
-                    />
+                    <Button lable='+ Add' className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel}/>
                 </div>
 
                 <div className='flex-1 overflow-auto rounded-lg'>
