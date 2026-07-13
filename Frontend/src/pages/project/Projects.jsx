@@ -134,7 +134,7 @@ const Projects = () => {
                     
                     <Button icon={<i className="fa-solid fa-download"></i>} onClick={downloadProjectsPdf} className='h-9 w-12 rounded-lg border border-slate-300 hover:bg-slate-200 hover:cursor-pointer' />
                     
-                    <Button lable='+ Add' className='w-25 px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
+                    <Button lable='+ Add' className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
                 </div>
 
                 <div className='flex-1 overflow-auto rounded-lg'>
