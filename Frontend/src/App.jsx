@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
 import AuthLayout from './layouts/AuthLayout'
 import CreateUser from './pages/settings/users/CreateUser'
+import LoginUser from './pages/settings/users/LoginUser'
 import Dashboard from './pages/dashboard/Dashboard'
 import Projects from './pages/project/Projects'
 import ProjectCreate from './components/models/ProjectCreate'
@@ -23,6 +24,7 @@ const App = () => {
         {/* Authentication Routes */}
         <Route element={<AuthLayout />}>
           <Route path="/create-user" element={<CreateUser />} />
+          <Route path="/login" element={<LoginUser />} />
         </Route>
 
         {/* Main Application */}
