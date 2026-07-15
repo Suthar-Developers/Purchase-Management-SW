@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-hot-toast'
 import FeatureCard from "../../../components/common/FeatureCard";
+import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
 import { loginUser } from "../../../api/userApi"
@@ -11,6 +13,7 @@ const LoginUser = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
+    const [loading, setLoading] = useState(false)
 
     const [formData, setFormData] = useState({
         username: "",
@@ -27,18 +30,28 @@ const LoginUser = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
 
+        setLoginError("");
+
         if (!formData.username || !formData.password) {
-            return alert("Please write username and password")
+            return setLoginError("Please write username and password");
         }
 
         try {
+            setLoading(true)
+
             const data = await loginUser(formData);
-            alert(data.message);
-            
+            toast.success(data.message, {
+                duration: 7000,
+            })
+
+            setLoading(false)
+
             navigate('/')
 
         } catch (error) {
             setLoginError(error.message)
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -150,6 +163,7 @@ const LoginUser = () => {
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
+                            disabled={loading}
                             rightText="Used to sign in"
                         />
 
@@ -166,6 +180,7 @@ const LoginUser = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
+                                    disabled={loading}
                                     className="w-full h-10 xl:h-12 rounded-xl border border-gray-300 pl-12 pr-12 outline-none focus:border-indigo-500"
                                 />
 
@@ -203,9 +218,17 @@ const LoginUser = () => {
                     </div>
 
                     {/* Footer Buttons */}
-                    <div className="flex justify-end gap-5 mt-8 xl:mt-10">
-                        <button type="button" className="text-gray-600 font-medium">Cancel</button>
-                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 transition text-white px-8 py-3 rounded-xl flex items-center gap-2">Login<ArrowRight size={18} /></button>
+                    <div className="flex justify-end items-center mt-8 xl:mt-10">
+                        <Button
+                            lable="Sign in"
+                            type="submit"
+                            loading={loading}
+                            loadingText="Signing in..."
+                            icon={<ArrowRight size={18} />}
+                            variant="primary"
+                            className="px-6 py-2 text-base font-medium rounded-lg hover:cursor-pointer"
+                        />
+                        
                     </div>
                 </form>
             </div>
