@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import FeatureCard from "../../../components/common/FeatureCard";
+import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
 import { createNewUser } from "../../../api/userApi"
 import { ArrowRight, AtSign, Eye, EyeOff, Lock, Shield, User } from "lucide-react";
+import { toast } from 'react-hot-toast'
 
 const CreateUser = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -30,9 +33,15 @@ const CreateUser = () => {
         }
 
         try {
-            const data = await createNewUser(formData);
-            alert(data.message);
+            setLoading(true)
 
+            const data = await createNewUser(formData);
+            toast.success(data.message, {
+                duration: 7000,
+            });
+
+            setLoading(false)
+            
             setFormData({
                 fullName: "",
                 username: "",
@@ -144,6 +153,7 @@ const CreateUser = () => {
                             label="Full name"
                             placeholder="Alex Morgan"
                             icon={<User size={16} />}
+                            disabled={loading}
                             name="fullName"
                             value={formData.fullName}
                             onChange={handleChange}
@@ -154,6 +164,7 @@ const CreateUser = () => {
                             label="Username"
                             placeholder="@alex.morgan"
                             icon={<AtSign size={16} />}
+                            disabled={loading}
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
@@ -171,6 +182,7 @@ const CreateUser = () => {
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Enter a secure password"
                                     name="password"
+                                    disabled={loading}
                                     value={formData.password}
                                     onChange={handleChange}
                                     className="w-full h-10 xl:h-12 rounded-xl border border-gray-300 pl-12 pr-12 outline-none focus:border-indigo-500"
@@ -217,6 +229,7 @@ const CreateUser = () => {
 
                                 <select
                                     name="role"
+                                    disabled={loading}
                                     value={formData.role}
                                     onChange={handleChange}
                                     className="w-full h-10 xl:h-12 rounded-xl border border-gray-300 pl-12 pr-5 outline-none focus:border-indigo-500"
@@ -235,8 +248,22 @@ const CreateUser = () => {
 
                     {/* Footer Buttons */}
                     <div className="flex justify-end gap-5 mt-8 xl:mt-10">
-                        <button type="button" className="text-gray-600 font-medium">Cancel</button>
-                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 transition text-white px-8 py-3 rounded-xl flex items-center gap-2">Create User<ArrowRight size={18} /></button>
+                        <Button
+                            lable="Cancel"
+                            type="button"
+                            variant="secondary"
+                            className="px-6 py-2 rounded-lg font-medium hover:bg-gray-200 hover:cursor-pointer"
+                        />
+
+                        <Button
+                            lable="Create User"
+                            type="submit"
+                            loading={loading}
+                            loadingText="Creating user..."
+                            icon={<ArrowRight size={18} />}
+                            variant="primary"
+                            className="px-6 py-2 text-base font-medium rounded-lg hover:cursor-pointer"
+                        />
                     </div>
                 </form>
             </div>
