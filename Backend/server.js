@@ -1,19 +1,26 @@
 const express = require('express')
 const cors = require('cors')
+const cookieParser = require("cookie-parser");
 const db = require('./config/db')
 const projectRoute = require('./routes/projectRoute')
 const vendorRoute = require('./routes/vendorRoute')
 const purchaseRequestRoute = require('./routes/purchaseRequestRoute')
 const purchaseOrderRoute = require('./routes/purchaseOrderRoute')
 const reportRoute = require('./routes/reportRoute')
+const authRoute = require('./routes/authRoute')
 const userRoute = require('./routes/userRoute')
 
 const app = express()
 const port = 3000;
 
-app.use(express.json())
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
+
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
+app.use(cookieParser());
 
 db.getConnection((err, connection) => {
     if (err) {
@@ -31,6 +38,7 @@ app.use('/api', vendorRoute)
 app.use('/api', purchaseRequestRoute)
 app.use('/api', purchaseOrderRoute)
 app.use('/api', reportRoute)
+app.use('/api', authRoute)
 app.use('/api', userRoute)
 
 app.listen(port, () => {

@@ -9,16 +9,3 @@ export const createNewUser = async (data) => {
         throw error 
     }
 }
-
-export const loginUser = async (data) => {
-    try {
-        const res = await api.post('/login-user', data)
-        return unwrap(res)
-    } catch (error) {
-        console.error("Failed to login", error)
-        throw {
-            status: error.response?.status,
-            message: error.response?.data.message || "Login failed"
-        }
-    }
-}
