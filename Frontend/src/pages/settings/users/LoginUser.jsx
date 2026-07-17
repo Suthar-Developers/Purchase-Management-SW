@@ -5,7 +5,7 @@ import FeatureCard from "../../../components/common/FeatureCard";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
-import { loginUser } from "../../../api/userApi"
+import { login } from "../../../api/authApi"
 import { ArrowRight, AtSign, Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 
 const LoginUser = () => {
@@ -39,8 +39,12 @@ const LoginUser = () => {
         try {
             setLoading(true)
 
-            const data = await loginUser(formData);
-            toast.success(data.message, {
+            const response = await login(formData);
+
+            localStorage.setItem("accessToken", response.accessToken);
+            localStorage.setItem("user", JSON.stringify(response.user));
+
+            toast.success(response.message, {
                 duration: 7000,
             })
 

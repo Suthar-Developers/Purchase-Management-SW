@@ -26,42 +26,4 @@ const createUser = async (req, res) => {
     }
 }
 
-const loginUser = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-
-        const [rows] = await db.query(
-            `SELECT * FROM users WHERE username = ?`,
-            [username]
-        )
-
-        if (!rows || rows.length === 0) {
-            return res.status(401).json({
-                message: "Invalid username or password"
-            });
-        }
-
-        const user = rows[0];
-
-        const match = await bcrypt.compare(password, user.password_hash);
-
-        if (!match) {
-            return res.status(401).json({
-                message: "Invalid username or password"
-            });
-        }
-
-        return res.status(200).json({
-            message: "Login successful"
-        });
-
-    } catch (err) {
-        console.error(err);
-
-        return res.status(500).json({
-            message: "Internal server error"
-        });
-    }
-}
-
-module.exports = {createUser, loginUser};
+module.exports = { createUser };
