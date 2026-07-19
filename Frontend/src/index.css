@@ -64,8 +64,9 @@ html.pm-theme-dark .bg-white {
 }
 
 html.pm-theme-dark .bg-slate-50,
-html.pm-theme-dark .bg-slate-100 {
-    background-color: #0f172a !important;
+html.pm-theme-dark .bg-slate-100,
+html.pm-theme-dark .bg-slate-200 {
+    background-color: #202d48 !important;
 }
 
 html.pm-theme-dark .text-slate-950,

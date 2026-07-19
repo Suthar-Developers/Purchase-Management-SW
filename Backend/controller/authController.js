@@ -1,5 +1,6 @@
 const authService = require("../services/authService");
 const refreshService = require("../services/refreshService");
+const logoutService = require("../services/logoutService")
 
 const login = async (req, res) => {
     try {
@@ -39,9 +40,9 @@ const login = async (req, res) => {
 
 const refresh = async (req, res) => {
     try {
-        const token = req.cookies.refreshToken;
+        const refreshToken = req.cookies[process.env.COOKIE_NAME];
 
-        const response = await refreshService.refresh(token);
+        const response = await refreshService.refresh(refreshToken);
 
         res.cookie(
             process.env.COOKIE_NAME,
@@ -50,8 +51,7 @@ const refresh = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 sameSite: "lax",
-                maxAge:
-                    7 * 24 * 60 * 60 * 1000
+                maxAge: 7 * 24 * 60 * 60 * 1000
             }
         );
 
@@ -75,4 +75,28 @@ const refresh = async (req, res) => {
 
 }
 
-module.exports = { login, refresh };
+const logout = async (req, res) => {
+
+    try {
+        const refreshToken = req.cookies[process.env.COOKIE_NAME];
+
+        await logoutService.logout(refreshToken);
+
+        res.clearCookie(process.env.COOKIE_NAME, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+        });
+
+        return res.json({
+            message: "Logout successful"
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Logout failed"
+        });
+    }
+};
+
+module.exports = { login, refresh, logout };

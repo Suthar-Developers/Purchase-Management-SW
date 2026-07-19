@@ -41,7 +41,6 @@ const Profile = () => {
     { label: 'Full name', value: displayName },
     { label: 'Username', value: user.username || 'Not available' },
     { label: 'Role', value: roleName },
-    { label: 'User ID', value: user.id || user.user_id || 'Not available' },
   ]
 
   return (
@@ -72,7 +71,7 @@ const Profile = () => {
             {detailItems.map((item) => (
               <div key={item.label} className='flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0'>
                 <span className='text-sm text-slate-500'>{item.label}</span>
-                <strong className='max-w-[190px] truncate text-right text-sm font-semibold text-slate-950'>{item.value}</strong>
+                <strong className='max-w-47.5 truncate text-right text-sm font-semibold text-slate-950'>{item.value}</strong>
               </div>
             ))}
           </div>

@@ -10,12 +10,11 @@ const refresh = async (refreshToken) => {
         };
     }
 
-    const payload =
-        jwt.verifyRefreshToken(refreshToken);
+    const payload = jwt.verifyRefreshToken(refreshToken);
 
     const [rows] = await db.query(
-        "SELECT * FROM refresh_tokens WHERE user_id=? AND revoked_at IS NULL",
-        [payload.id]
+        "SELECT * FROM refresh_tokens WHERE jti = ? AND revoked_at IS NULL",
+        [payload.jti]
     );
 
     if (rows.length === 0) {
@@ -25,20 +24,13 @@ const refresh = async (refreshToken) => {
         };
     }
 
-    let valid = false;
+    const storedToken = rows[0];
 
-    for (const row of rows) {
-        const match =
-            await bcrypt.compare(
-                refreshToken,
-                row.token_hash
-            );
-
-        if (match) {
-            valid = true;
-            break;
-        }
-    }
+    // Compare Token Hash
+    const valid = await bcrypt.compare(
+        refreshToken,
+        storedToken.token_hash
+    );
 
     if (!valid) {
         throw {
@@ -52,15 +44,47 @@ const refresh = async (refreshToken) => {
         [payload.id]
     );
 
+    if (users.length === 0) {
+        throw {
+            status: 401,
+            message: "User not found"
+        };
+    }
+
     const user = users[0];
 
-    const newAccessToken = jwt.createAccessToken(user);
+    // Revoke Old Refresh Token
+    await db.query(
+        `UPDATE refresh_tokens SET revoked_at = NOW() WHERE jti = ?`,
+        [payload.jti]
+    );
 
-    const newRefreshToken = jwt.createRefreshToken(user);
+    const newAccessToken = jwt.generateAccessToken(user);
+
+    const newRefresh = jwt.generateRefreshToken(user);
+
+    // Hash New Refresh Token
+    const hashedRefreshToken = await bcrypt.hash(
+        newRefresh.token,
+        10
+    );
+
+    const expiresAt = new Date(
+        Date.now() +
+        7 * 24 * 60 * 60 * 1000
+    );
+
+    // Store New Refresh Token
+    await db.query(
+        `INSERT INTO refresh_tokens
+        (jti, user_id, token_hash, expires_at)
+        VALUES (?, ?, ?, ?)`,
+        [newRefresh.jti, user.user_id, hashedRefreshToken, expiresAt]
+    );
 
     return {
         accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
+        refreshToken: newRefresh.token,
         user
     };
 

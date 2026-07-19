@@ -13,41 +13,85 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) { config.headers.Authorization = `Bearer ${token}`; }
 
     return config;
-  },
-  (error) => Promise.reject(error)
+  }, (error) => Promise.reject(error)
 );
 
 // Handle unauthorized responses
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
 
-      window.location.href = "/login";
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+
+          return api(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/refresh`,
+
+          {},
+
+          { withCredentials: true }
+        );
+
+        const newToken = response.data.accessToken;
+
+        localStorage.setItem("accessToken", newToken);
+
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+
+        processQueue(null, newToken);
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+
+        window.location.href = "/login";
+
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
-
     return Promise.reject(error);
   }
 );
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-
-  console.log("Access Token:", token);
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
 
 export const unwrap = (response) => response.data?.data ?? response.data;
 

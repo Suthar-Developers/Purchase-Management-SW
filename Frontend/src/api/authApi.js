@@ -12,3 +12,13 @@ export const login = async (data) => {
         }
     }
 }
+
+export const refresh = async () => {
+    const response = await api.post("/refresh");
+    return unwrap(response);
+};
+
+export const logout = async () => {
+    const response = await api.post("/logout");
+    return unwrap(response);
+};

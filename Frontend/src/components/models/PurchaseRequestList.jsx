@@ -48,21 +48,21 @@ const PurchaseRequestList = ({ onCreate }) => {
   }
 
   return (
-    <div className="w-full h-full bg-slate-200 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl h-[85%] flex flex-col p-6 overflow-auto">
+    <div className="main-screen h-full bg-slate-200 overflow-hidden">
+      <div className="flex flex-col h-[95%] bg-white m-5 rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="px-6 flex justify-between items-center">
+        <div className="px-6 py-3 flex justify-between items-center">
           <h1 className="text-lg font-bold pb-3">
             Purchase Requests
           </h1>
-          <Button lable={"+ New Request"} className='px-4 py-2 mb-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
+          <Button lable={"+ New Request"} className='px-4 py-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
         </div>
 
         {/* Table Card */}
-        <div className="flex-1 rounded-lg">
+        <div className="flex-1 overflow-auto rounded-lg">
           <table className="w-full overflow-auto text-xs">
-            <thead className="bg-[#4b5ea3] text-white">
+            <thead className="bg-[#4b5ea3] text-white sticky top-0 z-20">
               <tr>
                 <th className="p-3 text-center rounded-tl-lg">PR No</th>
                 <th className="p-3 text-center">Project</th>
@@ -82,7 +82,7 @@ const PurchaseRequestList = ({ onCreate }) => {
                 </tr>
               ) : (
                 purchaseRequest.map((req, index) => (
-                  <tr className="border border-b-gray-300 border-x-gray-100" key={index}>
+                  <tr className="border-b border-gray-300" key={index}>
                     <td className="py-3 text-center">PR-{req.request_id}</td>
                     <td className="py-3 text-center">{req.projectName}</td>
                     <td className="py-3 text-center">{req.contactPerson}</td>
