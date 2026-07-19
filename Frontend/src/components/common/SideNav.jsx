@@ -116,24 +116,21 @@ const SideNav = () => {
                         <span className='hidden truncate font-medium sm:inline'>Reports</span>
                     </Link>
 
-                    {/* Setting */}
-                    <Link
-                        to='/setting'
-                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/setting') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
-                    >
-                        <span className={`grid h-7 w-7 place-items-center rounded ${isActive('/setting') ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
-                            <i className="fa-solid fa-gear text-xs"></i>
-                        </span>
-                        <span className='hidden truncate font-medium sm:inline'>Setting</span>
-                    </Link>
                 </div>
             </nav>
 
-            {/* Bottom System Info Widget */}
-            <div className='hidden rounded-md border border-slate-800 bg-slate-900 px-3 py-2 sm:block'>
-                <p className='text-xs font-semibold text-white'>System status</p>
-                <p className='mt-1 text-xs text-slate-400'>Data loads from the backend API.</p>
+            <div className='mt-3 border-t border-slate-800 pt-3'>
+                <Link
+                    to='/profile'
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/profile') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                >
+                    <span className={`grid h-7 w-7 place-items-center rounded ${isActive('/profile') ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
+                        <i className="fa-solid fa-user-gear text-xs"></i>
+                    </span>
+                    <span className='hidden truncate font-medium sm:inline'>Profile</span>
+                </Link>
             </div>
+
         </aside>
     )
 }

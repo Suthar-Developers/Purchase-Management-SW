@@ -15,6 +15,7 @@ import PurchaseOrders from './pages/purchase/PurchaseOrders'
 import PurchaseOrderRequests from './components/models/PurchaseOrderRequests'
 import ApprovedPurchaseOrders from './components/models/ApprovedPurchaseOrders'
 import Reports from './pages/reports/Reports'
+import Profile from './pages/settings/Profile'
 
 const App = () => {
   return (
@@ -46,6 +47,7 @@ const App = () => {
               element={<ApprovedPurchaseOrders />}
             />
             <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="/create-user" element={<CreateUser />} />
           </Route>
         </Route>
