@@ -52,3 +52,47 @@
 .input-line:focus {
   border-bottom: 2px solid #4b5ea3;
 }
+
+html.pm-theme-dark body,
+html.pm-theme-dark #root {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+html.pm-theme-dark .bg-white {
+    background-color: #111827 !important;
+}
+
+html.pm-theme-dark .bg-slate-50,
+html.pm-theme-dark .bg-slate-100 {
+    background-color: #0f172a !important;
+}
+
+html.pm-theme-dark .text-slate-950,
+html.pm-theme-dark .text-slate-900 {
+    color: #f8fafc !important;
+}
+
+html.pm-theme-dark .text-slate-700,
+html.pm-theme-dark .text-slate-600,
+html.pm-theme-dark .text-slate-500 {
+    color: #cbd5e1 !important;
+}
+
+html.pm-theme-dark .border-slate-200,
+html.pm-theme-dark .border-slate-100 {
+    border-color: #334155 !important;
+}
+
+html.pm-theme-dark .shadow-sm {
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.35) !important;
+}
+
+html.pm-theme-dark .hover\:bg-slate-50:hover,
+html.pm-theme-dark .hover\:bg-slate-100:hover {
+    background-color: #1e293b !important;
+}
+
+html.pm-theme-dark .bg-cyan-50 {
+    background-color: #083344 !important;
+}
