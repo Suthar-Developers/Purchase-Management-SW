@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserRound } from 'lucide-react'
-import { applyStoredTheme, formatRole, getDisplayName, getStoredPreferences, getStoredUser, saveStoredPreferences } from '../../utils/userPreferences'
+import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound } from 'lucide-react'
+import { applyStoredTheme, formatRole, getDisplayName, getStoredPreferences, getStoredUser, isAdminUser, saveStoredPreferences } from '../../utils/userPreferences'
+import CreateUser from './users/CreateUser'
 
 const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
   <button
@@ -25,9 +26,11 @@ const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
 
 const Profile = () => {
   const [preferences, setPreferences] = useState(getStoredPreferences)
+  const [showCreateUser, setShowCreateUser] = useState(false)
   const user = useMemo(() => getStoredUser(), [])
   const displayName = getDisplayName(user)
   const roleName = formatRole(user.role_id || user.role)
+  const isAdmin = isAdminUser(user)
 
   const updatePreference = (key, value) => {
     setPreferences((current) => saveStoredPreferences({ ...current, [key]: value }))
@@ -53,6 +56,17 @@ const Profile = () => {
             Manage your profile, appearance, and day-to-day workspace preferences.
           </p>
         </div>
+
+        {isAdmin && (
+          <button
+            type='button'
+            onClick={() => setShowCreateUser(true)}
+            className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+          >
+            <UserPlus size={18} />
+            <span>Create User</span>
+          </button>
+        )}
       </div>
 
       <div className='grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]'>
@@ -140,6 +154,10 @@ const Profile = () => {
           </div>
         </section>
       </div>
+
+      {isAdmin && showCreateUser && (
+        <CreateUser isModal onClose={() => setShowCreateUser(false)} />
+      )}
     </main>
   )
 }
