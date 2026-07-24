@@ -1,102 +1,12 @@
-const authService = require("../services/authService");
-const refreshService = require("../services/refreshService");
-const logoutService = require("../services/logoutService")
-
-const login = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-
-        const {
-            accessToken,
-            refreshToken,
-            user
-        } = await authService.login(username, password);
-
-        res.cookie(process.env.COOKIE_NAME, refreshToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        return res.json({
-            message: "Login successful",
-            accessToken,
-            user: {
-                id: user.user_id,
-                full_name: user.full_name,
-                username: user.username,
-                role_id: user.role_id
-            }
-        })
-
-    } catch (err) {
-
-        return res.status(err.status || 500).json({
-            message: err.message || "Internal server error"
-        });
-    }
-}
-
-const refresh = async (req, res) => {
-    try {
-        const refreshToken = req.cookies[process.env.COOKIE_NAME];
-
-        const response = await refreshService.refresh(refreshToken);
-
-        res.cookie(
-            process.env.COOKIE_NAME,
-            response.refreshToken,
-            {
-                httpOnly: true,
-                secure: false,
-                sameSite: "lax",
-                maxAge: 7 * 24 * 60 * 60 * 1000
-            }
-        );
-
-        return res.json({
-            accessToken: response.accessToken,
-
-            user: {
-                id: response.user.user_id,
-                username: response.user.username,
-                full_name: response.user.full_name,
-                role_id: response.user.role_id
-            }
-        });
-    }
-
-    catch (err) {
-        return res.status(err.status || 500).json({
-            message: err.message
-        });
-    }
-
-}
-
-const logout = async (req, res) => {
-
-    try {
-        const refreshToken = req.cookies[process.env.COOKIE_NAME];
-
-        await logoutService.logout(refreshToken);
-
-        res.clearCookie(process.env.COOKIE_NAME, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax"
-        });
-
-        return res.json({
-            message: "Logout successful"
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            message: "Logout failed"
-        });
-    }
-};
-
-module.exports = { login, refresh, logout };
+const { z } = require('zod');
+const authService = require('../services/authService'); const refreshService=require('../services/refreshService'); const logoutService=require('../services/logoutService');
+const { cookieOptions }=require('../utils/security'); const { snapshot }=require('../services/permissionService'); const { audit }=require('../services/auditService');
+const ACCESS=process.env.ACCESS_COOKIE_NAME||'pm_access', REFRESH=process.env.REFRESH_COOKIE_NAME||'pm_refresh';
+const loginSchema=z.object({username:z.string().trim().min(3).max(100),password:z.string().min(1).max(256)});
+const setCookies=(res,access,refresh)=>{res.cookie(ACCESS,access,cookieOptions(15*60*1000));res.cookie(REFRESH,refresh,cookieOptions(7*24*60*60*1000));}; const clear=(res)=>{res.clearCookie(ACCESS,cookieOptions());res.clearCookie(REFRESH,cookieOptions());};
+const login=async(req,res,next)=>{try{const {username,password}=loginSchema.parse(req.body);const result=await authService.login(username,password,req);setCookies(res,result.accessToken,result.refreshToken); await audit({...req,user:{user_id:result.user.id}},'LOGIN',{moduleKey:'session',entityId:result.sessionId});res.json({user:result.user,sessionId:result.sessionId});}catch(error){if(error.name==='ZodError')error={status:400,code:'VALIDATION_ERROR',message:'Invalid login request'};next(error);}};
+const refresh=async(req,res,next)=>{try{const result=await refreshService.refresh(req.cookies?.[REFRESH]);setCookies(res,result.accessToken,result.refreshToken);res.status(204).end();}catch(error){clear(res);next(error);}};
+const logout=async(req,res,next)=>{try{await logoutService.logout(req.cookies?.[REFRESH]);clear(res);res.status(204).end();}catch(error){next(error);}};
+const logoutAll=async(req,res,next)=>{try{await logoutService.logout(null,true,req.user.user_id);clear(res);await audit(req,'LOGOUT_ALL',{moduleKey:'session'});res.status(204).end();}catch(error){next(error);}};
+const me=async(req,res,next)=>{try{res.json({user:authService.safeUser(req.user),authorization:await snapshot(req.user.user_id)});}catch(error){next(error);}};
+module.exports={login,refresh,logout,logoutAll,me};

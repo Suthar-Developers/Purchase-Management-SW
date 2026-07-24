@@ -5,7 +5,8 @@ export const createNewUser = async (data) => {
         const res = await api.post('/create-new-user', data)
         return unwrap(res)
     } catch (error) {
-        console.error("Failed to create new user", error)
-        throw error 
+        throw new Error(
+            error.response?.data?.message || "Failed to create user"
+        );
     }
 }

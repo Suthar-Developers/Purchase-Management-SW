@@ -1,0 +1,2 @@
+import api, { unwrap } from './http';
+export const getRoles=()=>api.get('/v1/roles').then(unwrap); export const getMatrix=(id)=>api.get(`/v1/authorization/roles/${id}/matrix`).then(unwrap); export const saveMatrix=(id,permissionIds)=>api.put(`/v1/authorization/roles/${id}/matrix`,{permissionIds}); export const getSessions=()=>api.get('/v1/sessions').then(unwrap); export const terminateSession=(id)=>api.delete(`/v1/sessions/${id}`); export const getAuditLogs=(params)=>api.get('/v1/audit-logs',{params}).then(unwrap);

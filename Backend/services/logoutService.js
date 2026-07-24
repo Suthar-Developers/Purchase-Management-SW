@@ -1,28 +1,3 @@
-const db = require("../config/db");
-const jwt = require("../utils/generateToken");
-
-const logout = async (refreshToken) => {
-
-    if (!refreshToken) {
-        return;
-    }
-
-    try {
-        const payload = jwt.verifyRefreshToken(refreshToken);
-
-        await db.query(
-            `UPDATE refresh_tokens
-             SET revoked_at = NOW()
-             WHERE jti = ?`,
-            [payload.jti]
-        );
-
-    } catch (err) {
-        // Ignore invalid or expired refresh tokens.
-        // Logout should still succeed from the user's perspective.
-    }
-};
-
-module.exports = {
-    logout
-};
+const db = require('../config/db'); const jwt = require('../utils/generateToken');
+const logout = async (token, all = false, userId = null) => { try { const payload = token ? jwt.verifyRefreshToken(token) : null; const id = userId || payload?.sub; if (!id) return; if (all) await db.query(`UPDATE sessions SET terminated_at=NOW(),termination_reason='logout_all' WHERE user_id=? AND terminated_at IS NULL`,[id]); else await db.query(`UPDATE sessions SET terminated_at=NOW(),termination_reason='logout' WHERE session_id=? AND terminated_at IS NULL`,[payload.sid]); } catch (_) {} };
+module.exports={logout};

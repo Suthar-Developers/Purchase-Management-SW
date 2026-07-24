@@ -3,31 +3,28 @@ import { toast } from "react-hot-toast";
 import { AtSign, Eye, EyeOff, Lock, Shield, User, UserPlus, X } from "lucide-react";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
+import { useAuth } from "../../../context/AuthContext";
 import { createNewUser } from "../../../api/userApi";
-import { getStoredUser, isAdminUser } from "../../../utils/userPreferences";
 
 const roleOptions = [
-    { value: "1", label: "Admin" },
-    { value: "2", label: "Purchase Manager" },
-    { value: "3", label: "Purchase Executive" },
-    { value: "4", label: "Purchase Senior Executive" },
-    { value: "5", label: "Purchase Junior Executive" },
-    { value: "6", label: "Site Supervisor" },
+    { value: "manager", label: "Manager" },
+    { value: "user", label: "User" },
+    { value: "viewer", label: "Viewer" },
 ];
 
 const emptyForm = {
     fullName: "",
     username: "",
     password: "",
-    role: "",
+    roleKey: "",
 };
 
 const CreateUser = ({ isModal = false, onClose }) => {
+    const { user } = useAuth();
+
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(emptyForm);
-    const currentUser = getStoredUser();
-    const canCreateUser = isAdminUser(currentUser);
 
     useEffect(() => {
         if (!isModal) return undefined;
@@ -57,7 +54,7 @@ const CreateUser = ({ isModal = false, onClose }) => {
             return;
         }
 
-        if (!formData.role) {
+        if (!formData.roleKey) {
             toast.error("Please select a role");
             return;
         }
@@ -86,19 +83,6 @@ const CreateUser = ({ isModal = false, onClose }) => {
         number: /\d/.test(password),
         symbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
     };
-
-    if (!canCreateUser) {
-        if (isModal) return null;
-
-        return (
-            <main className="min-h-screen bg-slate-50 px-5 py-6 lg:px-8">
-                <div className="mx-auto max-w-xl rounded-md border border-slate-200 bg-white p-5 text-center shadow-sm">
-                    <h1 className="text-lg font-bold text-slate-950">Access denied</h1>
-                    <p className="mt-2 text-sm text-slate-600">Only admins can create new users.</p>
-                </div>
-            </main>
-        );
-    }
 
     const form = (
         <form onSubmit={handleSubmit} className="w-full">
@@ -193,9 +177,9 @@ const CreateUser = ({ isModal = false, onClose }) => {
                             <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
 
                             <select
-                                name="role"
+                                name="roleKey"
                                 disabled={loading}
-                                value={formData.role}
+                                value={formData.roleKey}
                                 onChange={handleChange}
                                 className="h-12 w-full rounded-md border border-gray-300 bg-white pl-12 pr-5 text-gray-700 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 disabled:bg-slate-50 disabled:text-slate-500"
                             >

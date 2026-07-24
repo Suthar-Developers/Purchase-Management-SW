@@ -1,29 +1,3 @@
-const db = require('../config/db');
-const bcrypt = require('bcrypt');
-
-const createUser = async (req, res) => {
-    try {
-        const { fullName, username, password, role } = req.body;
-
-        if (!username || !password) {
-            return res.status(400).json({ message: "Username and password are required." })
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 15);
-
-        const sql = `INSERT INTO users(full_name, username, password_hash, role_id)
-        VALUES(?, ?, ?, ?) `;
-
-        const values = [fullName, username, hashedPassword, role];
-
-        await db.query(sql, values);
-
-        return res.status(201).json({ message: "New user created successfully..." })
-
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Server error" })
-    }
-}
-
-module.exports = { createUser };
+const db = require('../config/db'); const bcrypt=require('bcrypt'); const {audit}=require('../services/auditService');
+const createUser=async(req,res,next)=>{try{const {fullName,username,password,roleKey}=req.body;if(!fullName||!username||!password||!roleKey)return res.status(400).json({message:'Full name, username, password and role are required'});if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$/.test(password))return res.status(400).json({message:'Password must have 12 characters, upper/lowercase, number and symbol'});const [[role]] = await db.query('SELECT role_id,hierarchy_rank FROM roles WHERE role_key=? AND is_active=1',[roleKey]);const [[actor]]=await db.query('SELECT r.hierarchy_rank FROM users u JOIN roles r ON r.role_id=u.role_ref_id WHERE u.user_id=?',[req.user.user_id]);if(!role||!actor||role.hierarchy_rank>=actor.hierarchy_rank)return res.status(403).json({message:'You cannot assign this role'});const hash=await bcrypt.hash(password,12);const [result]=await db.query('INSERT INTO users(full_name,username,password_hash,role_ref_id,status,company_id,branch_id,password_changed_at,force_password_change) VALUES(?,?,?,?,\'force_password_reset\',?,?,NOW(),1)',[fullName,username,hash,role.role_id,req.user.company_id,req.user.branch_id]);await db.query('INSERT INTO password_history(user_id,password_hash) VALUES(?,?)',[result.insertId,hash]);await audit(req,'USER_CREATED',{moduleKey:'user',entityId:String(result.insertId)});res.status(201).json({message:'New user created successfully'});}catch(error){if(error.code==='ER_DUP_ENTRY')return res.status(409).json({message:'Username is already in use'});next(error)}};
+module.exports={createUser};
