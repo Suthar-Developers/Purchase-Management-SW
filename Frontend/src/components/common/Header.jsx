@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getInitials } from '../../utils/userPreferences'
-import { useAuth } from "../../context/AuthContext";
+import { getDisplayName, getInitials, getStoredUser, formatRole } from '../../utils/userPreferences'
+import {logout} from "../../api/authApi"
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 
 const Header = () => {
@@ -11,10 +11,9 @@ const Header = () => {
 
   const profileRef = useRef(null);
 
-  const { user, logout } = useAuth();
-
-  const displayName = user?.fullName || "Workspace User";
-  const roleName = user?.role?.name || "";
+  const user = getStoredUser()
+  const displayName = getDisplayName(user)
+  const roleName = formatRole(user.role_id || user.role)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -34,7 +33,7 @@ const Header = () => {
       );
   }, []);
 
-  const openProfilePage = () => {
+  const openProfilePage = ()=> {
     navigate("/profile")
     setOpenProfile(false)
   }
@@ -43,9 +42,11 @@ const Header = () => {
 
     try {
       await logout();
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+
       navigate("/login", { replace: true });
-    } catch (error) {
-      console.error(error);
     }
   };
 

@@ -5,16 +5,15 @@ import FeatureCard from "../../../components/common/FeatureCard";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
-import { useAuth } from "../../../context/AuthContext"
+import { login } from "../../../api/authApi"
 import { ArrowRight, AtSign, Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 
 const LoginUser = () => {
-    const { login } = useAuth();
     const navigate = useNavigate();
 
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false)
 
     const [formData, setFormData] = useState({
         username: "",
@@ -40,9 +39,12 @@ const LoginUser = () => {
         try {
             setLoading(true)
 
-            await login(formData);
+            const response = await login(formData);
 
-            toast.success('Login successful', {
+            localStorage.setItem("accessToken", response.accessToken);
+            localStorage.setItem("user", JSON.stringify(response.user));
+
+            toast.success(response.message, {
                 duration: 7000,
             })
 
@@ -230,7 +232,7 @@ const LoginUser = () => {
                             variant="primary"
                             className="px-6 py-2 text-base font-medium rounded-lg hover:cursor-pointer"
                         />
-
+                        
                     </div>
                 </form>
             </div>

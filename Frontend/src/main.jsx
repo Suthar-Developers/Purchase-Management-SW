@@ -4,8 +4,6 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from './context/AuthContext.jsx'
-import { PermissionProvider } from './context/PermissionContext.jsx'
 import { applyStoredTheme } from './utils/userPreferences.js'
 
 applyStoredTheme()
@@ -19,7 +17,7 @@ createRoot(document.getElementById('root')).render(
         duration: 5000,
       }}
     />
-    <AuthProvider><PermissionProvider><App /></PermissionProvider></AuthProvider>
+    <App />
   </BrowserRouter>
 
 )

@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound } from 'lucide-react'
-import { applyStoredTheme, getStoredPreferences, saveStoredPreferences } from '../../utils/userPreferences'
-import { useAuth } from '../../context/AuthContext'
-import { useCan } from '../../context/PermissionContext'
+import { applyStoredTheme, formatRole, getDisplayName, getStoredPreferences, getStoredUser, isAdminUser, saveStoredPreferences } from '../../utils/userPreferences'
 import CreateUser from './users/CreateUser'
 
 const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
@@ -27,14 +25,12 @@ const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
 )
 
 const Profile = () => {
-  const { user } = useAuth();
   const [preferences, setPreferences] = useState(getStoredPreferences)
   const [showCreateUser, setShowCreateUser] = useState(false)
-
-  const displayName = user?.fullName;
-  const username = user?.username;
-  const roleName = user?.role?.name;
-  const canCreateUser = useCan('user.create')
+  const user = useMemo(() => getStoredUser(), [])
+  const displayName = getDisplayName(user)
+  const roleName = formatRole(user.role_id || user.role)
+  const isAdmin = isAdminUser(user)
 
   const updatePreference = (key, value) => {
     setPreferences((current) => saveStoredPreferences({ ...current, [key]: value }))
@@ -46,7 +42,7 @@ const Profile = () => {
 
   const detailItems = [
     { label: 'Full name', value: displayName },
-    { label: 'Username', value: username || 'Not available' },
+    { label: 'Username', value: user.username || 'Not available' },
     { label: 'Role', value: roleName },
   ]
 
@@ -61,7 +57,7 @@ const Profile = () => {
           </p>
         </div>
 
-        {canCreateUser && (
+        {isAdmin && (
           <button
             type='button'
             onClick={() => setShowCreateUser(true)}
@@ -159,7 +155,7 @@ const Profile = () => {
         </section>
       </div>
 
-      {canCreateUser && showCreateUser && (
+      {isAdmin && showCreateUser && (
         <CreateUser isModal onClose={() => setShowCreateUser(false)} />
       )}
     </main>

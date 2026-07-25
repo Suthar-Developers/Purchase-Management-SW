@@ -1,5 +1,14 @@
-// Compatibility export: route code must pass permission keys, never role names.
-const { requirePermission, requireModule } = require('./requirePermission');
-module.exports = requirePermission;
-module.exports.requirePermission = requirePermission;
-module.exports.requireModule = requireModule;
+module.exports = (...roles) => {
+    return (req, res, next) => {
+        const userRole = Number(req.user.role_id ?? req.user.role);
+        const allowedRoles = roles.map((role) => Number(role));
+
+        if (!allowedRoles.includes(userRole)) {
+            return res.status(403).json({
+                message: "Access denied."
+            });
+        }
+
+        next();
+    };
+};
