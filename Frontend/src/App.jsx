@@ -16,11 +16,6 @@ import PurchaseOrderRequests from './components/models/PurchaseOrderRequests'
 import ApprovedPurchaseOrders from './components/models/ApprovedPurchaseOrders'
 import Reports from './pages/reports/Reports'
 import Profile from './pages/settings/Profile'
-import PermissionRoute from './components/auth/PermissionRoute'
-import Unauthorized from './pages/errors/Unauthorized'
-import Authorization from './pages/settings/Authorization'
-import Sessions from './pages/settings/Sessions'
-import AuditLogs from './pages/settings/AuditLogs'
 
 const App = () => {
   return (
@@ -53,18 +48,7 @@ const App = () => {
             />
             <Route path="reports" element={<Reports />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="/create-user"
-              element={
-                <PermissionRoute permission="user.create">
-                  <CreateUser />
-                </PermissionRoute>
-              }
-            />
-            <Route path="authorization" element={<PermissionRoute permission="role.view"><Authorization /></PermissionRoute>} />
-            <Route path="sessions" element={<PermissionRoute permission="session.view"><Sessions /></PermissionRoute>} />
-            <Route path="audit-logs" element={<PermissionRoute permission="audit_log.view"><AuditLogs /></PermissionRoute>} />
-
-            <Route path="unauthorized" element={<Unauthorized />} />
+            <Route path="/create-user" element={<CreateUser />} />
           </Route>
         </Route>
 
