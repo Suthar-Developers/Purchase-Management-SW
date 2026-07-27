@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getDisplayName, getInitials, getStoredUser, formatRole } from '../../utils/userPreferences'
-import {logout} from "../../api/authApi"
+import { getInitials } from '../../utils/userPreferences'
+import { logout as logoutApi } from "../../api/authApi";
+import useAuth from "../../hooks/useAuth";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 
 const Header = () => {
@@ -11,9 +12,11 @@ const Header = () => {
 
   const profileRef = useRef(null);
 
-  const user = getStoredUser()
-  const displayName = getDisplayName(user)
-  const roleName = formatRole(user.role_id || user.role)
+  const { user, logout, } = useAuth();
+
+  const displayName = user?.full_name || "Workspace User";
+  const roleName = user?.role_id || "";
+  getInitials(displayName)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,20 +36,23 @@ const Header = () => {
       );
   }, []);
 
-  const openProfilePage = ()=> {
+  const openProfilePage = () => {
     navigate("/profile")
     setOpenProfile(false)
   }
 
   const handleLogout = async () => {
-
     try {
-      await logout();
+      await logoutApi();
+    } catch (error) {
+      console.error(error);
     } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
+      logout();
 
-      navigate("/login", { replace: true });
+      navigate(
+        "/login",
+        { replace: true, }
+      );
     }
   };
 

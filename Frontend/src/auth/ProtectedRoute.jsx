@@ -1,15 +1,29 @@
-import React from 'react'
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import PageLoader from "../components/common/PageLoader";
 
 const ProtectedRoute = () => {
+    const { loading, isAuthenticated } = useAuth();
+    const location = useLocation();
 
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-        return <Navigate to="/login" replace />;
+    // Still checking authentication
+    if (loading) {
+        return <PageLoader />;
     }
 
-    return <Outlet />;
-}
+    // Not logged in
+    if (!isAuthenticated) {
+        return (
+            <Navigate
+                to="/login"
+                replace
+                state={{ from: location }}
+            />
+        );
+    }
 
-export default ProtectedRoute
+    // Logged in
+    return <Outlet />;
+};
+
+export default ProtectedRoute;

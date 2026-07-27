@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound } from 'lucide-react'
-import { applyStoredTheme, formatRole, getDisplayName, getStoredPreferences, getStoredUser, isAdminUser, saveStoredPreferences } from '../../utils/userPreferences'
+import { applyStoredTheme, getStoredPreferences, saveStoredPreferences } from '../../utils/userPreferences'
+import useAuth from "../../hooks/useAuth";
 import CreateUser from './users/CreateUser'
 
 const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
@@ -27,10 +28,11 @@ const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
 const Profile = () => {
   const [preferences, setPreferences] = useState(getStoredPreferences)
   const [showCreateUser, setShowCreateUser] = useState(false)
-  const user = useMemo(() => getStoredUser(), [])
-  const displayName = getDisplayName(user)
-  const roleName = formatRole(user.role_id || user.role)
-  const isAdmin = isAdminUser(user)
+
+  const { user } = useAuth();
+  const displayName = user?.full_name || "Workspace User";
+  const roleName = user?.role_id || "";
+  const isAdmin = roleName === "Admin";
 
   const updatePreference = (key, value) => {
     setPreferences((current) => saveStoredPreferences({ ...current, [key]: value }))
@@ -41,10 +43,10 @@ const Profile = () => {
   }, [preferences.theme])
 
   const detailItems = [
-    { label: 'Full name', value: displayName },
-    { label: 'Username', value: user.username || 'Not available' },
-    { label: 'Role', value: roleName },
-  ]
+    { label: "Full name", value: user?.full_name || "-", },
+    { label: "Username", value: user?.username || "-", },
+    { label: "Role", value: user?.role_id || "-", },
+  ];
 
   return (
     <main className='min-h-full bg-slate-50 px-5 py-5 lg:px-8'>

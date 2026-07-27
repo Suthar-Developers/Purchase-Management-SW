@@ -1,21 +1,27 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation, } from "react-router-dom";
 import { toast } from 'react-hot-toast'
 import FeatureCard from "../../../components/common/FeatureCard";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
 import { login } from "../../../api/authApi"
+import useAuth from "../../../hooks/useAuth";
 import { ArrowRight, AtSign, Eye, EyeOff, Lock, Shield, User } from "lucide-react";
 
 const LoginUser = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login: authLogin } = useAuth();
+
+    const from = location.state?.from?.pathname || "/";
 
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState("");
     const [loading, setLoading] = useState(false)
 
     const [formData, setFormData] = useState({
+        full_name: "",
         username: "",
         password: "",
     });
@@ -33,7 +39,8 @@ const LoginUser = () => {
         setLoginError("");
 
         if (!formData.username || !formData.password) {
-            return setLoginError("Please write username and password");
+            setLoginError("Please write username and password");
+            return;
         }
 
         try {
@@ -41,16 +48,19 @@ const LoginUser = () => {
 
             const response = await login(formData);
 
-            localStorage.setItem("accessToken", response.accessToken);
-            localStorage.setItem("user", JSON.stringify(response.user));
+            authLogin(
+                response.accessToken,
+                response.user
+            );
 
             toast.success(response.message, {
-                duration: 7000,
+                duration: 6000,
             })
 
-            setLoading(false)
-
-            navigate('/')
+            navigate(
+                from,
+                { replace: true, }
+            );
 
         } catch (error) {
             setLoginError(error.message)
@@ -232,7 +242,7 @@ const LoginUser = () => {
                             variant="primary"
                             className="px-6 py-2 text-base font-medium rounded-lg hover:cursor-pointer"
                         />
-                        
+
                     </div>
                 </form>
             </div>

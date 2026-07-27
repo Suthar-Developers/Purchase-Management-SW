@@ -99,4 +99,23 @@ const logout = async (req, res) => {
     }
 };
 
-module.exports = { login, refresh, logout };
+const me = async (req, res) => {
+    try {
+        return res.status(200).json({
+            success: true,
+            user: {
+                user_id: req.user.user_id,
+                username: req.user.username,
+                full_name: req.user.full_name,
+                role_id: req.user.role_id,
+            },
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Unable to fetch user",
+        });
+    }
+};
+
+module.exports = { login, refresh, logout, me };
