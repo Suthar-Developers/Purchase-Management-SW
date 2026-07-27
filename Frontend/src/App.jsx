@@ -16,6 +16,8 @@ import PurchaseOrderRequests from './components/models/PurchaseOrderRequests'
 import ApprovedPurchaseOrders from './components/models/ApprovedPurchaseOrders'
 import Reports from './pages/reports/Reports'
 import Profile from './pages/settings/Profile'
+import RoleGuard from "./auth/RoleGuard";
+import Unauthorized from "./pages/errors/Unauthorized";
 
 const App = () => {
   return (
@@ -48,7 +50,16 @@ const App = () => {
             />
             <Route path="reports" element={<Reports />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="/create-user" element={<CreateUser />} />
+            
+            <Route path="/create-user"
+              element={
+                <RoleGuard roles={["Admin"]}>
+                  <CreateUser />
+                </RoleGuard>
+              }
+            />
+
+            <Route path="/unauthorized" element={<Unauthorized />} />
           </Route>
         </Route>
 

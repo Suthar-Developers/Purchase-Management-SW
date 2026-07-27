@@ -4,7 +4,6 @@ import { AtSign, Eye, EyeOff, Lock, Shield, User, UserPlus, X } from "lucide-rea
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
 import { createNewUser } from "../../../api/userApi";
-import { getStoredUser, isAdminUser } from "../../../utils/userPreferences";
 
 const roleOptions = [
     { value: "1", label: "Admin" },
@@ -26,8 +25,6 @@ const CreateUser = ({ isModal = false, onClose }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(emptyForm);
-    const currentUser = getStoredUser();
-    const canCreateUser = isAdminUser(currentUser);
 
     useEffect(() => {
         if (!isModal) return undefined;
@@ -52,8 +49,13 @@ const CreateUser = ({ isModal = false, onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.username || !formData.password) {
-            toast.error("Please write username and password");
+        if (!formData.username.trim()) {
+            toast.error("Username is required");
+            return;
+        }
+
+        if (!formData.password.trim()) {
+            toast.error("Password is required");
             return;
         }
 
@@ -64,16 +66,21 @@ const CreateUser = ({ isModal = false, onClose }) => {
 
         try {
             setLoading(true);
-            const data = await createNewUser(formData);
+            const response = await createNewUser(formData);
 
-            toast.success(data.message, {
-                duration: 7000,
-            });
-
+            toast.success(
+                response.message,
+                { duration: 4000, }
+            );
             setFormData(emptyForm);
+            if (isModal) {
+                onClose?.();
+            }
         } catch (error) {
-            console.error("Failed to create new user", error);
-            toast.error(error.message || "Failed to create new user");
+            toast.error(
+                error.message ||
+                "Failed to create user"
+            );
         } finally {
             setLoading(false);
         }
@@ -86,19 +93,6 @@ const CreateUser = ({ isModal = false, onClose }) => {
         number: /\d/.test(password),
         symbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
     };
-
-    if (!canCreateUser) {
-        if (isModal) return null;
-
-        return (
-            <main className="min-h-screen bg-slate-50 px-5 py-6 lg:px-8">
-                <div className="mx-auto max-w-xl rounded-md border border-slate-200 bg-white p-5 text-center shadow-sm">
-                    <h1 className="text-lg font-bold text-slate-950">Access denied</h1>
-                    <p className="mt-2 text-sm text-slate-600">Only admins can create new users.</p>
-                </div>
-            </main>
-        );
-    }
 
     const form = (
         <form onSubmit={handleSubmit} className="w-full">
