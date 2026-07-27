@@ -22,7 +22,7 @@ const emptyForm = {
     role: "",
 };
 
-const CreateUser = ({ isModal = false, onClose }) => {
+const CreateUser = ({ isModal = false, onClose, onCreated }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(emptyForm);
@@ -71,6 +71,7 @@ const CreateUser = ({ isModal = false, onClose }) => {
             });
 
             setFormData(emptyForm);
+            onCreated?.(data.data);
         } catch (error) {
             console.error("Failed to create new user", error);
             toast.error(error.message || "Failed to create new user");

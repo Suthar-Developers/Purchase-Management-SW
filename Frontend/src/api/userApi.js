@@ -6,6 +6,22 @@ export const createNewUser = async (data) => {
         return unwrap(res)
     } catch (error) {
         console.error("Failed to create new user", error)
-        throw error 
+        throw {
+            status: error.response?.status,
+            message: error.response?.data?.message || error.message || "Failed to create new user"
+        }
+    }
+}
+
+export const getUsers = async () => {
+    try {
+        const res = await api.get('/users')
+        return unwrap(res)
+    } catch (error) {
+        console.error("Failed to fetch users", error)
+        throw {
+            status: error.response?.status,
+            message: error.response?.data?.message || error.message || "Failed to fetch users"
+        }
     }
 }

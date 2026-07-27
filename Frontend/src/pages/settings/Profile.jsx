@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound } from 'lucide-react'
+import { Bell, Check, Eye, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound, UsersRound, X } from 'lucide-react'
+import { getUsers } from '../../api/userApi'
 import { applyStoredTheme, formatRole, getDisplayName, getStoredPreferences, getStoredUser, isAdminUser, saveStoredPreferences } from '../../utils/userPreferences'
 import CreateUser from './users/CreateUser'
 
@@ -27,6 +28,10 @@ const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
 const Profile = () => {
   const [preferences, setPreferences] = useState(getStoredPreferences)
   const [showCreateUser, setShowCreateUser] = useState(false)
+  const [showUsers, setShowUsers] = useState(false)
+  const [users, setUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersError, setUsersError] = useState('')
   const user = useMemo(() => getStoredUser(), [])
   const displayName = getDisplayName(user)
   const roleName = formatRole(user.role_id || user.role)
@@ -39,6 +44,30 @@ const Profile = () => {
   useEffect(() => {
     applyStoredTheme(preferences.theme)
   }, [preferences.theme])
+
+  const openUsers = async () => {
+    setShowUsers(true)
+    await loadUsers()
+  }
+
+  const loadUsers = async () => {
+    setUsersError('')
+    setUsersLoading(true)
+
+    try {
+      setUsers(await getUsers())
+    } catch (error) {
+      setUsersError(error.message || 'Failed to load users')
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  const formatDate = (value) => {
+    if (!value) return 'Not available'
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? 'Not available' : date.toLocaleDateString()
+  }
 
   const detailItems = [
     { label: 'Full name', value: displayName },
@@ -58,14 +87,24 @@ const Profile = () => {
         </div>
 
         {isAdmin && (
-          <button
-            type='button'
-            onClick={() => setShowCreateUser(true)}
-            className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
-          >
-            <UserPlus size={18} />
-            <span>Create User</span>
-          </button>
+          <div className='flex flex-wrap gap-3'>
+            <button
+              type='button'
+              onClick={openUsers}
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+            >
+              <Eye size={18} />
+              <span>Show Users</span>
+            </button>
+            <button
+              type='button'
+              onClick={() => setShowCreateUser(true)}
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+            >
+              <UserPlus size={18} />
+              <span>Create User</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -156,7 +195,82 @@ const Profile = () => {
       </div>
 
       {isAdmin && showCreateUser && (
-        <CreateUser isModal onClose={() => setShowCreateUser(false)} />
+        <CreateUser
+          isModal
+          onClose={() => setShowCreateUser(false)}
+          onCreated={() => {
+            if (showUsers) loadUsers()
+          }}
+        />
+      )}
+
+      {isAdmin && showUsers && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-6'>
+          <section className='max-h-[88vh] w-full max-w-4xl overflow-hidden rounded-md bg-white shadow-xl'>
+            <div className='flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4'>
+              <div className='flex items-center gap-3'>
+                <span className='grid h-10 w-10 place-items-center rounded-md bg-cyan-100 text-cyan-700'>
+                  <UsersRound size={20} />
+                </span>
+                <div>
+                  <h2 className='text-base font-semibold text-slate-950'>All Users</h2>
+                  <p className='text-xs text-slate-500'>Admin-only user list. Passwords are encrypted and hidden.</p>
+                </div>
+              </div>
+              <button
+                type='button'
+                onClick={() => setShowUsers(false)}
+                aria-label='Close users'
+                className='grid h-9 w-9 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900'
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className='max-h-[calc(88vh-81px)] overflow-auto p-5'>
+              {usersLoading && <p className='text-sm text-slate-600'>Loading users...</p>}
+              {usersError && <p className='rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'>{usersError}</p>}
+              {!usersLoading && !usersError && (
+                <div className='overflow-hidden rounded-md border border-slate-200'>
+                  <table className='min-w-full divide-y divide-slate-200 text-left text-sm'>
+                    <thead className='bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500'>
+                      <tr>
+                        <th className='px-4 py-3'>Name</th>
+                        <th className='px-4 py-3'>Username</th>
+                        <th className='px-4 py-3'>Password</th>
+                        <th className='px-4 py-3'>Role</th>
+                        <th className='px-4 py-3'>Status</th>
+                        <th className='px-4 py-3'>Created</th>
+                        <th className='px-4 py-3'>Updated</th>
+                      </tr>
+                    </thead>
+                    <tbody className='divide-y divide-slate-100 bg-white'>
+                      {users.length === 0 && (
+                        <tr>
+                          <td className='px-4 py-6 text-center text-slate-500' colSpan='7'>No users found.</td>
+                        </tr>
+                      )}
+                      {users.map((item) => (
+                        <tr key={item.id} className='hover:bg-slate-50'>
+                          <td className='px-4 py-3 font-medium text-slate-950'>
+                            <span className='block'>{item.fullName || 'Not available'}</span>
+                            <span className='text-xs font-normal text-slate-500'>ID: {item.id}</span>
+                          </td>
+                          <td className='px-4 py-3 text-slate-700'>{item.username || 'Not available'}</td>
+                          <td className='px-4 py-3 text-slate-500'>Encrypted / hidden</td>
+                          <td className='px-4 py-3 text-slate-700'>{formatRole(item.role)}</td>
+                          <td className='px-4 py-3 text-slate-700'>{item.status || 'Active'}</td>
+                          <td className='px-4 py-3 text-slate-700'>{formatDate(item.createdAt)}</td>
+                          <td className='px-4 py-3 text-slate-700'>{formatDate(item.updatedAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       )}
     </main>
   )
