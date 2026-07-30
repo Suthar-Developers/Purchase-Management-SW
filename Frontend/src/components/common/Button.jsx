@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Button = ({ lable, icon, key, type, loadingText, variant, className = "", onClick, loading = false, disabled }) => {
+const Button = ({ lable, icon, preIcon, key, type, loadingText, variant, className = "", onClick, loading = false, disabled }) => {
 
   const variants = {
     primary:
@@ -31,7 +31,6 @@ const Button = ({ lable, icon, key, type, loadingText, variant, className = "", 
         className={`
                 inline-flex
                 items-center
-                justify-center
                 gap-2
                 font-medium
                 transition-all
@@ -73,6 +72,7 @@ const Button = ({ lable, icon, key, type, loadingText, variant, className = "", 
           </>
         ) : (
           <>
+            {preIcon}
             <span>{lable}</span>
             {icon}
           </>
