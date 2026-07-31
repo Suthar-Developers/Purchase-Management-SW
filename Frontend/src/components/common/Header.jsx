@@ -108,15 +108,16 @@ const Header = () => {
 
             <Button
               onClick={openProfilePage}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:cursor-pointer"
               preIcon={<User size={18} />}
               lable="View Profile"
             />
 
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-              <Settings size={18} />
-              Account Settings
-            </button>
+            <Button
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:cursor-pointer"
+              preIcon={<Settings size={18} />}
+              lable="Account Settings"
+            />
 
             <div className="my-2 border-t border-slate-200"></div>
 
