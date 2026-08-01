@@ -121,10 +121,12 @@ const Header = () => {
 
             <div className="my-2 border-t border-slate-200"></div>
 
-            <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50">
-              <LogOut size={18} />
-              Logout
-            </button>
+            <Button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:cursor-pointer"
+              preIcon={<LogOut size={18} />}
+              lable="Logout"
+            />
           </div>
         </div>
       </div>
