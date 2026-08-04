@@ -41,3 +41,22 @@ export const getInitials = (name = '') => {
 
   return words.slice(0, 2).map((word) => word[0].toUpperCase()).join('')
 }
+
+export const formatRole = (role) => {
+  if (!role) return '-'
+
+  const roleMap = {
+    1: 'Admin',
+    2: 'Purchase Manager',
+    3: 'Purchase Executive',
+    4: 'Purchase Senior Executive',
+    5: 'Purchase Junior Executive',
+    6: 'Site Supervisor',
+  }
+
+  const roleText = String(role).trim()
+
+  return roleMap[roleText] || roleText
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}

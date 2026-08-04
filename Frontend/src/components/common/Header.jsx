@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getInitials } from '../../utils/userPreferences'
+import { formatRole, getInitials } from '../../utils/userPreferences'
 import { logout as logoutApi } from "../../api/authApi";
 import useAuth from "../../hooks/useAuth";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
@@ -15,7 +15,7 @@ const Header = () => {
   const { user, logout, } = useAuth();
 
   const displayName = user?.full_name || "Workspace User";
-  const roleName = user?.role_id || "";
+  const roleName = formatRole(user?.role_id);
   getInitials(displayName)
 
   // Close dropdown when clicking outside

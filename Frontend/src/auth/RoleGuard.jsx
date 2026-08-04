@@ -27,8 +27,10 @@ const RoleGuard = ({ roles = [], children }) => {
         return children;
     }
 
-    // Check user's role
-    const hasRole = roles.includes(user?.role_id);
+    const normalizeRole = (role) => String(role ?? '').trim().toLowerCase();
+    const currentRole = normalizeRole(user?.role_id);
+    const allowedRoles = roles.map(normalizeRole);
+    const hasRole = allowedRoles.includes(currentRole) || (allowedRoles.includes('admin') && currentRole === '1');
 
     if (!hasRole) {
         return (

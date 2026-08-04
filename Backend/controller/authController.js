@@ -1,6 +1,7 @@
 const authService = require("../services/authService");
 const refreshService = require("../services/refreshService");
 const logoutService = require("../services/logoutService")
+const db = require("../config/db");
 
 const login = async (req, res) => {
     try {
@@ -101,13 +102,28 @@ const logout = async (req, res) => {
 
 const me = async (req, res) => {
     try {
+        const userId = req.user.id ?? req.user.user_id;
+        const [rows] = await db.query(
+            `SELECT user_id, username, full_name, role_id FROM users WHERE user_id = ? LIMIT 1`,
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const user = rows[0];
+
         return res.status(200).json({
             success: true,
             user: {
-                user_id: req.user.user_id,
-                username: req.user.username,
-                full_name: req.user.full_name,
-                role_id: req.user.role_id,
+                id: user.user_id,
+                username: user.username,
+                full_name: user.full_name,
+                role_id: user.role_id,
             },
         });
     } catch (err) {

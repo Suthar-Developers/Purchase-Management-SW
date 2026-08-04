@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound } from 'lucide-react'
-import { applyStoredTheme, getStoredPreferences, saveStoredPreferences } from '../../utils/userPreferences'
+import React, { useEffect, useState } from 'react'
+import { Bell, Check, Eye, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserPlus, UserRound, UsersRound, X } from 'lucide-react'
+import { deleteUser, getUsers } from '../../api/userApi'
+import { applyStoredTheme, formatRole, getStoredPreferences, saveStoredPreferences } from '../../utils/userPreferences'
 import useAuth from "../../hooks/useAuth";
 import CreateUser from './users/CreateUser'
 
@@ -28,11 +29,18 @@ const ProfileToggle = ({ checked, label, note, icon: Icon, onChange }) => (
 const Profile = () => {
   const [preferences, setPreferences] = useState(getStoredPreferences)
   const [showCreateUser, setShowCreateUser] = useState(false)
+  const [showUsers, setShowUsers] = useState(false)
+  const [users, setUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersError, setUsersError] = useState('')
+  const [deletingUserId, setDeletingUserId] = useState(null)
 
   const { user } = useAuth();
   const displayName = user?.full_name || "Workspace User";
   const roleName = user?.role_id || "";
-  const isAdmin = roleName === "Admin";
+  const formattedRoleName = formatRole(roleName);
+  const isAdmin = ['1', 'admin'].includes(String(roleName).trim().toLowerCase());
+  const currentUserId = Number(user?.id ?? user?.user_id);
 
   const updatePreference = (key, value) => {
     setPreferences((current) => saveStoredPreferences({ ...current, [key]: value }))
@@ -42,10 +50,51 @@ const Profile = () => {
     applyStoredTheme(preferences.theme)
   }, [preferences.theme])
 
+  const loadUsers = async () => {
+    setUsersError('')
+    setUsersLoading(true)
+
+    try {
+      setUsers(await getUsers())
+    } catch (error) {
+      setUsersError(error.message || 'Failed to load users')
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  const openUsers = async () => {
+    setShowUsers(true)
+    await loadUsers()
+  }
+
+  const formatDate = (value) => {
+    if (!value) return '-'
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString()
+  }
+
+  const handleDeleteUser = async (item) => {
+    const confirmed = window.confirm(`Delete user "${item.username || item.fullName || item.id}"?`)
+    if (!confirmed) return
+
+    setUsersError('')
+    setDeletingUserId(item.id)
+
+    try {
+      await deleteUser(item.id)
+      setUsers((current) => current.filter((userItem) => userItem.id !== item.id))
+    } catch (error) {
+      setUsersError(error.message || 'Failed to delete user')
+    } finally {
+      setDeletingUserId(null)
+    }
+  }
+
   const detailItems = [
     { label: "Full name", value: user?.full_name || "-", },
     { label: "Username", value: user?.username || "-", },
-    { label: "Role", value: user?.role_id || "-", },
+    { label: "Role", value: formattedRoleName },
   ];
 
   return (
@@ -60,14 +109,24 @@ const Profile = () => {
         </div>
 
         {isAdmin && (
-          <button
-            type='button'
-            onClick={() => setShowCreateUser(true)}
-            className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
-          >
-            <UserPlus size={18} />
-            <span>Create User</span>
-          </button>
+          <div className='flex flex-wrap gap-3'>
+            <button
+              type='button'
+              onClick={openUsers}
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+            >
+              <Eye size={18} />
+              <span>Show Users</span>
+            </button>
+            <button
+              type='button'
+              onClick={() => setShowCreateUser(true)}
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+            >
+              <UserPlus size={18} />
+              <span>Create User</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -159,6 +218,90 @@ const Profile = () => {
 
       {isAdmin && showCreateUser && (
         <CreateUser isModal onClose={() => setShowCreateUser(false)} />
+      )}
+
+      {isAdmin && showUsers && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-6'>
+          <section className='max-h-[88vh] w-full max-w-4xl overflow-hidden rounded-md bg-white shadow-xl'>
+            <div className='flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4'>
+              <div className='flex items-center gap-3'>
+                <span className='grid h-10 w-10 place-items-center rounded-md bg-cyan-100 text-cyan-700'>
+                  <UsersRound size={20} />
+                </span>
+                <div>
+                  <h2 className='text-base font-semibold text-slate-950'>All Users</h2>
+                  <p className='text-xs text-slate-500'>Admin-only user list. Passwords are encrypted and hidden.</p>
+                </div>
+              </div>
+              <button
+                type='button'
+                onClick={() => setShowUsers(false)}
+                aria-label='Close users'
+                className='grid h-9 w-9 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900'
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className='max-h-[calc(88vh-81px)] overflow-auto p-5'>
+              {usersLoading && <p className='text-sm text-slate-600'>Loading users...</p>}
+              {usersError && <p className='rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'>{usersError}</p>}
+              {!usersLoading && !usersError && (
+                <div className='overflow-hidden rounded-md border border-slate-200'>
+                  <table className='min-w-full divide-y divide-slate-200 text-left text-sm'>
+                    <thead className='bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500'>
+                      <tr>
+                        <th className='px-4 py-3'>Name</th>
+                        <th className='px-4 py-3'>Username</th>
+                        <th className='px-4 py-3'>Password</th>
+                        <th className='px-4 py-3'>Role</th>
+                        <th className='px-4 py-3'>Status</th>
+                        <th className='px-4 py-3'>Created</th>
+                        <th className='px-4 py-3 text-right'>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className='divide-y divide-slate-100 bg-white'>
+                      {users.length === 0 && (
+                        <tr>
+                          <td className='px-4 py-6 text-center text-slate-500' colSpan='7'>No users found.</td>
+                        </tr>
+                      )}
+                      {users.map((item) => {
+                        const isCurrentUser = Number(item.id) === currentUserId
+
+                        return (
+                          <tr key={item.id} className='hover:bg-slate-50'>
+                            <td className='px-4 py-3 font-medium text-slate-950'>
+                              <span className='block'>{item.fullName || '-'}</span>
+                              <span className='text-xs font-normal text-slate-500'>ID: {item.id}</span>
+                            </td>
+                            <td className='px-4 py-3 text-slate-700'>{item.username || '-'}</td>
+                            <td className='px-4 py-3 text-slate-500'>Encrypted / hidden</td>
+                            <td className='px-4 py-3 text-slate-700'>{formatRole(item.role)}</td>
+                            <td className='px-4 py-3 text-slate-700'>{item.status || 'Active'}</td>
+                            <td className='px-4 py-3 text-slate-700'>{formatDate(item.createdAt)}</td>
+                            <td className='px-4 py-3 text-right'>
+                              <button
+                                type='button'
+                                onClick={() => handleDeleteUser(item)}
+                                disabled={isCurrentUser || deletingUserId === item.id}
+                                title={isCurrentUser ? 'You cannot delete your own account' : 'Delete user'}
+                                aria-label={`Delete ${item.username || 'user'}`}
+                                className='inline-grid h-9 w-9 place-items-center rounded-md text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50'
+                              >
+                                <Trash2 size={17} />
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       )}
     </main>
   )
