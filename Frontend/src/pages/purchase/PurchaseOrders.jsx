@@ -75,7 +75,7 @@ const PurchaseOrders = () => {
                                             <td className="py-3 text-center">{pr.deliverBefore ? dayjs(pr.deliverBefore).format('DD MMM YYYY') : '-'}</td>
                                             <td className="py-3 text-center">
                                                 <div className="flex justify-center">
-                                                    <Button lable="Create PO" onClick={() => { setSelectedPR(pr); setIsOpenManualPOForm(true); }} className="pr-2 font-semibold text-xs border-r hover:text-blue-500 hover:scale-103" />
+                                                    <Button lable="Create PO" onClick={() => { setSelectedPR(pr); setIsOpenManualPOForm(true); }} className="pr-2 font-semibold text-xs border-r hover:cursor-pointer hover:text-blue-500 hover:scale-103" />
                                                     <Button onClick={() => openPRViewModel(pr)} className="text-blue-700 text-xs hover:text-green-600 ml-2 hover:scale-110" icon={<i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>} />
                                                 </div>
                                             </td>
