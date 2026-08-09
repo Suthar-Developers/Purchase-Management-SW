@@ -4,15 +4,7 @@ import { AtSign, Eye, EyeOff, Lock, Shield, User, UserPlus, X } from "lucide-rea
 import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
 import { createNewUser } from "../../../api/userApi";
-
-const roleOptions = [
-    { value: "1", label: "Admin" },
-    { value: "2", label: "Purchase Manager" },
-    { value: "3", label: "Purchase Executive" },
-    { value: "4", label: "Purchase Senior Executive" },
-    { value: "5", label: "Purchase Junior Executive" },
-    { value: "6", label: "Site Supervisor" },
-];
+import { ROLE_OPTIONS } from "../../../utils/roles";
 
 const emptyForm = {
     fullName: "",
@@ -194,7 +186,7 @@ const CreateUser = ({ isModal = false, onClose }) => {
                                 className="h-12 w-full rounded-md border border-gray-300 bg-white pl-12 pr-5 text-gray-700 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 disabled:bg-slate-50 disabled:text-slate-500"
                             >
                                 <option value="">Select a role</option>
-                                {roleOptions.map((role) => (
+                                {ROLE_OPTIONS.map((role) => (
                                     <option key={role.value} value={role.value}>{role.label}</option>
                                 ))}
                             </select>

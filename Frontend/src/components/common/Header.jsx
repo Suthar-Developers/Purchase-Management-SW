@@ -4,6 +4,7 @@ import { getInitials } from '../../utils/userPreferences'
 import { logout as logoutApi } from "../../api/authApi";
 import useAuth from "../../hooks/useAuth";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { getRoleLabel } from '../../utils/roles';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Header = () => {
   const { user, logout, } = useAuth();
 
   const displayName = user?.full_name || "Workspace User";
-  const roleName = user?.role_id || "";
+  const roleName = getRoleLabel(user?.role_id);
   getInitials(displayName)
 
   // Close dropdown when clicking outside

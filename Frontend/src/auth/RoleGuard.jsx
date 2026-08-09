@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import PageLoader from "../components/common/PageLoader";
+import { isRoleAllowed } from "../utils/roles";
 
 const RoleGuard = ({ roles = [], children }) => {
     const { user, loading, isAuthenticated } = useAuth();
@@ -27,8 +28,8 @@ const RoleGuard = ({ roles = [], children }) => {
         return children;
     }
 
-    // Check user's role
-    const hasRole = roles.includes(user?.role_id);
+    // Uses the shared role helper so id 1 and name "Admin" are treated the same.
+    const hasRole = isRoleAllowed(user?.role_id, roles);
 
     if (!hasRole) {
         return (
