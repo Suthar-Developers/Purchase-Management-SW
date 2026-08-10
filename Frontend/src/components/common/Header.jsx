@@ -67,7 +67,7 @@ const Header = () => {
       <div className="relative" ref={profileRef}>
         <button
           onClick={() => setOpenProfile(!openProfile)}
-          className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100"
+          className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100 hover:cursor-pointer"
         >
           <div className="hidden text-right sm:block">
             <h3 className="text-sm font-semibold text-slate-900">{displayName}</h3>
