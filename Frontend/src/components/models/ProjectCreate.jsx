@@ -111,7 +111,12 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
 
             <div className="bg-white w-[75%] h-fit rounded-xl p-4">
-                <Button lable='Close' className="bg-sky-500 text-white text-xs font-bold px-4 py-2 rounded-lg float-end hover:cursor-pointer hover:bg-sky-600" onClick={onClose} />
+                <Button
+                    lable='Close'
+                    className="bg-sky-500 text-white text-xs font-bold px-4 py-2 rounded-lg float-end hover:cursor-pointer hover:bg-sky-600"
+                    onClick={onClose}
+                />
+
                 <div className="flex items-center justify-center p-4">
                     <form
                         onSubmit={handleSubmit}
@@ -297,7 +302,11 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                         />
 
                         {/* Submit */}
-                        <Button lable="Create Project" type="submit" className="w-full rounded-lg bg-indigo-600 py-2 text-white text-xs font-medium hover:cursor-pointer hover:bg-indigo-800 transition" />
+                        <Button
+                            lable="Create Project"
+                            type="submit"
+                            className="w-full rounded-lg bg-indigo-600 py-2 justify-center text-white text-xs font-medium hover:cursor-pointer hover:bg-indigo-800 transition"
+                        />
                     </form>
                 </div>
             </div>
