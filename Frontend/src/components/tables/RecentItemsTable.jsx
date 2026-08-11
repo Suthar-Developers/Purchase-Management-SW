@@ -26,8 +26,6 @@ const RecentItemsTable = ({ requests = [], isLoading = false }) => {
             )
             .slice(0, 8)
 
-      console.log(requests[0]);
-
       if (isLoading) {
             return <div className='px-5 py-10 text-center text-sm text-slate-500'>Loading latest items...</div>
       }

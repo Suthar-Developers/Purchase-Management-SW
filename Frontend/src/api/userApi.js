@@ -9,3 +9,23 @@ export const createNewUser = async (data) => {
         throw error 
     }
 }
+
+export const getAllUsers = async () => {
+    try {
+        const res = await api.get('/users')
+        return unwrap(res)
+    } catch (error) {
+        console.error("Failed to load users", error)
+        throw error
+    }
+}
+
+export const deleteUser = async (id) => {
+    try {
+        const res = await api.delete(`/users/${id}`)
+        return unwrap(res)
+    } catch (error) {
+        console.error("Failed to delete user", error)
+        throw error
+    }
+}
