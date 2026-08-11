@@ -224,12 +224,11 @@ const VendorCreate = ({ isOpen, onClose, refreshVendors }) => {
                         />
 
                         {/* Submit */}
-                        <button
+                        <Button
+                            lable="Create Vendor"
                             type="submit"
-                            className="w-full rounded-lg bg-indigo-600 py-2 text-white text-xs font-medium hover:bg-indigo-700 transition"
-                        >
-                            Create Vendor
-                        </button>
+                            className="w-full rounded-lg bg-indigo-600 py-2 justify-center text-white text-xs font-medium hover:cursor-pointer hover:bg-indigo-700 transition"
+                        />
                     </form>
                 </div>
             </div>
