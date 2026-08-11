@@ -6,6 +6,7 @@ import { fetchPurchaseRequests } from '../../api/purchaseRequestApi'
 import { fetchApprovedPurchaseOrders, fetchDraftedPurchaseOrders } from '../../api/purchaseOrderApi'
 import { fetchProjects } from '../../api/projectApi'
 import { fetchVendors } from '../../api/vendorApi'
+import Button from '../../components/common/Button'
 
 
 const Dashboard = () => {
@@ -137,8 +138,7 @@ const Dashboard = () => {
                         onClick={refreshDashboard}
                         disabled={isLoading}
                         title='Refresh dashboard data'
-                        aria-label='Refresh dashboard data'
-                        className='grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60'
+                        className='grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60'
                     >
                         <svg
                             className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}

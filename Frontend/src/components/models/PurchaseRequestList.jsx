@@ -56,7 +56,11 @@ const PurchaseRequestList = ({ onCreate }) => {
           <h1 className="text-lg font-bold pb-3">
             Purchase Requests
           </h1>
-          <Button lable={"+ New Request"} className='px-4 py-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white' onClick={onCreate} />
+          <Button
+            lable={"+ New Request"}
+            className='px-4 py-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white'
+            onClick={onCreate}
+          />
         </div>
 
         {/* Table Card */}
@@ -91,7 +95,11 @@ const PurchaseRequestList = ({ onCreate }) => {
                     <td className="py-3 text-center font-medium">{req.requestStatus}</td>
 
                     <td className="py-3 text-center">
-                      <button onClick={() => openView(req)} className="text-blue-700 hover:text-green-600 hover:scale-120"><i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i></button>
+                      <Button
+                        onClick={() => openView(req)}
+                        className="text-blue-700 hover:text-green-600 hover:scale-120"
+                        preIcon={<i className="fa-notdog fa-solid fa-eye fa-lg hover:cursor-pointer"></i>}
+                      />
                     </td>
                   </tr>
                 ))
@@ -101,7 +109,7 @@ const PurchaseRequestList = ({ onCreate }) => {
         </div>
 
         {isViewModelOpen && (
-          <PurchaseRequestView req={selectedRequest} onClose={closeView} refreshRequest={getPurchaseRequests}/>
+          <PurchaseRequestView req={selectedRequest} onClose={closeView} refreshRequest={getPurchaseRequests} />
         )}
 
       </div>

@@ -144,6 +144,7 @@ const Projects = () => {
                             <div className='w-1/20 flex justify-center'>
                                 <input
                                     type="checkbox"
+                                    className='hover:cursor-pointer'
                                     checked={
                                         filteredProjects.length > 0 &&
                                         selectedProjects.length === filteredProjects.length
@@ -180,6 +181,7 @@ const Projects = () => {
                                 <div className='w-1/20 flex justify-center'>
                                     <input
                                         type="checkbox"
+                                        className='hover:cursor-pointer'
                                         checked={selectedProjects.some(
                                             item => item.project_id === project.project_id
                                         )}

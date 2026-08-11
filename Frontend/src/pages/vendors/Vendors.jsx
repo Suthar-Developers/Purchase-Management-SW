@@ -130,6 +130,7 @@ const Vendors = () => {
                         <div className='w-1/20 flex justify-center'>
                             <input
                                 type="checkbox"
+                                className='hover:cursor-pointer'
                                 checked={
                                     filteredVendors.length > 0 &&
                                     selectedVendorsPdf.length === filteredVendors.length
@@ -161,6 +162,7 @@ const Vendors = () => {
                             <div className='w-1/20 flex justify-center'>
                                 <input
                                     type="checkbox"
+                                    className='hover:cursor-pointer'
                                     checked={selectedVendorsPdf.some(
                                         item => item.vendor_id === vendor.vendor_id
                                     )}

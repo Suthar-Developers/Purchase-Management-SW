@@ -47,7 +47,11 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
             <div className="bg-white w-[65%] h-fit rounded-2xl shadow-2xl p-4 relative">
 
-                <Button lable="✕" onClick={onClose} className="absolute top-3 right-4 px-2 py-1 rounded-lg font-bold text-lg hover:cursor-pointer hover:bg-gray-100 hover:text-red-700" />
+                <Button
+                    lable="✕"
+                    onClick={onClose}
+                    className="absolute top-3 right-4 px-2 py-1 rounded-lg font-bold text-lg hover:cursor-pointer hover:bg-gray-100 hover:text-red-700"
+                />
 
                 {/* 🔷 HEADER SECTION */}
                 <h2 className="text-lg font-bold mb-4 border-b pb-2">Purchase Request Details</h2>
@@ -94,7 +98,11 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
 
                 {/* Footer */}
                 <div className="flex justify-end border-t pt-3 mt-3">
-                    <Button lable="Close" onClick={onClose} className="px-6 py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
+                    <Button
+                        lable="Close"
+                        onClick={onClose}
+                        className="px-6 py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer"
+                    />
                 </div>
 
                 {showApprovalModal && (
@@ -108,7 +116,7 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                                 <Button lable="Reject" icon={<i className="fa-solid fa-xmark"></i>} onClick={() => handleMaterialAction(material.material_id, "Rejected")} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-red-500 text-white text-xs font-medium hover:bg-red-600 hover:cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-sm" />
                             </div>
 
-                            <Button lable="Cancel" onClick={() => setShowApprovalModal(false)} className="mt-4 w-full py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-300 hover:cursor-pointer" />
+                            <Button lable="Cancel" onClick={() => setShowApprovalModal(false)} className="mt-4 w-full justify-center py-2 bg-gray-200 text-xs rounded-lg hover:bg-gray-400 hover:cursor-pointer transition-all" />
                         </div>
                     </div>
                 )}

@@ -5,6 +5,7 @@ import { logout as logoutApi } from "../../api/authApi";
 import useAuth from "../../hooks/useAuth";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 import { getRoleLabel } from '../../utils/roles';
+import Button from './Button';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const Header = () => {
   };
 
   return (
-    <header className="relative z-20 flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-5 shadow-sm lg:px-8">
+    <header className="relative flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-5 shadow-sm lg:px-8">
       <div>
         <h1 className="text-lg font-bold text-slate-950">Purchase Management</h1>
         <p className="text-xs text-slate-500">Projects, vendors, requests, and orders</p>
@@ -68,7 +69,7 @@ const Header = () => {
       <div className="relative" ref={profileRef}>
         <button
           onClick={() => setOpenProfile(!openProfile)}
-          className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100"
+          className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100 hover:cursor-pointer"
         >
           <div className="hidden text-right sm:block">
             <h3 className="text-sm font-semibold text-slate-900">{displayName}</h3>
@@ -86,7 +87,7 @@ const Header = () => {
 
         {/* Dropdown */}
         <div
-          className={`absolute right-0 mt-3 w-72 origin-top-right rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200 ${openProfile
+          className={`absolute right-0 mt-3 w-72 origin-top-right rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200 z-50 ${openProfile
             ? "visible translate-y-0 opacity-100"
             : "invisible -translate-y-2 opacity-0"
             }`}
@@ -105,22 +106,28 @@ const Header = () => {
 
           {/* Menu */}
           <div className="p-2">
-            <button onClick={openProfilePage} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-              <User size={18} />
-              View Profile
-            </button>
 
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-              <Settings size={18} />
-              Account Settings
-            </button>
+            <Button
+              onClick={openProfilePage}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:cursor-pointer"
+              preIcon={<User size={18} />}
+              lable="View Profile"
+            />
+
+            <Button
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:cursor-pointer"
+              preIcon={<Settings size={18} />}
+              lable="Account Settings"
+            />
 
             <div className="my-2 border-t border-slate-200"></div>
 
-            <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50">
-              <LogOut size={18} />
-              Logout
-            </button>
+            <Button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:cursor-pointer"
+              preIcon={<LogOut size={18} />}
+              lable="Logout"
+            />
           </div>
         </div>
       </div>
