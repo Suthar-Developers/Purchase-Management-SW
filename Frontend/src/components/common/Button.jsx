@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Button = ({ lable, icon, key, type, loadingText, variant, className = "", onClick, loading = false, disabled }) => {
+const Button = ({ lable, title, icon, key, type, loadingText, variant, className = "", onClick, loading = false, disabled }) => {
 
   const variants = {
     primary:
@@ -28,6 +28,7 @@ const Button = ({ lable, icon, key, type, loadingText, variant, className = "", 
         type={type}
         disabled={disabled || loading}
         onClick={onClick}
+        title={title}
         className={`
                 inline-flex
                 items-center

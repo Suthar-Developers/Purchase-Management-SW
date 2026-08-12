@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Button from '../../components/common/Button'
 import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, Trash2, UserPlus, UserRound, Users, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { applyStoredTheme, getStoredPreferences, saveStoredPreferences } from '../../utils/userPreferences'
@@ -108,23 +109,22 @@ const Profile = () => {
 
         {isAdmin && (
           <div className='flex flex-wrap gap-3'>
-            <button
+
+            <Button
+              lable='Create User'
               type='button'
               onClick={() => setShowCreateUser(true)}
-              className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
-            >
-              <UserPlus size={18} />
-              <span>Create User</span>
-            </button>
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:cursor-pointer hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+              preIcon={<UserPlus size={18} />}
+            />
 
-            <button
+            <Button
+              lable='Show Users'
               type='button'
               onClick={handleShowUsers}
-              className='inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-cyan-300 hover:text-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
-            >
-              <Users size={18} />
-              <span>Show Users</span>
-            </button>
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:cursor-pointer hover:border-cyan-300 hover:text-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+              preIcon={<Users size={18} />}
+            />
           </div>
         )}
       </div>
@@ -233,14 +233,13 @@ const Profile = () => {
                 </div>
               </div>
 
-              <button
+              <Button
+                title='Close users list'
                 type='button'
                 onClick={() => setShowUsers(false)}
-                aria-label='Close users list'
-                className='grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900'
-              >
-                <X size={18} />
-              </button>
+                className='grid h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:cursor-pointer hover:bg-slate-100 hover:text-slate-900'
+                icon={<X size={18} />}
+              />
             </div>
 
             <div className='max-h-[calc(100vh-180px)] overflow-auto px-5 py-5'>
@@ -249,7 +248,7 @@ const Profile = () => {
               ) : users.length === 0 ? (
                 <div className='py-10 text-center text-sm font-medium text-slate-500'>No users found.</div>
               ) : (
-                <table className='w-full min-w-[720px] border-collapse text-left text-sm'>
+                <table className='w-full min-w-180 border-collapse text-left text-sm'>
                   <thead>
                     <tr className='border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500'>
                       <th className='px-3 py-3 font-semibold'>Full name</th>
