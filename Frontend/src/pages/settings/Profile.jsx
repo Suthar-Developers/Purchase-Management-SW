@@ -8,6 +8,7 @@ import { applyStoredTheme, getStoredPreferences, saveStoredPreferences, } from "
 import useAuth from "../../hooks/useAuth";
 
 import CreateUser from "./users/CreateUser";
+import EditUser from "./users/EditUser";
 import UserManagement from "../../components/users/UserManagement";
 
 
@@ -56,6 +57,8 @@ const Profile = () => {
 
   // Modals
   const [showCreateUser, setShowCreateUser,] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
   const [showUsers, setShowUsers,] = useState(false);
 
 
@@ -109,6 +112,10 @@ const Profile = () => {
     setShowCreateUser(false);
   };
 
+  const handleUserUpdated = (updatedUser) => {
+    setEditingUser(null);
+  };
+
 
   /*
   |--------------------------------------------------------------------------
@@ -128,8 +135,7 @@ const Profile = () => {
   */
 
   const handleEditUser = (selectedUser) => {
-    console.log("Edit user:", selectedUser);
-    toast("Edit User will be added next.");
+    setEditingUser(selectedUser);
   };
 
   const handleResetPassword = (selectedUser) => {
@@ -392,6 +398,14 @@ const Profile = () => {
                 onDeleteUser={handleDeleteUser}
               />
             </div>
+
+            {isAdmin && editingUser && (
+              <EditUser
+                user={editingUser}
+                onClose={() => setEditingUser(null)}
+                onUpdated={handleUserUpdated}
+              />
+            )}
           </div>
         </div>
       )}

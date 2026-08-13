@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const response = await getCurrentUser();
-            console.log("User loaded:", response);
             setUser(response.user);
         } catch (error) {
             console.error("Failed to restore session:", error);

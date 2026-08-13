@@ -62,7 +62,7 @@ const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggl
 
     useEffect(() => {
         loadUsers();
-    }, [loadUsers]);
+    }, [loadUsers, onEditUser]);
 
     // Close action menu when clicking outside
     useEffect(() => {
