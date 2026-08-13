@@ -26,7 +26,7 @@ const login = async (req, res) => {
                 id: user.user_id,
                 full_name: user.full_name,
                 username: user.username,
-                role_id: user.role_id
+                role: user.role
             }
         })
 
@@ -62,7 +62,7 @@ const refresh = async (req, res) => {
                 id: response.user.user_id,
                 username: response.user.username,
                 full_name: response.user.full_name,
-                role_id: response.user.role_id
+                role: response.user.role
             }
         });
     }
@@ -107,7 +107,7 @@ const me = async (req, res) => {
                 user_id: req.user.user_id,
                 username: req.user.username,
                 full_name: req.user.full_name,
-                role_id: req.user.role_id,
+                role: req.user.role,
             },
         });
     } catch (err) {
