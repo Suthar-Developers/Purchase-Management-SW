@@ -20,7 +20,7 @@ const authenticate = async (req, res, next) => {
                 user_id,
                 username,
                 full_name,
-                role_id
+                role
              FROM users
              WHERE user_id = ?`,
       [payload.id]

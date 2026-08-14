@@ -17,7 +17,7 @@ const Header = () => {
   const { user, logout, } = useAuth();
 
   const displayName = user?.full_name || "Workspace User";
-  const roleName = getRoleLabel(user?.role_id);
+  const roleName = getRoleLabel(user?.role);
   getInitials(displayName)
 
   // Close dropdown when clicking outside

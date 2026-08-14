@@ -29,7 +29,7 @@ const RoleGuard = ({ roles = [], children }) => {
     }
 
     // Uses the shared role helper so id 1 and name "Admin" are treated the same.
-    const hasRole = isRoleAllowed(user?.role_id, roles);
+    const hasRole = isRoleAllowed(user?.role, roles);
 
     if (!hasRole) {
         return (
