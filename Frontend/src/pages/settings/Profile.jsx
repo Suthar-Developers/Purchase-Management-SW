@@ -10,6 +10,7 @@ import useAuth from "../../hooks/useAuth";
 import CreateUser from "./users/CreateUser";
 import EditUser from "./users/EditUser";
 import ResetUserPassword from "./users/ResetUserPassword";
+import ChangeUserPassword from "./users/ChangeUserPassword";
 import UserManagement from "../../components/users/UserManagement";
 
 
@@ -60,6 +61,7 @@ const Profile = () => {
   const [showCreateUser, setShowCreateUser,] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [resettingUser, setResettingUser,] = useState(null);
+  const [changingPasswordUser, setChangingPasswordUser] = useState(null);
   const [showUsers, setShowUsers,] = useState(false);
 
   // Current User
@@ -141,8 +143,7 @@ const Profile = () => {
   };
 
   const handleChangePassword = (selectedUser) => {
-    console.log("Change password:", selectedUser);
-    toast("Change Password will be added next.");
+    setChangingPasswordUser(selectedUser);
   };
 
   const handleToggleStatus = (selectedUser) => {
@@ -408,7 +409,15 @@ const Profile = () => {
               <ResetUserPassword
                 user={resettingUser}
                 onClose={() => setResettingUser(null)}
-                onReset={() => {setResettingUser(null);}}
+                onReset={() => { setResettingUser(null); }}
+              />
+            )}
+
+            {isAdmin && changingPasswordUser && (
+              <ChangeUserPassword
+                user={changingPasswordUser}
+                onClose={() => setChangingPasswordUser(null)}
+                onChanged={() => setChangingPasswordUser(null)}
               />
             )}
 
