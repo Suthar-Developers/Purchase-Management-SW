@@ -9,6 +9,7 @@ import useAuth from "../../hooks/useAuth";
 
 import CreateUser from "./users/CreateUser";
 import EditUser from "./users/EditUser";
+import ResetUserPassword from "./users/ResetUserPassword";
 import UserManagement from "../../components/users/UserManagement";
 
 
@@ -58,9 +59,8 @@ const Profile = () => {
   // Modals
   const [showCreateUser, setShowCreateUser,] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-
+  const [resettingUser, setResettingUser,] = useState(null);
   const [showUsers, setShowUsers,] = useState(false);
-
 
   // Current User
   const roleName = user?.role || "";
@@ -125,8 +125,6 @@ const Profile = () => {
   | These are intentionally placeholders for the next parts.
   | We'll connect:
   |
-  | Edit User
-  | Reset Password
   | Change Password
   | Activate / Deactivate
   | Delete
@@ -139,8 +137,7 @@ const Profile = () => {
   };
 
   const handleResetPassword = (selectedUser) => {
-    console.log("Reset password:", selectedUser);
-    toast("Reset Password will be added next.");
+    setResettingUser(selectedUser);
   };
 
   const handleChangePassword = (selectedUser) => {
@@ -406,6 +403,15 @@ const Profile = () => {
                 onUpdated={handleUserUpdated}
               />
             )}
+
+            {isAdmin && resettingUser && (
+              <ResetUserPassword
+                user={resettingUser}
+                onClose={() => setResettingUser(null)}
+                onReset={() => {setResettingUser(null);}}
+              />
+            )}
+
           </div>
         </div>
       )}
