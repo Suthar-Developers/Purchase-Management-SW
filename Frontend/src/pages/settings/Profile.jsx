@@ -13,6 +13,7 @@ import EditUser from "./users/EditUser";
 import ResetUserPassword from "./users/ResetUserPassword";
 import ChangeUserPassword from "./users/ChangeUserPassword";
 import ConfirmUserStatus from "./users/ConfirmUserStatus";
+import ConfirmDeleteUser from "./users/ConfirmDeleteUser";
 import UserManagement from "../../components/users/UserManagement";
 
 
@@ -58,13 +59,13 @@ const Profile = () => {
 
   const [preferences, setPreferences,] = useState(getStoredPreferences); //Preferences
 
-
   // Modals
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [resettingUser, setResettingUser] = useState(null);
   const [changingPasswordUser, setChangingPasswordUser] = useState(null);
   const [statusChangeUser, setStatusChangeUser] = useState(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [showUsers, setShowUsers] = useState(false);
 
   // Current User
@@ -121,20 +122,6 @@ const Profile = () => {
     setEditingUser(null);
   };
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | User Management Actions
-  |--------------------------------------------------------------------------
-  |
-  | These are intentionally placeholders for the next parts.
-  | We'll connect:
-  |
-  | Delete
-  |
-  |--------------------------------------------------------------------------
-  */
-
   const handleEditUser = (selectedUser) => {
     setEditingUser(selectedUser);
   };
@@ -162,8 +149,16 @@ const Profile = () => {
   };
 
   const handleDeleteUser = (selectedUser) => {
-    console.log("Delete user:", selectedUser);
-    toast("Delete action will be updated next.");
+    if (!selectedUser) return;
+
+    if (
+      Number(selectedUser.user_id) === Number(currentUserId)
+    ) {
+      toast.error("You cannot delete your own account while logged in.");
+      return;
+    }
+
+    setDeleteUserTarget(selectedUser);
   };
 
   // Status update handler
@@ -192,6 +187,35 @@ const Profile = () => {
       console.error("Failed to update user status:", error);
 
       toast.error(error.response?.data?.message || error.message || "Unable to update user status.");
+      throw error;
+    }
+  };
+
+  // Confirm delete handler
+  const handleConfirmDeleteUser = async () => {
+    if (!deleteUserTarget) {
+      return;
+    }
+
+    if (
+      Number(deleteUserTarget.user_id) === Number(currentUserId)
+    ) {
+      toast.error("You cannot delete your own account while logged in.");
+      setDeleteUserTarget(null);
+      return;
+    }
+
+    try {
+      const response = await deleteUser(deleteUserTarget.user_id);
+
+      toast.success(response?.message || "User deleted successfully.");
+
+      setDeleteUserTarget(null);
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+
+      toast.error(error.response?.data?.message || error.message || "Unable to delete user.");
+
       throw error;
     }
   };
@@ -467,6 +491,14 @@ const Profile = () => {
                 nextStatus={statusChangeUser.status === "Active" ? "Inactive" : "Active"}
                 onClose={() => setStatusChangeUser(null)}
                 onConfirm={handleConfirmStatusChange}
+              />
+            )}
+
+            {isAdmin && deleteUserTarget && (
+              <ConfirmDeleteUser
+                user={deleteUserTarget}
+                onClose={() => setDeleteUserTarget(null)}
+                onConfirm={handleConfirmDeleteUser}
               />
             )}
 
