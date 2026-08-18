@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Button from "../../components/common/Button";
 import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound, Users, X, } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { deleteUser, updateUserStatus } from "../../api/userApi";
 
 import { applyStoredTheme, getStoredPreferences, saveStoredPreferences, } from "../../utils/userPreferences";
 
@@ -11,6 +12,7 @@ import CreateUser from "./users/CreateUser";
 import EditUser from "./users/EditUser";
 import ResetUserPassword from "./users/ResetUserPassword";
 import ChangeUserPassword from "./users/ChangeUserPassword";
+import ConfirmUserStatus from "./users/ConfirmUserStatus";
 import UserManagement from "../../components/users/UserManagement";
 
 
@@ -58,11 +60,12 @@ const Profile = () => {
 
 
   // Modals
-  const [showCreateUser, setShowCreateUser,] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [resettingUser, setResettingUser,] = useState(null);
+  const [resettingUser, setResettingUser] = useState(null);
   const [changingPasswordUser, setChangingPasswordUser] = useState(null);
-  const [showUsers, setShowUsers,] = useState(false);
+  const [statusChangeUser, setStatusChangeUser] = useState(null);
+  const [showUsers, setShowUsers] = useState(false);
 
   // Current User
   const roleName = user?.role || "";
@@ -127,8 +130,6 @@ const Profile = () => {
   | These are intentionally placeholders for the next parts.
   | We'll connect:
   |
-  | Change Password
-  | Activate / Deactivate
   | Delete
   |
   |--------------------------------------------------------------------------
@@ -147,13 +148,52 @@ const Profile = () => {
   };
 
   const handleToggleStatus = (selectedUser) => {
-    console.log("Toggle status:", selectedUser);
-    toast("Activate / Deactivate will be added next.");
+    if (!selectedUser) return;
+
+    if (
+      Number(selectedUser.user_id) === Number(currentUserId) &&
+      selectedUser.status === "Active"
+    ) {
+      toast.error("You cannot deactivate your own account.");
+      return;
+    }
+
+    setStatusChangeUser(selectedUser);
   };
 
   const handleDeleteUser = (selectedUser) => {
     console.log("Delete user:", selectedUser);
     toast("Delete action will be updated next.");
+  };
+
+  // Status update handler
+  const handleConfirmStatusChange = async () => {
+    if (!statusChangeUser) {
+      return;
+    }
+
+    const nextStatus = statusChangeUser.status === "Active" ? "Inactive" : "Active";
+
+    try {
+      const response = await updateUserStatus(
+        statusChangeUser.user_id,
+        nextStatus
+      );
+
+      toast.success(
+        response.message ||
+        (
+          nextStatus === "Active" ? "User activated successfully." : "User deactivated successfully."
+        )
+      );
+
+      setStatusChangeUser(null);
+    } catch (error) {
+      console.error("Failed to update user status:", error);
+
+      toast.error(error.response?.data?.message || error.message || "Unable to update user status.");
+      throw error;
+    }
   };
 
   // Account Details
@@ -418,6 +458,15 @@ const Profile = () => {
                 user={changingPasswordUser}
                 onClose={() => setChangingPasswordUser(null)}
                 onChanged={() => setChangingPasswordUser(null)}
+              />
+            )}
+
+            {isAdmin && statusChangeUser && (
+              <ConfirmUserStatus
+                user={statusChangeUser}
+                nextStatus={statusChangeUser.status === "Active" ? "Inactive" : "Active"}
+                onClose={() => setStatusChangeUser(null)}
+                onConfirm={handleConfirmStatusChange}
               />
             )}
 
