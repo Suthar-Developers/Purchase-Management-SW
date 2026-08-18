@@ -19,7 +19,7 @@ const STATUS_OPTIONS = [
     { value: "Inactive", label: "Inactive" },
 ];
 
-const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggleStatus, onDeleteUser, }) => {
+const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggleStatus, onDeleteUser, onUsersLoaded }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -46,6 +46,12 @@ const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggl
                     ? response.users
                     : []
             );
+
+            onUsersLoaded?.(
+                Array.isArray(response?.users)
+                    ? response.users
+                    : []
+            );
         } catch (error) {
             console.error("Failed to load users:", error);
 
@@ -62,7 +68,7 @@ const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggl
 
     useEffect(() => {
         loadUsers();
-    }, [loadUsers, onEditUser]);
+    }, [loadUsers, onEditUser, onToggleStatus]);
 
     // Close action menu when clicking outside
     useEffect(() => {
@@ -125,9 +131,15 @@ const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggl
         Boolean(statusFilter);
 
     // Action handler
-    const handleAction = (callback, user) => {
+    const handleAction = async (callback, user) => {
         setOpenActionId(null);
-        callback?.(user);
+        try {
+            await callback?.(user);
+            await loadUsers(true);
+        } catch (error) {
+            // Parent already handles the error/toast.
+            console.error("User action failed:", error);
+        }
     };
 
     return (
@@ -421,10 +433,7 @@ const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggl
                                                 type="button"
                                                 onClick={(event) => {
                                                     event.stopPropagation();
-
-                                                    setOpenActionId(
-                                                        (current) => current === user.user_id ? null : user.user_id
-                                                    );
+                                                    setOpenActionId((current) => current === user.user_id ? null : user.user_id);
                                                 }}
                                                 className="inline-grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                                                 aria-label={`Actions for ${user.username}`}
@@ -490,23 +499,23 @@ const UserManagement = ({ onEditUser, onResetPassword, onChangePassword, onToggl
 
             {/* Footer */}
             {!loading && filteredUsers.length > 0 && (
-                    <div className="flex flex-col gap-2 border-t border-slate-200 px-5 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 border-t border-slate-200 px-5 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
 
-                        <span>
-                            Showing{" "}
-                            <strong className="text-slate-700">
-                                {filteredUsers.length}
-                            </strong>{" "}
-                            of{" "}
-                            <strong className="text-slate-700">
-                                {users.length}
-                            </strong>{" "}
-                            users
-                        </span>
+                    <span>
+                        Showing{" "}
+                        <strong className="text-slate-700">
+                            {filteredUsers.length}
+                        </strong>{" "}
+                        of{" "}
+                        <strong className="text-slate-700">
+                            {users.length}
+                        </strong>{" "}
+                        users
+                    </span>
 
-                        <span>Search and filters apply instantly.</span>
-                    </div>
-                )}
+                    <span>Search and filters apply instantly.</span>
+                </div>
+            )}
         </section>
     );
 };
