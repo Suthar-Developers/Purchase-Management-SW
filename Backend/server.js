@@ -9,6 +9,7 @@ const purchaseOrderRoute = require('./routes/purchaseOrderRoute')
 const reportRoute = require('./routes/reportRoute')
 const authRoute = require('./routes/authRoute')
 const userRoute = require('./routes/userRoute')
+const materialsRoute = require('./routes/materialsRoute')
 
 const app = express()
 const port = 3000;
@@ -40,6 +41,7 @@ app.use('/api', purchaseOrderRoute)
 app.use('/api', reportRoute)
 app.use('/api', authRoute)
 app.use('/api', userRoute)
+app.use('/api', materialsRoute)
 
 app.listen(port, () => {
     console.log(`Your server is running on ${port}`)
