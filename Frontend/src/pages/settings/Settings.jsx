@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Package, ChevronRight, Plus, MoreVertical, ListSortAscending, Ruler, PocketKnife } from "lucide-react";
+import { Package, ChevronRight, Plus, ListSortAscending, Ruler, PocketKnife } from "lucide-react";
 import { useNavigate } from 'react-router-dom'
-import { fetchMaterialsList } from '../../api/materialListApi';
+import { fetchMaterialsList, fetchCategoryList } from '../../api/materialListApi';
 
 const Settings = () => {
     const navigate = useNavigate();
 
     const [materialData, setMaterialData] = useState({
-        totalMaterials: []
+        totalMaterials: [],
+        totalCategories: []
     })
     const [lastUpdated, setLastUpdated] = useState('')
 
     const getMaterialsList = async () => {
         try {
             const data = await fetchMaterialsList();
-            setMaterialData({ totalMaterials: Array.isArray(data) ? data : [] });
+            setMaterialData((prev) => ({
+                ...prev,
+                totalMaterials: Array.isArray(data) ? data : []
+            }));
             setLastUpdated(
                 new Date().toLocaleTimeString("en-IN", {
                     hour: "2-digit",
@@ -28,10 +32,37 @@ const Settings = () => {
         }
     };
 
-    useEffect(() => { getMaterialsList(); }, []);
+    const getCategoryList = async () => {
+        try {
+            const data = await fetchCategoryList();
+            setMaterialData((prev) => ({
+                ...prev,
+                totalCategories: Array.isArray(data) ? data : []
+            }));
+            setLastUpdated(
+                new Date().toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                })
+            );
+        } catch (error) {
+            console.error("Failed to fetch categories:", error);
+            setMaterialData({ totalCategories: [] });
+        }
+    };
+
+    useEffect(() => { 
+        getMaterialsList();
+        getCategoryList(); 
+    }, []);
 
     const openMaterialsPage = () => {
         navigate("/materials")
+    }
+
+    const openCategoryPage = () => {
+        navigate("/material-categories")
     }
 
     const categories = [
@@ -56,9 +87,10 @@ const Settings = () => {
             id: 3,
             name: "Categories",
             description: "Manage all material categories",
-            subPart: 15,
+            subPart: materialData.totalCategories.length,
             subPartDescription: "Categories",
             icon: <ListSortAscending className='text-blue-700' size={22} />,
+            onClick: openCategoryPage
         },
     ];
 
