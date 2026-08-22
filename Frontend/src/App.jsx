@@ -18,6 +18,7 @@ import Reports from './pages/reports/Reports'
 import Settings from './pages/settings/Settings'
 import Materials from './pages/settings/materials/Materials'
 import Categories from './pages/settings/materials/Categories'
+import Units from './pages/settings/materials/Units'
 import Profile from './pages/profile/Profile'
 import RoleGuard from "./auth/RoleGuard";
 import Unauthorized from "./pages/errors/Unauthorized";
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="settings" element={<Settings />} />
             <Route path="materials" element={<Materials />} />
             <Route path="material-categories" element={<Categories />} />
+            <Route path="material-units" element={<Units />} />
             <Route path="profile" element={<Profile />} />
             
             <Route path="/create-user"

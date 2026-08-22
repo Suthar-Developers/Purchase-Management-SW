@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Package, ChevronRight, Plus, ListSortAscending, Ruler, PocketKnife } from "lucide-react";
 import { useNavigate } from 'react-router-dom'
-import { fetchMaterialsList, fetchCategoryList } from '../../api/materialListApi';
+import { fetchMaterialsList, fetchCategoryList, fetchUnitList } from '../../api/materialListApi';
 
 const Settings = () => {
     const navigate = useNavigate();
 
     const [materialData, setMaterialData] = useState({
         totalMaterials: [],
-        totalCategories: []
+        totalCategories: [],
+        totalUnits: []
     })
     const [lastUpdated, setLastUpdated] = useState('')
 
@@ -28,7 +29,11 @@ const Settings = () => {
             );
         } catch (error) {
             console.error("Failed to fetch materials:", error);
-            setMaterialData({ totalMaterials: [] });
+
+            setMaterialData((prev) => ({
+                ...prev,
+                totalMaterials: []
+            }));
         }
     };
 
@@ -48,13 +53,42 @@ const Settings = () => {
             );
         } catch (error) {
             console.error("Failed to fetch categories:", error);
-            setMaterialData({ totalCategories: [] });
+
+            setMaterialData((prev) => ({
+                ...prev,
+                totalCategories: []
+            }));
+        }
+    };
+
+    const getUnitList = async () => {
+        try {
+            const data = await fetchUnitList();
+            setMaterialData((prev) => ({
+                ...prev,
+                totalUnits: Array.isArray(data) ? data : []
+            }));
+            setLastUpdated(
+                new Date().toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                })
+            );
+        } catch (error) {
+            console.error("Failed to fetch units:", error);
+
+            setMaterialData((prev) => ({
+                ...prev,
+                totalUnits: []
+            }));
         }
     };
 
     useEffect(() => { 
         getMaterialsList();
         getCategoryList(); 
+        getUnitList(); 
     }, []);
 
     const openMaterialsPage = () => {
@@ -63,6 +97,10 @@ const Settings = () => {
 
     const openCategoryPage = () => {
         navigate("/material-categories")
+    }
+
+    const openUnitPage = () => {
+        navigate("/material-units")
     }
 
     const categories = [
@@ -79,9 +117,10 @@ const Settings = () => {
             id: 2,
             name: "Units",
             description: "Manage all material units",
-            subPart: 20,
+            subPart: materialData.totalUnits.length,
             subPartDescription: "Units",
             icon: <Ruler className='text-green-700' size={22} />,
+            onClick: openUnitPage
         },
         {
             id: 3,
