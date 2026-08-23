@@ -10,6 +10,16 @@ export const fetchProjects = async () => {
     }
 }
 
+export const createProject = async (data) => {
+    try {
+        const res = await api.post("/createProject", data)
+        return unwrap(res)
+    } catch (error) {
+        console.error("Error creating project", error)
+        throw error
+    }
+}
+
 export const updateProject = async (id, data) => {
     try {
         const res = await api.put(`/projects/${id}`, data)

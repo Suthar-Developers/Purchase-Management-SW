@@ -5,8 +5,13 @@ import VendorCreate from '../../components/models/VendorCreate'
 import VendorView from '../../components/models/VendorView'
 import { exportPagePdf } from '../../utils/pagePdfExport'
 import SearchInput from "../../components/common/SearchInput";
+import useAuth from '../../hooks/useAuth';
+import { hasPermission } from '../../utils/permissions';
 
 const Vendors = () => {
+    const { user } = useAuth()
+    const canCreate = hasPermission(user, 'vendors', 'create')
+    const canEdit = hasPermission(user, 'vendors', 'edit')
     const [isModelOpen, setIsModelOpen] = useState(false)
     const [vendors, setVendors] = useState([])
     const [selectedVendors, setSelectedVendors] = useState(null)
@@ -121,7 +126,7 @@ const Vendors = () => {
 
                     <Button icon={<i className="fa-solid fa-download"></i>} onClick={downloadVendorsPdf} className='h-9 w-12 rounded-lg border border-slate-300 hover:bg-slate-200 hover:cursor-pointer'/>
                     
-                    <Button lable='+ Add' className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel}/>
+                    {canCreate && <Button lable='+ Add' className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel}/>}
                 </div>
 
                 <div className='flex-1 overflow-auto rounded-lg'>
@@ -193,7 +198,7 @@ const Vendors = () => {
                             <div className='w-1/4 text-center'>{formatDate(vendor.updated_at)}</div>
                             <div className='flex w-1/4 justify-center'>
                                 <Button onClick={() => openView(vendor)} className="text-blue-700" icon={<i className="fa-notdog fa-solid fa-eye mr-3 hover:cursor-pointer hover:text-green-600 hover:scale-110"></i>} />
-                                <Button onClick={() => handleEdit(vendor)} className="text-green-600" icon={<i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i>} />
+                                {canEdit && <Button onClick={() => handleEdit(vendor)} className="text-green-600" icon={<i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i>} />}
                             </div>
                         </div>
                     ))}

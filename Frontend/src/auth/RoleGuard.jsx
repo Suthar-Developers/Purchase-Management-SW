@@ -2,8 +2,9 @@ import { Navigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import PageLoader from "../components/common/PageLoader";
 import { isRoleAllowed } from "../utils/roles";
+import { hasPermission } from "../utils/permissions";
 
-const RoleGuard = ({ roles = [], children }) => {
+const RoleGuard = ({ roles = [], permission, children }) => {
     const { user, loading, isAuthenticated } = useAuth();
     const location = useLocation();
 
@@ -23,15 +24,10 @@ const RoleGuard = ({ roles = [], children }) => {
         );
     }
 
-    // No roles specified = allow access
-    if (roles.length === 0) {
-        return children;
-    }
+    const hasRole = roles.length === 0 || isRoleAllowed(user?.role, roles);
+    const hasRequiredPermission = !permission || hasPermission(user, permission.module, permission.action);
 
-    // Uses the shared role helper so id 1 and name "Admin" are treated the same.
-    const hasRole = isRoleAllowed(user?.role, roles);
-
-    if (!hasRole) {
+    if (!hasRole || !hasRequiredPermission) {
         return (
             <Navigate
                 to="/unauthorized"

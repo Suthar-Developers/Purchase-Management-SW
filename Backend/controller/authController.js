@@ -1,6 +1,7 @@
 const authService = require("../services/authService");
 const refreshService = require("../services/refreshService");
 const logoutService = require("../services/logoutService")
+const { getEffectivePermissionsForUser } = require("../services/permissionService");
 
 const login = async (req, res) => {
     try {
@@ -19,14 +20,18 @@ const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
+        const permissions = await getEffectivePermissionsForUser(user);
+
         return res.json({
             message: "Login successful",
             accessToken,
             user: {
                 id: user.user_id,
+                user_id: user.user_id,
                 full_name: user.full_name,
                 username: user.username,
-                role: user.role
+                role: user.role,
+                permissions
             }
         })
 
@@ -55,14 +60,18 @@ const refresh = async (req, res) => {
             }
         );
 
+        const permissions = await getEffectivePermissionsForUser(response.user);
+
         return res.json({
             accessToken: response.accessToken,
 
             user: {
                 id: response.user.user_id,
+                user_id: response.user.user_id,
                 username: response.user.username,
                 full_name: response.user.full_name,
-                role: response.user.role
+                role: response.user.role,
+                permissions
             }
         });
     }
@@ -101,13 +110,17 @@ const logout = async (req, res) => {
 
 const me = async (req, res) => {
     try {
+        const permissions = await getEffectivePermissionsForUser(req.user);
+
         return res.status(200).json({
             success: true,
             user: {
                 user_id: req.user.user_id,
+                id: req.user.user_id,
                 username: req.user.username,
                 full_name: req.user.full_name,
                 role: req.user.role,
+                permissions,
             },
         });
     } catch (err) {

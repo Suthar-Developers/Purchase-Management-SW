@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
+const { PERMISSION_MODULES } = require('../constants/permissions');
+const { getEffectivePermissionsForUser, getUserPermissions, saveUserPermissions } = require('../services/permissionService');
 
 // Password validation
 
@@ -82,7 +84,10 @@ const createUser = async (req, res) => {
 
         const values = [fullName, username, hashedPassword, role];
 
-        await db.query(sql, values);
+        const [result] = await db.query(sql, values);
+
+        const defaultPermissions = await getEffectivePermissionsForUser({ user_id: result.insertId, role });
+        await saveUserPermissions(result.insertId, defaultPermissions);
 
         return res.status(201).json({
             success: true,
@@ -117,6 +122,75 @@ const getAllUsers = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Server error"
+        });
+    }
+};
+
+const getPermissionModules = async (req, res) => {
+    return res.status(200).json({
+        success: true,
+        modules: PERMISSION_MODULES,
+    });
+};
+
+const getUserPermissionDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const details = await getUserPermissions(id);
+
+        if (!details) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            ...details,
+            modules: PERMISSION_MODULES,
+        });
+    } catch (error) {
+        console.error("Get user permissions error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error.",
+        });
+    }
+};
+
+const updateUserPermissions = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { permissions } = req.body;
+
+        const [users] = await db.query(
+            `SELECT user_id
+             FROM users
+             WHERE user_id = ?
+             LIMIT 1`,
+            [id]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+        }
+
+        const savedPermissions = await saveUserPermissions(id, permissions);
+
+        return res.status(200).json({
+            success: true,
+            message: "User permissions updated successfully.",
+            permissions: savedPermissions,
+        });
+    } catch (error) {
+        console.error("Update user permissions error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error.",
         });
     }
 };
@@ -474,4 +548,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { createUser, getAllUsers, updateUser, updateUserStatus, resetUserPassword, changeUserPassword, deleteUser };
+module.exports = { createUser, getAllUsers, getPermissionModules, getUserPermissionDetails, updateUserPermissions, updateUser, updateUserStatus, resetUserPassword, changeUserPassword, deleteUser };

@@ -69,3 +69,33 @@ export const deleteUser = async (id) => {
         throw error
     }
 }
+
+export const getPermissionModules = async () => {
+    try {
+        const res = await api.get('/permission-modules')
+        return unwrap(res)
+    } catch (error) {
+        console.error("Failed to load permission modules", error)
+        throw error
+    }
+}
+
+export const getUserPermissions = async (userId) => {
+    try {
+        const res = await api.get(`/users/${userId}/permissions`)
+        return unwrap(res)
+    } catch (error) {
+        console.error("Failed to load user permissions", error)
+        throw error
+    }
+}
+
+export const updateUserPermissions = async (userId, permissions) => {
+    try {
+        const response = await api.put(`/users/${userId}/permissions`, { permissions });
+        return unwrap(response);
+    } catch (error) {
+        console.error("Failed to update user permissions:", error);
+        throw error;
+    }
+};
