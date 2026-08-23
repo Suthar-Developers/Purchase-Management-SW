@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Package, ChevronRight, Plus, ListSortAscending, Ruler, PocketKnife } from "lucide-react";
+import { Package, ChevronRight, ArrowDownToLine, ListSortAscending, Ruler, PocketKnife } from "lucide-react";
 import { useNavigate } from 'react-router-dom'
 import { fetchMaterialsList, fetchCategoryList, fetchUnitList } from '../../api/materialListApi';
 
@@ -170,9 +170,9 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <button className="rounded-lg bg-blue-600 p-2 text-white transition hover:bg-blue-700">
-                            <Plus size={18} />
-                        </button>
+                        <div className="p-3 ">
+                            <ArrowDownToLine size={22} />
+                        </div>
                     </div>
 
                     {/* Category List */}
