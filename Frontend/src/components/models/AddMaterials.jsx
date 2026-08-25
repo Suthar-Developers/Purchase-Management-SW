@@ -1,26 +1,70 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Button from "../common/Button"
+import { fetchMaterialsList, fetchUnitList } from "../../api/materialListApi";
 
 const AddMaterials = ({ onClose, onSave }) => {
 
+  const [materialsList, setMaterialsList] = useState([]);
+  const [unitList, setUnitList] = useState([]);
+
   const [form, setForm] = useState({
     material: "",
-    specification: "",
-    make: "",
-    size: "",
-    thickness: "",
-    qty: "",
     unit: "",
-    isNtItem: "No",
-    boqRef: "",
-    scope: "Our Scope",
     category: "",
-    deliverBefore: "",
+    qty: "",
+    deliverBefore: ""
   });
 
+  const getMaterialList = async () => {
+      try {
+        const data = await fetchMaterialsList();
+  
+        setMaterialsList(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch materials:", error);
+        setMaterialsList([]);
+      }
+    };
+  
+    const getUnitList = async () => {
+      try {
+        const data = await fetchUnitList();
+  
+        setUnitList(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch units:", error);
+        setUnitList([]);
+      }
+    };
+  
+    useEffect(() => {
+      getMaterialList();
+      getUnitList();
+    }, []);
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+    const { name, value } = e.target;
+
+    // When material changes
+    if (name === "material") {
+      const selectedMaterial = materialsList.find(
+        (material) => material.material_name === value
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        material: value,
+        category: selectedMaterial?.material_category || "",
+      }));
+
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = () => {
     onSave(form);
@@ -34,36 +78,40 @@ const AddMaterials = ({ onClose, onSave }) => {
         </div>
 
         <div className="p-4 grid grid-cols-2 gap-4">
-          <input name="material" placeholder="Material" className="input-line" onChange={handleChange} required/>
-          <input name="specification" placeholder="Specification" className="input-line" onChange={handleChange}/>
-          <input name="make" placeholder="Make" className="input-line" onChange={handleChange}/>
-          <input name="size" placeholder="Size" className="input-line" onChange={handleChange} required/>
-          <input name="thickness" placeholder="Thickness" className="input-line" onChange={handleChange}/>
+          <select
+            name="material"
+            className="w-full input-line"
+            onChange={handleChange}
+            value={form.material}
+            required
+          >
+            <option value="" disabled>Select Material</option>
+            {materialsList.map((m) => (
+              <option key={m.material_id} value={m.material_name}>
+                {m.material_name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            name="unit"
+            className="w-full input-line"
+            onChange={handleChange}
+            value={form.unit}
+            required
+          >
+            <option value="" disabled>Select Unit</option>
+            {unitList.map((u) => (
+              <option key={u.material_unit_id} value={u.material_unit}>
+                {u.material_unit}
+              </option>
+            ))}
+          </select>
+
+          <input type="text" name="category" className="input-line" placeholder="Category" onChange={handleChange} value={form.category} readOnly required />
+
           <input name="qty" placeholder="Qty Required" className="input-line" onChange={handleChange} required/>
-          <input name="unit" placeholder="Unit" className="input-line" onChange={handleChange} required/>
-          <div>
-            <label className="text-xs text-blue-700 font-semibold" htmlFor="isNtItem">Is NT Item</label>
-            <select className="input-line" name="isNtItem" onChange={handleChange} required>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
-          <input name="boqRef" placeholder="Select BOQ Reference No" className="input-line" onChange={handleChange}/>
-          <div>
-            <label className="text-xs text-blue-700 font-semibold" htmlFor="scope">Scope</label>
-            <select className="input-line" name="scope" onChange={handleChange} required>
-              <option value="Our Scope">Our Scope</option>
-              <option value="Client Scope">Client Scope</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-blue-700 font-semibold" htmlFor="category">Category</label>
-            <select className="input-line" name="category" onChange={handleChange} required>
-              <option>Select Category</option>
-              <option value="Ply Board">Ply Board</option>
-              <option value="Screw">Screw</option>
-            </select>
-          </div>
+
           <div>
             <label className="text-xs text-blue-700 font-semibold" htmlFor="deliveryDate">Deliver Before</label>
             <input type="date" name="deliverBefore" className="input-line" onChange={handleChange}/>
