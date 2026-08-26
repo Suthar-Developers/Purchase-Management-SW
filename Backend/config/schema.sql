@@ -48,7 +48,6 @@ CREATE TABLE vendors (
 CREATE TABLE purchase_request (
     request_id INT PRIMARY KEY NOT NULL UNIQUE KEY AUTO_INCREMENT,
     project_id INT,
-    deliverBefore DATE,
     contactPerson VARCHAR(100),
     contactInfo VARCHAR(100),
     requestStatus ENUM("Approved", "Pending", "Partially Approved", "PO Drafted", "Rejected", "Requested") DEFAULT 'Requested',
@@ -59,16 +58,10 @@ CREATE TABLE materials (
     material_id INT PRIMARY KEY NOT NULL UNIQUE KEY AUTO_INCREMENT,
     request_id INT,
     material VARCHAR(200),
-    specification VARCHAR(500),
-    make VARCHAR(100),
-    size VARCHAR(50),
-    thickness VARCHAR(50),
     qty VARCHAR(50),
     unit VARCHAR(100),
-    isNtItem VARCHAR(10),
-    boqRef VARCHAR(100),
-    scope VARCHAR(20),
     category VARCHAR(100),
+    deliverBefore DATE,
     materialStatus ENUM("Approved", "Pending", "Rejected", 'Requested') DEFAULT 'Requested',
     created_m_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
