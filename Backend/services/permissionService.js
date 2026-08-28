@@ -15,18 +15,56 @@ const getSavedPermissionRows = async (userId) => {
     return rows;
 };
 
+const getSavedRolePermissionRows = async (role) => {
+    const [rows] = await db.query(
+        `SELECT module_key, action_key, can_access
+         FROM role_permissions
+         WHERE LOWER(role_name) = LOWER(?)`,
+        [String(role || "").trim()]
+    );
+
+    return rows;
+};
+
+const mergePermissions = (...permissionSets) => {
+    const merged = normalizePermissions();
+
+    permissionSets.forEach((permissionSet) => {
+        const normalized = normalizePermissions(permissionSet);
+
+        Object.entries(normalized).forEach(([moduleKey, actions]) => {
+            Object.entries(actions).forEach(([actionKey, allowed]) => {
+                merged[moduleKey][actionKey] = Boolean(merged[moduleKey][actionKey] || allowed);
+            });
+        });
+    });
+
+    return merged;
+};
+
+const getRolePermissions = async (role) => {
+    if (isAdminRole(role)) {
+        return normalizePermissions(getRoleDefaultPermissions("Admin"));
+    }
+
+    const rows = await getSavedRolePermissionRows(role);
+
+    if (rows.length === 0) {
+        return normalizePermissions(getRoleDefaultPermissions(role));
+    }
+
+    return rowsToPermissions(rows);
+};
+
 const getEffectivePermissionsForUser = async (user) => {
     if (isAdminRole(user?.role)) {
         return normalizePermissions(getRoleDefaultPermissions("Admin"));
     }
 
-    const rows = await getSavedPermissionRows(user.user_id);
+    const rolePermissions = await getRolePermissions(user.role);
+    const userExtraPermissions = rowsToPermissions(await getSavedPermissionRows(user.user_id));
 
-    if (rows.length === 0) {
-        return normalizePermissions(getRoleDefaultPermissions(user.role));
-    }
-
-    return rowsToPermissions(rows);
+    return mergePermissions(rolePermissions, userExtraPermissions);
 };
 
 const getUserPermissions = async (userId) => {
@@ -43,16 +81,50 @@ const getUserPermissions = async (userId) => {
     }
 
     const savedRows = await getSavedPermissionRows(userId);
-    const hasCustomPermissions = savedRows.length > 0;
-    const permissions = hasCustomPermissions
-        ? rowsToPermissions(savedRows)
-        : await getEffectivePermissionsForUser(users[0]);
+    const rolePermissions = await getRolePermissions(users[0].role);
+    const extraPermissions = rowsToPermissions(savedRows);
+    const permissions = mergePermissions(rolePermissions, extraPermissions);
 
     return {
         user: users[0],
         permissions,
-        hasCustomPermissions,
+        rolePermissions,
+        extraPermissions,
+        hasCustomPermissions: savedRows.length > 0,
     };
+};
+
+const saveRolePermissions = async (role, permissions = {}) => {
+    const normalized = normalizePermissions(permissions);
+    const connection = await db.getConnection();
+
+    try {
+        await connection.beginTransaction();
+        await connection.query("DELETE FROM role_permissions WHERE LOWER(role_name) = LOWER(?)", [String(role || "").trim()]);
+
+        const rows = [];
+        Object.entries(normalized).forEach(([moduleKey, actions]) => {
+            Object.entries(actions).forEach(([actionKey, allowed]) => {
+                rows.push([role, moduleKey, actionKey, allowed ? 1 : 0]);
+            });
+        });
+
+        if (rows.length > 0) {
+            await connection.query(
+                `INSERT INTO role_permissions (role_name, module_key, action_key, can_access)
+                 VALUES ?`,
+                [rows]
+            );
+        }
+
+        await connection.commit();
+        return normalized;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
 
 const saveUserPermissions = async (userId, permissions = {}) => {
@@ -99,8 +171,10 @@ const userHasPermission = async (user, moduleKey, actionKey = "view") => {
 
 module.exports = {
     getEffectivePermissionsForUser,
+    getRolePermissions,
     getUserPermissions,
     isAdminRole,
+    saveRolePermissions,
     saveUserPermissions,
     userHasPermission,
 };

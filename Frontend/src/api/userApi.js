@@ -90,6 +90,26 @@ export const getUserPermissions = async (userId) => {
     }
 }
 
+export const getRolePermissions = async (role) => {
+    try {
+        const res = await api.get(`/roles/${encodeURIComponent(role)}/permissions`)
+        return unwrap(res)
+    } catch (error) {
+        console.error("Failed to load role permissions", error)
+        throw error
+    }
+}
+
+export const updateRolePermissions = async (role, permissions) => {
+    try {
+        const response = await api.put(`/roles/${encodeURIComponent(role)}/permissions`, { permissions });
+        return unwrap(response);
+    } catch (error) {
+        console.error("Failed to update role permissions:", error);
+        throw error;
+    }
+};
+
 export const updateUserPermissions = async (userId, permissions) => {
     try {
         const response = await api.put(`/users/${userId}/permissions`, { permissions });

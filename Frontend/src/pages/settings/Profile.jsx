@@ -13,6 +13,7 @@ import EditUser from "./users/EditUser";
 import ResetUserPassword from "./users/ResetUserPassword";
 import ChangeUserPassword from "./users/ChangeUserPassword";
 import EditUserPermissions from "./users/EditUserPermissions";
+import EditRolePermissions from "./users/EditRolePermissions";
 import ConfirmUserStatus from "./users/ConfirmUserStatus";
 import ConfirmDeleteUser from "./users/ConfirmDeleteUser";
 import UserManagement from "../../components/users/UserManagement";
@@ -65,6 +66,7 @@ const Profile = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [resettingUser, setResettingUser] = useState(null);
   const [permissionsUser, setPermissionsUser] = useState(null);
+  const [showRolePermissions, setShowRolePermissions] = useState(false);
   const [changingPasswordUser, setChangingPasswordUser] = useState(null);
   const [statusChangeUser, setStatusChangeUser] = useState(null);
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
@@ -285,7 +287,7 @@ const Profile = () => {
             <Button
               lable="Assign Permissions"
               type="button"
-              onClick={() => setShowUsers(true)}
+              onClick={() => setShowRolePermissions(true)}
               className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-4 text-sm font-semibold text-cyan-800 shadow-sm transition hover:cursor-pointer hover:border-cyan-300 hover:bg-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               preIcon={<KeyRound size={18} />}
             />
@@ -423,6 +425,12 @@ const Profile = () => {
           onClose={
             handleCreateUserClose
           }
+        />
+      )}
+
+      {isAdmin && showRolePermissions && (
+        <EditRolePermissions
+          onClose={() => setShowRolePermissions(false)}
         />
       )}
 

@@ -22,12 +22,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-db.getConnection((err, connection) => {
-    if (err) {
-        console.log("Database connection error !")
-        return res.status(500).send("Database connection failed...")
-    }
-})
+db.getConnection()
+    .then((connection) => {
+        connection.release();
+    })
+    .catch((error) => {
+        console.error("Database connection error:", error.message);
+    });
+
+db.query(`
+    CREATE TABLE IF NOT EXISTS role_permissions (
+        permission_id INT AUTO_INCREMENT PRIMARY KEY,
+        role_name VARCHAR(100) NOT NULL,
+        module_key VARCHAR(100) NOT NULL,
+        action_key VARCHAR(50) NOT NULL,
+        can_access TINYINT(1) NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_role_permission (role_name, module_key, action_key)
+    )
+`).catch((error) => {
+    console.error("Unable to initialize role permissions table:", error);
+});
 
 db.query(`
     CREATE TABLE IF NOT EXISTS user_permissions (
