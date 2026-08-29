@@ -58,4 +58,41 @@ const getAllMaterials = async (req, res)=> {
 //     }
 // }
 
-module.exports = { newMaterial, getAllMaterials};
+const newCategory = async (req, res) => {
+    try {
+        const { material_category } = req.body
+
+        if (!material_category) {
+            return res.status(400).json({ message: "Required field is missing.." })
+        }
+
+        const sql = `
+        INSERT INTO category_list(material_category)
+        VALUES(?)
+        `;
+
+        const values = [material_category];
+
+        const [result] = await db.query(sql, values);
+
+        return res.status(201).json({ message: "New category created successfully.." })
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: "Server Error" })
+    }
+}
+
+const getAllCategories = async (req, res) => {
+    try {
+        const sql = "SELECT * FROM category_list ORDER BY LOWER(TRIM(material_category)) ASC"
+        const [rows] = await db.query(sql)
+
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" })
+    }
+}
+
+module.exports = { newMaterial, getAllMaterials, newCategory, getAllCategories };
