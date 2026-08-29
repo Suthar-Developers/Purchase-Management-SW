@@ -116,6 +116,17 @@ const SideNav = () => {
                         <span className='hidden truncate font-medium sm:inline'>Reports</span>
                     </Link>
 
+                    {/* Settings */}
+                    <Link
+                        to='/settings'
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/settings') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                    >
+                        <span className={`grid h-7 w-7 place-items-center rounded ${isActive('/settings') ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
+                            <i className="fa-solid fa-gear fa-xs"></i>
+                        </span>
+                        <span className='hidden truncate font-medium sm:inline'>Settings</span>
+                    </Link>
+
                 </div>
             </nav>
 
