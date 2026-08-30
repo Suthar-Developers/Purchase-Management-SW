@@ -139,7 +139,7 @@ const Categories = () => {
                         <ChevronLeft size={18} />
                     </button>
 
-                    <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Materials</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Settings</p>
                 </div>
 
                 <h1 className="text-2xl font-bold text-slate-900">Categories</h1>
