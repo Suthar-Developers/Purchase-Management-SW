@@ -39,3 +39,23 @@ export const fetchCategoryList = async () => {
         throw error
     }
 }
+
+export const AddNewUnit = async (data) => {
+    try {
+        const res = await api.post("/materials/add-material-unit", data)
+        return unwrap(res)
+    } catch (error) {
+        console.error("Error creating new unit", error)
+        throw error
+    }
+}
+
+export const fetchUnitList = async () => {
+    try {
+        const res = await api.get("/materials/material-unit-list")
+        return unwrap(res)
+    } catch (error) {
+        console.error("Error fetching unit list", error)
+        throw error
+    }
+}
