@@ -4,13 +4,14 @@ import { toast } from "react-hot-toast";
 import { ChevronLeft, FolderTree, Plus, Search, Pencil, RulerDimensionLine, ChevronLeft as PreviousIcon, ChevronRight as NextIcon } from "lucide-react";
 
 import Button from '../../../components/common/Button'
-import { AddNewMaterial as createMaterial, fetchMaterialsList } from '../../../api/materialListApi';
+import { AddNewMaterial as createMaterial, fetchMaterialsList, fetchCategoryList } from '../../../api/materialListApi';
 
 
 const Materials = () => {
   const navigate = useNavigate();
 
   const [materials, setMaterials] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
   const [searchMaterial, setSearchMaterial] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,8 +37,20 @@ const Materials = () => {
     }
   };
 
+  const getCategoryList = async () => {
+    try {
+      const data = await fetchCategoryList();
+
+      setCategoryList(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      setCategoryList([]);
+    }
+  };
+
   useEffect(() => {
     getMaterialList();
+    getCategoryList();
   }, []);
 
   // Input change
@@ -409,84 +422,68 @@ const Materials = () => {
           <form onSubmit={handleSubmit} className="p-5">
 
             {/* Material Name */}
-              <div>
-                <label htmlFor="material_name" className="mb-1 block text-xs font-semibold text-slate-700">
-                  Material Name
-                  <span className="ml-1 text-red-500">*</span>
-                </label>
+            <div>
+              <label htmlFor="material_name" className="mb-1 block text-xs font-semibold text-slate-700">
+                Material Name
+                <span className="ml-1 text-red-500">*</span>
+              </label>
 
-                <input
-                  id="material_name"
-                  type="text"
-                  name="material_name"
-                  value={form.material_name}
-                  onChange={handleChange}
-                  placeholder="Enter material name"
-                  disabled={isSubmitting}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  required
-                />
-              </div>
+              <input
+                id="material_name"
+                type="text"
+                name="material_name"
+                value={form.material_name}
+                onChange={handleChange}
+                placeholder="Enter material name"
+                disabled={isSubmitting}
+                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                required
+              />
+            </div>
 
             {/* Material Code */}
             <div className="mt-4">
-                <label htmlFor="material_code" className="mb-1 block text-xs font-semibold text-slate-700">
-                  Material Code
-                  <span className="ml-1 text-red-500">*</span>
-                </label>
+              <label htmlFor="material_code" className="mb-1 block text-xs font-semibold text-slate-700">
+                Material Code
+                <span className="ml-1 text-red-500">*</span>
+              </label>
 
-                <input
-                  id="material_code"
-                  type="text"
-                  name="material_code"
-                  value={form.material_code}
-                  onChange={handleChange}
-                  placeholder="Enter material code"
-                  disabled={isSubmitting}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  required
-                />
-              </div>
+              <input
+                id="material_code"
+                type="text"
+                name="material_code"
+                value={form.material_code}
+                onChange={handleChange}
+                placeholder="Enter material code"
+                disabled={isSubmitting}
+                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                required
+              />
+            </div>
 
             {/* Material Category */}
             <div className="mt-4">
-                <label htmlFor="material_category" className="mb-1 block text-xs font-semibold text-slate-700">
-                  Material Category
-                  <span className="ml-1 text-red-500">*</span>
-                </label>
+              <label htmlFor="material_category" className="mb-1 block text-xs font-semibold text-slate-700">
+                Material Category
+                <span className="ml-1 text-red-500">*</span>
+              </label>
 
-                <input
-                  id="material_category"
-                  type="text"
-                  name="material_category"
-                  value={form.material_category}
-                  onChange={handleChange}
-                  placeholder="Enter material category"
-                  disabled={isSubmitting}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  required
-                />
-              </div>
-
-            {/* Material Status */}
-            <div className="mt-4">
-                <label htmlFor="material_status" className="mb-1 block text-xs font-semibold text-slate-700">
-                  Material Status
-                  <span className="ml-1 text-red-500">*</span>
-                </label>
-
-                <input
-                  id="material_status"
-                  type="text"
-                  name="material_status"
-                  value={form.material_status}
-                  onChange={handleChange}
-                  placeholder="Enter material status"
-                  disabled={isSubmitting}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  required
-                />
-              </div>
+              <select
+                name="material_category"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                onChange={handleChange}
+                value={form.material_category}
+                disabled={isSubmitting}
+                required
+              >
+                <option value="" disabled>Select Category</option>
+                {categoryList.map((c) => (
+                  <option key={c.material_category_id} value={c.material_category}>
+                    {c.material_category}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Buttons */}
             <div className="mt-5 flex justify-end gap-2">
