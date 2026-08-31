@@ -13,7 +13,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
     project_id: "",
     contactPerson: "",
     contactInfo: "",
-    deliverBefore: "",
     requestStatus: "Requested"
   });
 
@@ -51,7 +50,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
         project_id: "",
         contactPerson: "",
         contactInfo: "",
-        deliverBefore: "",
         requestStatus: "Requested"
       });
       setMaterials([]);
@@ -104,11 +102,6 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
               <label className="text-xs text-gray-500">Contact No./Email</label>
               <input name="contactInfo" className="input-line" onChange={handleChange} value={form.contactInfo} required />
             </div>
-
-            <div>
-              <label className="text-xs text-gray-500">Deliver Before</label>
-              <input className="input-line" type="date" name="deliverBefore" value={form.deliverBefore} onChange={handleChange} required />
-            </div>
           </div>
 
           {/* TABLE */}
@@ -118,13 +111,10 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                 <tr>
                   <th className="p-3 text-left">#</th>
                   <th className="p-3 text-left">Material</th>
-                  <th className="p-3 text-left">Specification</th>
-                  <th className="p-3 text-left">Make</th>
+                  <th className="p-3 text-left">Unit</th>
                   <th className="p-3 text-left">Qty Required</th>
-                  <th className="p-3 text-left">Is NT Item</th>
-                  <th className="p-3 text-left">BOQ Ref No</th>
                   <th className="p-3 text-left">Category</th>
-                  <th className="p-3 text-left">Attachment</th>
+                  <th className="p-3 text-left">Deliver Before</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,13 +135,10 @@ const CreatePurchaseRequest = ({ onBack, onSave }) => {
                       <tr key={i} className="border-b hover:bg-gray-50">
                         <td className="p-3">{i + 1}</td>
                         <td className="p-3">{m.material}</td>
-                        <td className="p-3">{m.specification}</td>
-                        <td className="p-3">{m.make}</td>
+                        <td className="p-3">{m.unit}</td>
                         <td className="p-3">{m.qty}</td>
-                        <td className="p-3">{m.isNtItem}</td>
-                        <td className="p-3">{m.boqRef}</td>
                         <td className="p-3">{m.category}</td>
-                        <td className="p-3">📎</td>
+                        <td className="p-3">{m.deliverBefore}</td>
                       </tr>
                     )
                   })
