@@ -471,7 +471,7 @@ const Materials = () => {
 
               <select
                 name="material_category"
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm text-slate-800 outline-none transition hover:cursor-pointer focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
                 onChange={handleChange}
                 value={form.material_category}
                 disabled={isSubmitting}
@@ -488,8 +488,7 @@ const Materials = () => {
 
             {/* Buttons */}
             <div className="mt-5 flex justify-end gap-2">
-
-              <button
+              <Button
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => setForm({
@@ -498,16 +497,16 @@ const Materials = () => {
                   material_category: "",
                   material_status: "",
                 })}
-                className="rounded-lg bg-slate-100 px-5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Clear
-              </button>
+                className="rounded-lg bg-slate-100 px-5 py-2 text-xs font-medium text-slate-600 transition hover:cursor-pointer hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+              
+                lable="Clear"
+              />
 
               <Button
                 type="submit"
                 disabled={isSubmitting}
                 lable={isSubmitting ? "Adding..." : "Add Material"}
-                className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:cursor-pointer hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
           </form>
