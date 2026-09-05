@@ -147,7 +147,7 @@ const Units = () => {
             </div>
 
             {/* Main Content */}
-            <div className="grid min-h-0 h-[calc(100%-92px)] grid-cols-1 gap-5 xl:grid-cols-[1.4fr_0.6fr]">
+            <div className="grid min-h-0 h-[calc(100%-92px)] grid-cols-1 gap-5 xl:grid-cols-[1.1fr_0.9fr]">
 
                 {/* Units List */}
                 <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -190,8 +190,8 @@ const Units = () => {
 
                     {/* Table Header */}
                     <div className="mx-4 mt-4 shrink-0 flex items-center rounded-lg bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                        <div className="w-14 text-center">#</div>
-                        <div className="flex-1">Unit</div>
+                        <div className="w-20 text-center">#</div>
+                        <div className="pl-5 flex-1">Unit</div>
                         <div className="w-20 text-center">Action</div>
                     </div>
 
@@ -207,7 +207,7 @@ const Units = () => {
                                             className="group flex items-center border-b border-slate-100 px-4 py-3 text-sm transition hover:bg-slate-50"
                                         >
                                             {/* Serial Number */}
-                                            <div className="w-14 text-center text-xs font-medium text-slate-400">
+                                            <div className="w-20 text-center text-xs font-medium text-slate-400">
                                                 {serialNumber}
                                             </div>
 
