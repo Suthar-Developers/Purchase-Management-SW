@@ -370,21 +370,19 @@ const Units = () => {
                         </div>
 
                         <div className="mt-6 flex justify-end gap-2">
-
-                            <button
+                            <Button
                                 type="button"
                                 disabled={isSubmitting}
                                 onClick={() => setForm({ material_unit: "", })}
-                                className="rounded-lg bg-slate-100 px-5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Clear
-                            </button>
+                                lable="Clear"
+                                className="rounded-lg bg-slate-100 px-5 py-2 text-xs font-medium text-slate-600 transition hover:cursor-pointer hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
 
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
                                 lable={isSubmitting ? "Adding..." : "Add Unit"}
-                                className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:cursor-pointer hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                             />
                         </div>
                     </form>
