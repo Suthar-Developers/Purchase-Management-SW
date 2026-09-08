@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ChartPanel from '../../features/reports/components/ChartPanel'
 import EnterprisePanels from '../../features/reports/components/EnterprisePanels'
 import GlobalFilters from '../../features/reports/components/GlobalFilters'
@@ -12,7 +13,8 @@ import { reportColumns } from '../../features/reports/data/reportConfig'
 import { useReports } from '../../features/reports/hooks/useReports'
 import { copyTable, emailReport, exportCsv, exportExcel, exportPdf, printCurrentView, screenshotElement } from '../../features/reports/utils/exporters'
 
-const Reports = () => {
+const Reports = ({ view = 'reports' }) => {
+  const isAnalysis = view === 'analysis'
   // Main shell for the Reports module. Data is loaded by useReports.
   const dashboardRef = useRef(null)
   const [notice, setNotice] = useState('')
@@ -131,18 +133,23 @@ const Reports = () => {
       <div ref={dashboardRef} className="mx-auto w-full max-w-400 space-y-4">
         <header className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Enterprise ERP Dashboard</p>
-            <h1 className="text-xl font-bold tracking-normal text-slate-950 dark:text-white sm:text-2xl">Reports & Analytics</h1>
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Purchase intelligence</p>
+            <h1 className="text-xl font-bold tracking-normal text-slate-950 dark:text-white sm:text-2xl">{isAnalysis ? 'Analysis' : 'Reports'}</h1>
             <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
-              Procurement intelligence across requests, purchase orders, projects, vendors, items, cost, tax, delivery, approvals, and custom reports.
+              {isAnalysis ? 'Understand spend, supplier performance, approvals, and purchasing trends at a glance.' : 'Review, filter, export, and share detailed purchase records.'}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap xl:justify-end">
+            <Link to={isAnalysis ? '/reports' : '/analysis'} className="col-span-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-center text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200 sm:col-span-1">
+              <i className={`fa-solid ${isAnalysis ? 'fa-file-lines' : 'fa-chart-line'} mr-2`}></i>{isAnalysis ? 'Open Reports' : 'Open Analysis'}
+            </Link>
+          {!isAnalysis && <>
             {exportMenu.map(([label, type, icon]) => (
               <button key={label} onClick={() => handleExport(type)} className="min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
                 <i className={`fa-solid ${icon} mr-2`}></i>{label}
               </button>
             ))}
+          </>}
           </div>
         </header>
 
@@ -169,7 +176,7 @@ const Reports = () => {
           <LoadingSkeleton />
         ) : (
           <>
-            {widgets['KPI cards'] && <KpiGrid summary={summary} onSelect={handleKpiSelect} />}
+            {isAnalysis && widgets['KPI cards'] && <KpiGrid summary={summary} onSelect={handleKpiSelect} />}
 
             <div className="grid min-w-0 grid-cols-1 gap-4 2xl:grid-cols-[minmax(0,1fr)_340px]">
               <div className="min-w-0 space-y-4">
@@ -178,24 +185,27 @@ const Reports = () => {
                 ) : (
                   <>
                     {/* ReportWorkspace changes its content based on the selected report tab. */}
-                    <ReportWorkspace activeReport={activeReport} analytics={analytics} options={options} setFilters={setFilters} />
-                    {widgets.Charts && <ChartPanel analytics={analytics} overview={overview || report?.overview} />}
-                    {widgets.Tables && (
+                    {isAnalysis && <ReportWorkspace activeReport={activeReport} analytics={analytics} options={options} setFilters={setFilters} />}
+                    {isAnalysis && widgets.Charts && <ChartPanel analytics={analytics} overview={overview || report?.overview} />}
+                    {(!isAnalysis || widgets.Tables) && (
                       <ReportTable
                         rows={rows}
                         pagination={report?.table?.pagination}
                         filters={filters}
                         setFilters={setFilters}
                         onBulkExport={exportRows}
+                        reportTitle={activeModule?.title}
+                        reportCategory={activeModule?.category}
+                        activeReport={activeReport}
                       />
                     )}
                   </>
                 )}
               </div>
               <div className="min-w-0 space-y-4">
-                {widgets.Insights && <InsightsPanel insights={report?.insights || []} />}
+                {isAnalysis && widgets.Insights && <InsightsPanel insights={report?.insights || []} />}
                 {/* Drill-through buttons are quick links to related report tabs. */}
-                <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                {isAnalysis && <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <h3 className="mb-3 text-sm font-bold text-slate-950 dark:text-white">Drill-through Navigation</h3>
                   <div className="grid gap-2 text-xs">
                     {[
@@ -211,11 +221,11 @@ const Reports = () => {
                       </button>
                     ))}
                   </div>
-                </section>
+                </section>}
               </div>
             </div>
 
-            <EnterprisePanels
+            {isAnalysis && <EnterprisePanels
               preferences={preferences}
               widgets={widgets}
               setWidgets={setWidgets}
@@ -256,7 +266,7 @@ const Reports = () => {
                   notify(err?.response?.data?.message || 'Alert could not be saved')
                 }
               }}
-            />
+            />}
           </>
         )}
       </div>

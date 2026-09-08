@@ -18,17 +18,43 @@ const renderCell = (row, column, search) => {
   )
 }
 
-const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkExport }) => {
+const reportColumnPriority = {
+  'purchase-requests': ['po_status', 'projectName', 'order_date'],
+  'purchase-orders': ['po_status', 'order_date', 'projectName'],
+  projects: ['projectName', 'grand_total', 'items', 'quantity'],
+  vendors: ['vendorName', 'grand_total', 'average_rate'],
+  items: ['items', 'quantity', 'average_rate'],
+  costs: ['grand_total', 'total_amount', 'total_discount', 'total_gst'],
+  discounts: ['total_discount', 'grand_total', 'total_amount'],
+  rates: ['average_rate', 'total_amount', 'quantity'],
+  quantities: ['quantity', 'items', 'average_rate'],
+  'project-consumption': ['projectName', 'quantity', 'grand_total'],
+  'po-number': ['po_number', 'po_status', 'order_date'],
+  cities: ['city', 'state', 'grand_total'],
+  users: ['po_status', 'approvedBy', 'grand_total'],
+  approvals: ['po_status', 'order_date', 'grand_total'],
+  financials: ['grand_total', 'total_amount', 'total_gst', 'total_discount'],
+  taxes: ['total_gst', 'grand_total', 'total_amount'],
+  delivery: ['order_date', 'po_status', 'projectName'],
+}
+
+const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkExport, reportTitle = 'Purchase Report', reportCategory = 'Procurement', activeReport = 'purchase-orders' }) => {
   // Main paginated report table. Column visibility changes only affect the UI/export.
   const [visibleColumns, setVisibleColumns] = useState(() => reportColumns.map((column) => column.key))
   const [selectedRows, setSelectedRows] = useState([])
   const [density, setDensity] = useState('normal')
 
   // Recalculate visible columns only when user changes the column list.
-  const columns = useMemo(
-    () => reportColumns.filter((column) => visibleColumns.includes(column.key)),
-    [visibleColumns],
-  )
+  const columns = useMemo(() => {
+    const visible = reportColumns.filter((column) => visibleColumns.includes(column.key))
+    const priority = reportColumnPriority[activeReport] || []
+    const rank = new Map(priority.map((key, index) => [key, index]))
+    return visible.sort((left, right) => {
+      if (left.key === 'po_number') return -1
+      if (right.key === 'po_number') return 1
+      return (rank.get(left.key) ?? 999) - (rank.get(right.key) ?? 999)
+    })
+  }, [activeReport, visibleColumns])
 
   const selectedData = rows.filter((row) => selectedRows.includes(row.id))
   const allVisibleSelected = rows.length > 0 && rows.every((row) => selectedRows.includes(row.id))
@@ -38,8 +64,11 @@ const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkEx
     <section className="min-w-0 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex min-w-0 flex-col gap-3 border-b border-slate-200 p-3 dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between sm:p-4">
         <div className="min-w-0">
-          <h3 className="text-sm font-bold text-slate-950 dark:text-white">Enterprise Data Table</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Sticky header, sticky first column, sorting, search highlight, pagination, selection, bulk export, visibility controls.</p>
+          <div>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-blue-600 dark:text-blue-300">{reportCategory}</p>
+            <h3 className="text-sm font-bold text-slate-950 dark:text-white">{reportTitle}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Detailed records, sorting, search highlighting, pagination, selection, and export.</p>
+          </div>
         </div>
         <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap lg:justify-end">
           <select value={density} onChange={(event) => setDensity(event.target.value)} className="rounded-md border border-slate-300 bg-white px-2 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white">

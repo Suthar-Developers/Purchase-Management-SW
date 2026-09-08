@@ -10,6 +10,8 @@ const SideNav = () => {
 
     // Helper to check active route
     const isActive = (path) => location.pathname === path
+    const isReportsActive = location.pathname === '/reports'
+    const isAnalysisActive = location.pathname === '/analysis'
 
     // Smoothly close the dropdown when a different standalone route gets clicked
     useEffect(() => {
@@ -19,10 +21,10 @@ const SideNav = () => {
     }, [location.pathname, isPOActive])
 
     return (
-        <aside className='flex h-screen w-20 shrink-0 flex-col border-r border-slate-800 bg-slate-950 px-2 py-4 text-slate-300 shadow-xl sm:w-64 sm:px-3'>
-            <div className='mb-2 border-b border-slate-800 px-2 pb-2'>
-                <h1 className='text-center text-sm font-bold text-white sm:text-left sm:text-lg tracking-wide uppercase'>JRC Interiors</h1>
-                <p className='mt-1 hidden text-xs text-slate-400 sm:block'>Purchase workspace</p>
+        <aside className='app-sidebar flex h-screen w-20 shrink-0 flex-col border-r px-2 py-4 shadow-sm sm:w-64 sm:px-3'>
+            <div className='mb-2 border-b px-2 pb-2'>
+                <h1 className='text-center text-sm font-bold sm:text-left sm:text-lg tracking-wide uppercase'>JRC Interiors</h1>
+                <p className='mt-1 hidden text-xs sm:block'>Purchase workspace</p>
             </div>
 
             {/* Main Navigation items container */}
@@ -105,15 +107,25 @@ const SideNav = () => {
                         </div>
                     </div>
 
-                    {/* Reports */}
+                    {/* Reports and Analysis */}
                     <Link
                         to='/reports'
-                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/reports') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isReportsActive ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
-                        <span className={`grid h-7 w-7 place-items-center rounded ${isActive('/reports') ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
-                            <i className="fa-solid fa-square-poll-vertical text-xs"></i>
+                        <span className={`grid h-7 w-7 place-items-center rounded ${isReportsActive ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
+                            <i className="fa-solid fa-file-lines text-xs"></i>
                         </span>
                         <span className='hidden truncate font-medium sm:inline'>Reports</span>
+                    </Link>
+
+                    <Link
+                        to='/analysis'
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isAnalysisActive ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                    >
+                        <span className={`grid h-7 w-7 place-items-center rounded ${isAnalysisActive ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
+                            <i className="fa-solid fa-chart-line text-xs"></i>
+                        </span>
+                        <span className='hidden truncate font-medium sm:inline'>Analysis</span>
                     </Link>
 
                     {/* Settings */}

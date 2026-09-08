@@ -59,9 +59,9 @@ const Header = () => {
   };
 
   return (
-    <header className="relative flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-5 shadow-sm lg:px-8">
+    <header className="app-header relative flex min-h-16 items-center justify-between border-b px-5 shadow-sm lg:px-8">
       <div>
-        <h1 className="text-lg font-bold text-slate-950">Purchase Management</h1>
+        <h1 className="text-lg font-bold">Purchase Management</h1>
         <p className="text-xs text-slate-500">Projects, vendors, requests, and orders</p>
       </div>
 
