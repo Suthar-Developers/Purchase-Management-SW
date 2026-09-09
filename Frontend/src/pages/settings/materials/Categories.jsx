@@ -131,13 +131,13 @@ const Categories = () => {
             {/* Page Header */}
             <div className="mb-3 shrink-0">
                 <div className="flex items-center gap-1">
-                    <button
+                    <Button
                         type="button"
                         onClick={() => navigate(-1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white hover:text-slate-900"
-                    >
-                        <ChevronLeft size={18} />
-                    </button>
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white hover:cursor-pointer hover:text-slate-900"
+
+                        icon={<ChevronLeft size={18} />}
+                    />
 
                     <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Settings</p>
                 </div>
