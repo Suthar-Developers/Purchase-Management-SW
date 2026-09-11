@@ -21,10 +21,10 @@ const SideNav = () => {
     }, [location.pathname, isPOActive])
 
     return (
-        <aside className='app-sidebar flex h-screen w-20 shrink-0 flex-col border-r px-2 py-4 shadow-sm sm:w-64 sm:px-3'>
-            <div className='mb-2 border-b px-2 pb-2'>
-                <h1 className='text-center text-sm font-bold sm:text-left sm:text-lg tracking-wide uppercase'>JRC Interiors</h1>
-                <p className='mt-1 hidden text-xs sm:block'>Purchase workspace</p>
+        <aside className='flex h-screen w-20 shrink-0 flex-col border-r border-slate-800 bg-slate-950 px-2 py-4 text-slate-300 shadow-xl sm:w-64 sm:px-3'>
+            <div className='mb-2 border-b border-slate-800 px-2 pb-2'>
+                <h1 className='text-center text-sm font-bold text-white sm:text-left sm:text-lg tracking-wide uppercase'>JRC Interiors</h1>
+                <p className='mt-1 hidden text-xs text-slate-400 sm:block'>Purchase workspace</p>
             </div>
 
             {/* Main Navigation items container */}

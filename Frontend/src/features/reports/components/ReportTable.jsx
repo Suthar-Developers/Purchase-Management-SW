@@ -135,8 +135,8 @@ const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkEx
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.id} className="group hover:bg-blue-50 dark:hover:bg-slate-800">
-                <td className="sticky left-0 z-10 border-b border-slate-100 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+              <tr key={row.id} className="report-table-row group">
+                <td className="report-sticky-cell sticky left-0 z-10 border-b border-slate-100 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
                   <input
                     type="checkbox"
                     checked={selectedRows.includes(row.id)}
@@ -148,7 +148,7 @@ const ReportTable = ({ rows = [], pagination = {}, filters, setFilters, onBulkEx
                 {columns.map((column, index) => (
                   <td
                     key={column.key}
-                    className={`${index === 0 ? 'sticky left-12 z-10 bg-white font-semibold text-slate-950 group-hover:bg-blue-50 dark:bg-slate-900 dark:text-white dark:group-hover:bg-slate-800' : 'text-slate-700 dark:text-slate-300'} ${column.align === 'right' ? 'text-right' : ''} border-b border-slate-100 ${densityClass} dark:border-slate-800`}
+                    className={`${index === 0 ? 'report-sticky-cell report-primary-cell sticky left-12 z-10 bg-white font-semibold text-slate-950 dark:bg-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'} ${column.align === 'right' ? 'text-right' : ''} border-b border-slate-100 ${densityClass} dark:border-slate-800`}
                   >
                     {renderCell(row, column, filters.search)}
                   </td>

@@ -37,7 +37,7 @@ const DataTable = ({ title, rows = [], columns = [] }) => (
         </thead>
         <tbody>
           {rows.slice(0, 100).map((row, index) => (
-            <tr key={`${title}-${index}`} className="hover:bg-blue-50 dark:hover:bg-slate-800">
+            <tr key={`${title}-${index}`} className="hover:bg-blue-50">
               {columns.map((column) => {
                 const raw = row[column.key]
                 const value = column.type === 'currency' ? formatCurrency(raw) : column.type === 'number' ? formatNumber(raw) : raw ?? '-'
