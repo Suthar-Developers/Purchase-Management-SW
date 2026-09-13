@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { ShieldCheck, X } from "lucide-react";
-import { getUserPermissions, updateUserPermissions } from "../../../api/userApi";
+import { getRolePermissions, updateRolePermissions } from "../../../api/userApi";
+import { ROLE_OPTIONS } from "../../../utils/roles";
 import { ACTION_LABELS, PERMISSION_MODULES, normalizePermissionMap } from "../../../utils/permissions";
 
-const EditUserPermissions = ({ user, onClose, onUpdated }) => {
+const EditRolePermissions = ({ role: initialRole = "Purchase Manager", onClose, onUpdated }) => {
+    const [role, setRole] = useState(initialRole || "Purchase Manager");
     const [permissions, setPermissions] = useState(() => normalizePermissionMap());
-    const [rolePermissions, setRolePermissions] = useState(() => normalizePermissionMap());
     const [modules, setModules] = useState(PERMISSION_MODULES);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -15,33 +16,19 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
         const loadPermissions = async () => {
             try {
                 setLoading(true);
-                const response = await getUserPermissions(user.user_id);
+                const response = await getRolePermissions(role);
                 setModules(Array.isArray(response?.modules) ? response.modules : PERMISSION_MODULES);
-                setPermissions(normalizePermissionMap(response?.extraPermissions));
-                setRolePermissions(normalizePermissionMap(response?.rolePermissions));
+                setPermissions(normalizePermissionMap(response?.permissions));
             } catch (error) {
-                console.error("Failed to load permissions:", error);
-                toast.error(error.response?.data?.message || error.message || "Unable to load permissions.");
+                console.error("Failed to load role permissions:", error);
+                toast.error(error.response?.data?.message || error.message || "Unable to load role permissions.");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (user?.user_id) {
-            loadPermissions();
-        }
-    }, [user?.user_id]);
-
-    useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.key === "Escape" && !saving) {
-                onClose?.();
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [onClose, saving]);
+        loadPermissions();
+    }, [role]);
 
     const togglePermission = (moduleKey, actionKey) => {
         setPermissions((current) => ({
@@ -67,13 +54,12 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
 
         try {
             setSaving(true);
-            const response = await updateUserPermissions(user.user_id, permissions);
-            toast.success(response?.message || "Permissions updated successfully.");
-            onUpdated?.(response?.permissions);
-            onClose?.();
+            const response = await updateRolePermissions(role, permissions);
+            toast.success(response?.message || "Role permissions updated successfully.");
+            onUpdated?.(role, response?.permissions);
         } catch (error) {
-            console.error("Failed to update permissions:", error);
-            toast.error(error.response?.data?.message || error.message || "Unable to update permissions.");
+            console.error("Failed to update role permissions:", error);
+            toast.error(error.response?.data?.message || error.message || "Unable to update role permissions.");
         } finally {
             setSaving(false);
         }
@@ -81,7 +67,7 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
 
     return (
         <div
-            className="fixed inset-0 z-[60] grid place-items-center bg-slate-950/45 px-4 py-6 backdrop-blur-[2px]"
+            className="fixed inset-0 z-60 grid place-items-center bg-slate-950/45 px-4 py-6 backdrop-blur-[2px]"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget && !saving) {
                     onClose?.();
@@ -96,8 +82,8 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
                         </span>
                         <div className="min-w-0">
                             <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">Admin action</p>
-                            <h2 className="text-lg font-bold text-slate-950">Extra User Permissions</h2>
-                            <p className="truncate text-sm text-slate-500">{user?.full_name || user?.username} gets these in addition to {user?.role} permissions.</p>
+                            <h2 className="text-lg font-bold text-slate-950">Role Permissions</h2>
+                            <p className="text-sm text-slate-500">These defaults apply to every user assigned this role.</p>
                         </div>
                     </div>
 
@@ -105,7 +91,7 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
                         type="button"
                         onClick={onClose}
                         disabled={saving}
-                        aria-label="Close permissions"
+                        aria-label="Close role permissions"
                         className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <X size={18} />
@@ -113,6 +99,18 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                    <label className="mb-2 block text-sm font-medium text-slate-700">Role</label>
+                    <select
+                        value={role}
+                        onChange={(event) => setRole(event.target.value)}
+                        disabled={saving}
+                        className="mb-5 h-11 w-full max-w-sm rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100"
+                    >
+                        {ROLE_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
+
                     {loading ? (
                         <div className="space-y-3">
                             {Array.from({ length: 5 }).map((_, index) => (
@@ -121,7 +119,7 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
                         </div>
                     ) : (
                         <div className="overflow-x-auto rounded-md border border-slate-200">
-                            <table className="w-full min-w-[760px]">
+                            <table className="w-full min-w-190">
                                 <thead>
                                     <tr className="border-b border-slate-200 bg-slate-50 text-left">
                                         <th className="w-64 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Page</th>
@@ -138,22 +136,19 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
                                             <tr key={module.key} className="border-b border-slate-100 last:border-b-0">
                                                 <td className="px-4 py-4">
                                                     <p className="text-sm font-semibold text-slate-900">{module.label}</p>
-                                                    <p className="mt-1 text-xs text-slate-500">Role access stays inherited.</p>
                                                 </td>
 
                                                 <td className="px-4 py-4">
                                                     <div className="flex flex-wrap gap-2">
                                                         {module.actions.map((action) => (
-                                                            <label key={action} className={`inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium transition ${rolePermissions?.[module.key]?.[action] ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-700 hover:border-cyan-300"}`}>
+                                                            <label key={action} className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-cyan-300">
                                                                 <input
                                                                     type="checkbox"
-                                                                    checked={Boolean(rolePermissions?.[module.key]?.[action] || permissions?.[module.key]?.[action])}
-                                                                    disabled={Boolean(rolePermissions?.[module.key]?.[action])}
+                                                                    checked={Boolean(permissions?.[module.key]?.[action])}
                                                                     onChange={() => togglePermission(module.key, action)}
                                                                     className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                                                                 />
                                                                 {ACTION_LABELS[action] || action}
-                                                                {rolePermissions?.[module.key]?.[action] && <span className="text-[11px] font-semibold">Role</span>}
                                                             </label>
                                                         ))}
                                                     </div>
@@ -193,7 +188,7 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {saving && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-                        {saving ? "Saving..." : "Save Permissions"}
+                        {saving ? "Saving..." : "Save Role Permissions"}
                     </button>
                 </div>
             </form>
@@ -201,4 +196,4 @@ const EditUserPermissions = ({ user, onClose, onUpdated }) => {
     );
 };
 
-export default EditUserPermissions;
+export default EditRolePermissions;

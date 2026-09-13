@@ -2,20 +2,19 @@ const db = require('../config/db')
 
 const createPurchaseRequest = async (req, res) => {
     try {
-        const { project_id, contactPerson, contactInfo, deliverBefore, requestStatus, materials } = req.body
+        const { project_id, contactPerson, contactInfo, requestStatus, materials } = req.body
 
         if (!project_id) {
             return res.status(400).json({ message: "Project is required" });
         }
 
         const [result] = await db.query(
-            `INSERT INTO purchase_request (project_id, contactPerson, contactInfo, deliverBefore, requestStatus)
-            VALUES(?, ?, ?, ?, ?)`,
+            `INSERT INTO purchase_request (project_id, contactPerson, contactInfo, requestStatus)
+            VALUES(?, ?, ?, ?)`,
             [
                 project_id,
                 contactPerson,
                 contactInfo,
-                deliverBefore,
                 requestStatus
             ]
         );
@@ -24,21 +23,15 @@ const createPurchaseRequest = async (req, res) => {
 
         for (const m of materials) {
             await db.query(
-                `INSERT INTO materials (request_id, material, specification, make, size, thickness, qty, unit, isNtItem, boqRef, scope, category, materialStatus)
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO materials (request_id, material, qty, unit, category, deliverBefore, materialStatus)
+                VALUES(?, ?, ?, ?, ?, ?, ?)`,
                 [
                     request_id,
                     m.material,
-                    m.specification,
-                    m.make || null,
-                    m.size || null,
-                    m.thickness || null,
                     m.qty,
                     m.unit,
-                    m.isNtItem,
-                    m.boqRef || null,
-                    m.scope,
                     m.category,
+                    m.deliverBefore,
                     m.materialStatus || 'Requested']
             );
         }
@@ -63,7 +56,6 @@ const fetchPurchaseRequests = async (req, res) => {
                     request_id: row.request_id,
                     project_id: row.project_id,
                     projectName: row.projectName,
-                    deliverBefore: row.deliverBefore,
                     contactPerson: row.contactPerson,
                     contactInfo: row.contactInfo,
                     requestStatus: row.requestStatus,
@@ -75,16 +67,10 @@ const fetchPurchaseRequests = async (req, res) => {
             grouped[row.request_id].materials.push({
                 material_id: row.material_id,
                 material: row.material,
-                specification: row.specification,
-                make: row.make,
-                size: row.size,
-                thickness: row.thickness,
                 qty: row.qty,
                 unit: row.unit,
-                isNtItem: row.isNtItem,
-                boqRef: row.boqRef,
-                scope: row.scope,
                 category: row.category,
+                deliverBefore: row.deliverBefore,
                 materialStatus: row.materialStatus
             });
         });

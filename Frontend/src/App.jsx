@@ -3,8 +3,8 @@ import { Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './auth/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 import AuthLayout from './layouts/AuthLayout'
-import CreateUser from './pages/settings/users/CreateUser'
-import LoginUser from './pages/settings/users/LoginUser'
+import CreateUser from './pages/profile/users/CreateUser'
+import LoginUser from './pages/profile/users/LoginUser'
 import Dashboard from './pages/dashboard/Dashboard'
 import Projects from './pages/project/Projects'
 import ProjectCreate from './components/models/ProjectCreate'
@@ -15,7 +15,11 @@ import PurchaseOrders from './pages/purchase/PurchaseOrders'
 import PurchaseOrderRequests from './components/models/PurchaseOrderRequests'
 import ApprovedPurchaseOrders from './components/models/ApprovedPurchaseOrders'
 import Reports from './pages/reports/Reports'
-import Profile from './pages/settings/Profile'
+import Settings from './pages/settings/Settings'
+import Materials from './pages/settings/materials/Materials'
+import Categories from './pages/settings/materials/Categories'
+import Units from './pages/settings/materials/Units'
+import Profile from './pages/profile/Profile'
 import RoleGuard from "./auth/RoleGuard";
 import Unauthorized from "./pages/errors/Unauthorized";
 
@@ -49,6 +53,10 @@ const App = () => {
               element={<RoleGuard permission={{ module: "purchase_orders", action: "view" }}><ApprovedPurchaseOrders /></RoleGuard>}
             />
             <Route path="reports" element={<RoleGuard permission={{ module: "reports", action: "view" }}><Reports /></RoleGuard>} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="materials" element={<Materials />} />
+            <Route path="material-categories" element={<Categories />} />
+            <Route path="material-units" element={<Units />} />
             <Route path="profile" element={<Profile />} />
             
             <Route path="/create-user"

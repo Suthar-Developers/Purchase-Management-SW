@@ -66,7 +66,6 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                     <Field label="Contact Person" value={req.contactPerson} />
                     <Field label="Contact Info" value={req.contactInfo} />
                     <Field label="Status" value={req.requestStatus} />
-                    <Field label="Deliver Before" value={formatDate(req.deliverBefore)} />
                 </div>
 
                 {/* 🔷 MATERIAL BUTTONS */}
@@ -86,16 +85,10 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                 {material && (
                     <div className="grid grid-cols-4 gap-2 text-xs">
                         <Field label="Material" value={material.material} />
-                        <Field label="Specification" value={material.specification} />
-                        <Field label="Make" value={material.make} />
-                        <Field label="Size" value={material.size} />
-                        <Field label="Thickness" value={material.thickness} />
                         <Field label="Qty" value={material.qty} />
                         <Field label="Unit" value={material.unit} />
-                        <Field label="NT Item" value={material.isNtItem ? "Yes" : "No"} />
-                        <Field label="BOQ Ref" value={material.boqRef} />
-                        <Field label="Scope" value={material.scope} />
                         <Field label="Category" value={material.category} />
+                        <Field label="Deliver Before" value={formatDate(material.deliverBefore)} />
                         <Field label="Status" value={material.materialStatus || "Pending"} />
                     </div>
                 )}
