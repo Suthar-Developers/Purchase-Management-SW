@@ -37,22 +37,22 @@ const App = () => {
         {/* Main Application */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="projects" element={<Projects />} />
-            <Route path="create-project" element={<ProjectCreate />} />
-            <Route path="vendors" element={<Vendors />} />
-            <Route path="create-vendor" element={<VendorCreate />} />
-            <Route path="purchase-requests" element={<PurchaseRequests />} />
-            <Route path="purchase-orders" element={<PurchaseOrders />} />
+            <Route index element={<RoleGuard permission={{ module: "dashboard", action: "view" }}><Dashboard /></RoleGuard>} />
+            <Route path="projects" element={<RoleGuard permission={{ module: "projects", action: "view" }}><Projects /></RoleGuard>} />
+            <Route path="create-project" element={<RoleGuard permission={{ module: "projects", action: "create" }}><ProjectCreate /></RoleGuard>} />
+            <Route path="vendors" element={<RoleGuard permission={{ module: "vendors", action: "view" }}><Vendors /></RoleGuard>} />
+            <Route path="create-vendor" element={<RoleGuard permission={{ module: "vendors", action: "create" }}><VendorCreate /></RoleGuard>} />
+            <Route path="purchase-requests" element={<RoleGuard permission={{ module: "purchase_requests", action: "view" }}><PurchaseRequests /></RoleGuard>} />
+            <Route path="purchase-orders" element={<RoleGuard permission={{ module: "purchase_orders", action: "create" }}><PurchaseOrders /></RoleGuard>} />
             <Route
               path="purchase-orders/drafted-purchase-orders"
-              element={<PurchaseOrderRequests />}
+              element={<RoleGuard permission={{ module: "purchase_orders", action: "view" }}><PurchaseOrderRequests /></RoleGuard>}
             />
             <Route
               path="purchase-orders/approved-purchase-orders"
-              element={<ApprovedPurchaseOrders />}
+              element={<RoleGuard permission={{ module: "purchase_orders", action: "view" }}><ApprovedPurchaseOrders /></RoleGuard>}
             />
-            <Route path="reports" element={<Reports />} />
+            <Route path="reports" element={<RoleGuard permission={{ module: "reports", action: "view" }}><Reports /></RoleGuard>} />
             <Route path="settings" element={<Settings />} />
             <Route path="materials" element={<Materials />} />
             <Route path="material-categories" element={<Categories />} />

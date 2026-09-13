@@ -11,6 +11,16 @@ export const fetchVendors = async () => {
     }
 }
 
+export const createVendor = async (data) => {
+    try {
+        const res = await api.post("/createVendor", data)
+        return unwrap(res)
+    } catch (error) {
+        console.error("Error creating vendor", error)
+        throw error
+    }
+}
+
 export const updateVendor = async (id, data) => {
     try {
         const res = await api.put(`/vendors/${id}`, data)

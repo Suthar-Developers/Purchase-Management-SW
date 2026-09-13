@@ -56,11 +56,11 @@ const PurchaseRequestList = ({ onCreate }) => {
           <h1 className="text-lg font-bold pb-3">
             Purchase Requests
           </h1>
-          <Button
+          {onCreate && <Button
             lable={"+ New Request"}
             className='px-4 py-2 font-medium text-sm bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer text-white'
             onClick={onCreate}
-          />
+          />}
         </div>
 
         {/* Table Card */}

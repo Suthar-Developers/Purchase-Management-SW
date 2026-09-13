@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "../../components/common/Button";
-import { Bell, Check, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound, Users, X, } from "lucide-react";
+import { Bell, Check, KeyRound, LayoutDashboard, Moon, ShieldCheck, SlidersHorizontal, Sun, UserPlus, UserRound, Users, X, } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { deleteUser, updateUserStatus } from "../../api/userApi";
 
@@ -12,6 +12,8 @@ import CreateUser from "./users/CreateUser";
 import EditUser from "./users/EditUser";
 import ResetUserPassword from "./users/ResetUserPassword";
 import ChangeUserPassword from "./users/ChangeUserPassword";
+import EditUserPermissions from "./users/EditUserPermissions";
+import EditRolePermissions from "./users/EditRolePermissions";
 import ConfirmUserStatus from "./users/ConfirmUserStatus";
 import ConfirmDeleteUser from "./users/ConfirmDeleteUser";
 import UserManagement from "../../components/users/UserManagement";
@@ -63,6 +65,8 @@ const Profile = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [resettingUser, setResettingUser] = useState(null);
+  const [permissionsUser, setPermissionsUser] = useState(null);
+  const [showRolePermissions, setShowRolePermissions] = useState(false);
   const [changingPasswordUser, setChangingPasswordUser] = useState(null);
   const [statusChangeUser, setStatusChangeUser] = useState(null);
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
@@ -118,12 +122,16 @@ const Profile = () => {
     setShowCreateUser(false);
   };
 
-  const handleUserUpdated = (updatedUser) => {
+  const handleUserUpdated = () => {
     setEditingUser(null);
   };
 
   const handleEditUser = (selectedUser) => {
     setEditingUser(selectedUser);
+  };
+
+  const handleEditPermissions = (selectedUser) => {
+    setPermissionsUser(selectedUser);
   };
 
   const handleResetPassword = (selectedUser) => {
@@ -275,6 +283,14 @@ const Profile = () => {
               className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:cursor-pointer hover:border-cyan-300 hover:text-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               preIcon={<Users size={18} />}
             />
+
+            <Button
+              lable="Assign Permissions"
+              type="button"
+              onClick={() => setShowRolePermissions(true)}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-4 text-sm font-semibold text-cyan-800 shadow-sm transition hover:cursor-pointer hover:border-cyan-300 hover:bg-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              preIcon={<KeyRound size={18} />}
+            />
           </div>
         )}
       </div>
@@ -412,6 +428,12 @@ const Profile = () => {
         />
       )}
 
+      {isAdmin && showRolePermissions && (
+        <EditRolePermissions
+          onClose={() => setShowRolePermissions(false)}
+        />
+      )}
+
       {/* User Management Modal */}
       {isAdmin && showUsers && (
         <div
@@ -454,6 +476,7 @@ const Profile = () => {
             <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-5">
               <UserManagement
                 onEditUser={handleEditUser}
+                onEditPermissions={handleEditPermissions}
                 onResetPassword={handleResetPassword}
                 onChangePassword={handleChangePassword}
                 onToggleStatus={handleToggleStatus}
@@ -474,6 +497,14 @@ const Profile = () => {
                 user={resettingUser}
                 onClose={() => setResettingUser(null)}
                 onReset={() => { setResettingUser(null); }}
+              />
+            )}
+
+            {isAdmin && permissionsUser && (
+              <EditUserPermissions
+                user={permissionsUser}
+                onClose={() => setPermissionsUser(null)}
+                onUpdated={() => setPermissionsUser(null)}
               />
             )}
 

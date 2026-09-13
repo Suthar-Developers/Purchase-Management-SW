@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import PurchaseRequestList from "../../components/models/PurchaseRequestList";
 import CreatePurchaseRequest from "../../components/models/CreatePurchaseRequest";
+import useAuth from "../../hooks/useAuth";
+import { hasPermission } from "../../utils/permissions";
 
 const PurchaseRequests = () => {
+  const { user } = useAuth();
+  const canCreate = hasPermission(user, "purchase_requests", "create");
   const [view, setView] = useState("list");
   const [requests, setRequests] = useState([]);
 
@@ -11,7 +15,7 @@ const PurchaseRequests = () => {
 
       {view === "list" && (
         <PurchaseRequestList
-          onCreate={() => setView("create")}
+          onCreate={canCreate ? () => setView("create") : undefined}
           data={requests}
         />
       )}
