@@ -14,8 +14,6 @@ import PurchaseRequests from './pages/purchase/PurchaseRequests'
 import PurchaseOrders from './pages/purchase/PurchaseOrders'
 import PurchaseOrderRequests from './components/models/PurchaseOrderRequests'
 import ApprovedPurchaseOrders from './components/models/ApprovedPurchaseOrders'
-import Reports from './pages/reports/Reports'
-import Analysis from './pages/reports/Analysis'
 import Settings from './pages/settings/Settings'
 import Materials from './pages/settings/materials/Materials'
 import Categories from './pages/settings/materials/Categories'
@@ -53,8 +51,6 @@ const App = () => {
               path="purchase-orders/approved-purchase-orders"
               element={<RoleGuard permission={{ module: "purchase_orders", action: "view" }}><ApprovedPurchaseOrders /></RoleGuard>}
             />
-            <Route path="reports" element={<RoleGuard permission={{ module: "reports", action: "view" }}><Reports /></RoleGuard>} />
-            <Route path="analysis" element={<Analysis />} />
             <Route path="settings" element={<Settings />} />
             <Route path="materials" element={<Materials />} />
             <Route path="material-categories" element={<Categories />} />

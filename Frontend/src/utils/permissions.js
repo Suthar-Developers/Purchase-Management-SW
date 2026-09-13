@@ -6,7 +6,6 @@ export const PERMISSION_MODULES = [
     { key: "vendors", label: "Vendors", actions: ["view", "create", "edit"] },
     { key: "purchase_requests", label: "Purchase Requests", actions: ["view", "create", "edit", "approve"] },
     { key: "purchase_orders", label: "Purchase Orders", actions: ["view", "create", "edit", "approve"] },
-    { key: "reports", label: "Reports", actions: ["view", "create", "edit", "delete"] },
     { key: "users", label: "Users", actions: ["view", "create", "edit", "delete"], adminOnly: true },
 ];
 
