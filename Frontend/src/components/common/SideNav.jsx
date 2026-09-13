@@ -13,15 +13,12 @@ const SideNav = () => {
     const canViewPurchaseRequests = hasPermission(user, 'purchase_requests', 'view')
     const canCreatePurchaseOrders = hasPermission(user, 'purchase_orders', 'create')
     const canViewPurchaseOrders = hasPermission(user, 'purchase_orders', 'view')
-    const canViewReports = hasPermission(user, 'reports', 'view')
 
     // Initialize open state based on whether we are already viewing a PO path
     const [openPO, setOpenPO] = useState(isPOActive)
 
     // Helper to check active route
     const isActive = (path) => location.pathname === path
-    const isReportsActive = location.pathname === '/reports'
-    const isAnalysisActive = location.pathname === '/analysis'
 
     // Smoothly close the dropdown when a different standalone route gets clicked
     useEffect(() => {
@@ -116,27 +113,6 @@ const SideNav = () => {
                             </Link>}
                         </div>
                     </div>}
-
-                    {/* Reports */}
-                    {canViewReports && <Link
-                        to='/reports'
-                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isReportsActive ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
-                    >
-                        <span className={`grid h-7 w-7 place-items-center rounded ${isReportsActive ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
-                            <i className="fa-solid fa-file-lines text-xs"></i>
-                        </span>
-                        <span className='hidden truncate font-medium sm:inline'>Reports</span>
-                    </Link>}
-
-                    <Link
-                        to='/analysis'
-                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isAnalysisActive ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
-                    >
-                        <span className={`grid h-7 w-7 place-items-center rounded ${isAnalysisActive ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-800 text-slate-300'}`}>
-                            <i className="fa-solid fa-chart-line text-xs"></i>
-                        </span>
-                        <span className='hidden truncate font-medium sm:inline'>Analysis</span>
-                    </Link>
 
                     {/* Settings */}
                     <Link

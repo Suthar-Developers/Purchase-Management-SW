@@ -27,11 +27,6 @@ const PERMISSION_MODULES = [
         actions: ["view", "create", "edit", "approve"],
     },
     {
-        key: "reports",
-        label: "Reports",
-        actions: ["view", "create", "edit", "delete"],
-    },
-    {
         key: "users",
         label: "Users",
         actions: ["view", "create", "edit", "delete"],
@@ -52,7 +47,6 @@ const ROLE_DEFAULT_PERMISSIONS = {
         vendors: { view: true, create: true, edit: true },
         purchase_requests: { view: true, create: true, edit: true, approve: true },
         purchase_orders: { view: true, create: true, edit: true, approve: true },
-        reports: { view: true, create: true, edit: true, delete: true },
     },
     "Purchase Senior Executive": {
         dashboard: { view: true },
@@ -60,7 +54,6 @@ const ROLE_DEFAULT_PERMISSIONS = {
         vendors: { view: true, edit: true },
         purchase_requests: { view: true, create: true, edit: true, approve: true },
         purchase_orders: { view: true, create: true, edit: true },
-        reports: { view: true, create: true, edit: true },
     },
     "Purchase Executive": {
         dashboard: { view: true },
@@ -68,7 +61,6 @@ const ROLE_DEFAULT_PERMISSIONS = {
         vendors: { view: true },
         purchase_requests: { view: true, create: true, edit: true },
         purchase_orders: { view: true, create: true, edit: true },
-        reports: { view: true },
     },
     "Purchase Junior Executive": {
         dashboard: { view: true },
@@ -76,7 +68,6 @@ const ROLE_DEFAULT_PERMISSIONS = {
         vendors: { view: true },
         purchase_requests: { view: true, create: true },
         purchase_orders: { view: true },
-        reports: { view: true },
     },
     "Site Supervisor": {
         dashboard: { view: true },
@@ -84,7 +75,6 @@ const ROLE_DEFAULT_PERMISSIONS = {
         vendors: { view: true },
         purchase_requests: { view: true, create: true },
         purchase_orders: { view: true },
-        reports: { view: true },
     },
 };
 

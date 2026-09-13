@@ -48,7 +48,6 @@ CREATE TABLE vendors (
 CREATE TABLE purchase_request (
     request_id INT PRIMARY KEY NOT NULL UNIQUE KEY AUTO_INCREMENT,
     project_id INT,
-    deliverBefore DATE,
     contactPerson VARCHAR(100),
     contactInfo VARCHAR(100),
     requestStatus ENUM("Approved", "Pending", "Partially Approved", "PO Drafted", "Rejected", "Requested") DEFAULT 'Requested',

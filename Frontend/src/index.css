@@ -180,22 +180,3 @@ html.pm-theme-dark .hover\:bg-slate-100:hover {
 html.pm-theme-dark .bg-cyan-50 {
     background-color: #083344 !important;
 }
-
-.report-table-row:hover,
-.report-table-row:hover .report-sticky-cell {
-    background-color: #dbeafe !important;
-}
-
-.report-table-row:hover .report-primary-cell {
-    color: #0f172a !important;
-}
-
-html.pm-theme-dark .report-table-row:hover,
-html.pm-theme-dark .report-table-row:hover .report-sticky-cell {
-    background-color: #243551 !important;
-}
-
-html.pm-theme-dark .report-table-row:hover td,
-html.pm-theme-dark .report-table-row:hover .report-primary-cell {
-    color: #f8fafc !important;
-}

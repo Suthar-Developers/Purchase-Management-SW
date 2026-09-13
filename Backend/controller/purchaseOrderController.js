@@ -1,39 +1,5 @@
 const db = require('../config/db')
 
-const evaluateThresholdAlerts = async ({ grandTotal, quantity, totalGst, totalDiscount }) => {
-    // Report threshold alerts are checked during PO creation.
-    // If a PO crosses a saved rule, the API returns thresholdAlerts in the response.
-    try {
-        const [alerts] = await db.query(`
-            SELECT alert_id id, name, metric, operator, threshold_value thresholdValue, severity
-            FROM report_threshold_alerts
-            WHERE is_active = 1
-        `);
-
-        const values = {
-            grand_total: Number(grandTotal || 0),
-            quantity: Number(quantity || 0),
-            total_gst: Number(totalGst || 0),
-            total_discount: Number(totalDiscount || 0),
-            averageRate: grandTotal && quantity ? Number(grandTotal) / Math.max(Number(quantity), 1) : 0
-        };
-
-        // Supports the operators available in the Reports threshold alert panel.
-        const compare = (left, operator, right) => {
-            if (operator === '>') return left > right;
-            if (operator === '>=') return left >= right;
-            if (operator === '<') return left < right;
-            if (operator === '<=') return left <= right;
-            return left === right;
-        };
-
-        return alerts.filter((alert) => compare(values[alert.metric] || 0, alert.operator, Number(alert.thresholdValue || 0)));
-    } catch (error) {
-        if (error.code === 'ER_NO_SUCH_TABLE') return [];
-        throw error;
-    }
-};
-
 const fetchApprovedPR = async (req, res) => {
     try {
         const sql = `
