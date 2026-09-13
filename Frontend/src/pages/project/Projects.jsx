@@ -5,8 +5,13 @@ import ProjectCreate from '../../components/models/ProjectCreate'
 import ProjectView from '../../components/models/ProjectView'
 import { exportPagePdf } from '../../utils/pagePdfExport'
 import SearchInput from "../../components/common/SearchInput";
+import useAuth from '../../hooks/useAuth';
+import { hasPermission } from '../../utils/permissions';
 
 const Projects = () => {
+    const { user } = useAuth()
+    const canCreate = hasPermission(user, 'projects', 'create')
+    const canEdit = hasPermission(user, 'projects', 'edit')
     const [isModelOpen, setIsModelOpen] = useState(false)
     const [projects, setProjects] = useState([])
     const [selectedProject, setSelectedProject] = useState(null)
@@ -134,7 +139,7 @@ const Projects = () => {
                     
                     <Button icon={<i className="fa-solid fa-download"></i>} onClick={downloadProjectsPdf} className='h-9 w-12 rounded-lg border border-slate-300 hover:bg-slate-200 hover:cursor-pointer' />
                     
-                    <Button lable='+ Add' className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />
+                    {canCreate && <Button lable='+ Add' className='px-6 py-2 text-white text-xs font-medium bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer' onClick={openModel} />}
                 </div>
 
                 <div className='flex-1 overflow-auto rounded-lg'>
@@ -216,7 +221,7 @@ const Projects = () => {
                             <div className='w-1/4 text-center'>{formatDate(project.updated_at)}</div>
                             <div className='flex w-1/4 justify-center'>
                                 <Button onClick={() => openView(project)} className="text-blue-700" icon={<i className="fa-notdog fa-solid fa-eye mr-3 hover:cursor-pointer hover:text-green-600 hover:scale-110"></i>} />
-                                <Button onClick={() => handleEdit(project)} className="text-green-600" icon={<i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i>} />
+                                {canEdit && <Button onClick={() => handleEdit(project)} className="text-green-600" icon={<i className="fa-solid fa-pen-to-square hover:cursor-pointer"></i>} />}
                             </div>
                         </div>
                     ))}

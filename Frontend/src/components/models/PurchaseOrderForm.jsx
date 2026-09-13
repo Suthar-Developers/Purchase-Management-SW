@@ -6,6 +6,8 @@ import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 import Button from "../common/Button";
+import useAuth from "../../hooks/useAuth";
+import { hasPermission } from "../../utils/permissions";
 
 const PDF_LAYOUT = {
     previewWidth: 1000,
@@ -20,6 +22,9 @@ const PDF_LAYOUT = {
 };
 
 const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, onStatusUpdate }) => {
+    const { user } = useAuth()
+    const canEditPurchaseOrders = hasPermission(user, "purchase_orders", "edit")
+    const canApprovePurchaseOrders = hasPermission(user, "purchase_orders", "approve")
 
     const pdfRef = useRef()
 
@@ -1059,7 +1064,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                             {mode === "view" && !isEditing && (
                                 <>
                                     <Button lable={loading ? "Generating..." : "Download PDF"} icon={<i className="fa-solid fa-download"></i>} type="button" onClick={handleDownloadPDF} className="bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:cursor-pointer hover:bg-blue-700" disabled={loading} />
-                                    {form.po_status === "Approved" && (
+                                    {form.po_status === "Approved" && canEditPurchaseOrders && (
                                         <Button lable="Revise PO" type="button" onClick={handleReviseClick} className="bg-orange-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-orange-600 hover:cursor-pointer" />
                                     )}
                                 </>
@@ -1069,7 +1074,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 <Button lable={isEditing ? "Save Revision" : "Create PO"} type="submit" className="bg-green-600 text-white text-xs px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" />
                             ) : (
                                 <>
-                                    {form.po_status !== "Approved" && form.po_status !== "Revised" && (
+                                    {canApprovePurchaseOrders && form.po_status !== "Approved" && form.po_status !== "Revised" && (
                                         <>
                                             <Button lable="Approve" type="button" onClick={() => handlePOStatusUpdate("Approved")} className="bg-green-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-green-700" disabled={loading || form.po_status === "Approved"} />
                                             <Button lable="Reject" type="button" onClick={() => handlePOStatusUpdate("Rejected")} className="bg-red-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:cursor-pointer hover:bg-red-700" disabled={loading || form.po_status === "Rejected"} />

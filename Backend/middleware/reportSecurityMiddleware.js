@@ -35,7 +35,7 @@ const reportsRateLimit = (limit = 240, windowMs = 60000) => {
     const hits = new Map();
 
     return (req, res, next) => {
-        const key = `${req.ip}:${req.user?.id || 'anonymous'}`;
+        const key = `${req.ip}:${req.user?.user_id || req.user?.id || 'anonymous'}`;
         const now = Date.now();
         const bucket = hits.get(key) || { count: 0, resetAt: now + windowMs };
 

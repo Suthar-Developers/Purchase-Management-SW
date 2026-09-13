@@ -1,9 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import useAuth from '../../hooks/useAuth'
+import { hasPermission } from '../../utils/permissions'
 
 const SideNav = () => {
     const location = useLocation()
+    const { user } = useAuth()
     const isPOActive = location.pathname.startsWith('/purchase-orders')
+    const canViewDashboard = hasPermission(user, 'dashboard', 'view')
+    const canViewProjects = hasPermission(user, 'projects', 'view')
+    const canViewVendors = hasPermission(user, 'vendors', 'view')
+    const canViewPurchaseRequests = hasPermission(user, 'purchase_requests', 'view')
+    const canCreatePurchaseOrders = hasPermission(user, 'purchase_orders', 'create')
+    const canViewPurchaseOrders = hasPermission(user, 'purchase_orders', 'view')
+    const canViewReports = hasPermission(user, 'reports', 'view')
 
     // Initialize open state based on whether we are already viewing a PO path
     const [openPO, setOpenPO] = useState(isPOActive)
@@ -31,7 +41,7 @@ const SideNav = () => {
             <nav className='flex flex-1 flex-col overflow-y-auto'>
                 <div className='space-y-2'>
                     {/* Dashboard */}
-                    <Link
+                    {canViewDashboard && <Link
                         to='/'
                         className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
@@ -39,10 +49,10 @@ const SideNav = () => {
                             <i className="fa-solid fa-house text-xs"></i>
                         </span>
                         <span className='hidden truncate font-medium sm:inline'>Dashboard</span>
-                    </Link>
+                    </Link>}
 
                     {/* Projects */}
-                    <Link
+                    {canViewProjects && <Link
                         to='/projects'
                         className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/projects') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
@@ -50,10 +60,10 @@ const SideNav = () => {
                             <i className="fa-regular fa-map text-xs"></i>
                         </span>
                         <span className='hidden truncate font-medium sm:inline'>Projects</span>
-                    </Link>
+                    </Link>}
 
                     {/* Vendors */}
-                    <Link
+                    {canViewVendors && <Link
                         to='/vendors'
                         className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/vendors') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
@@ -61,10 +71,10 @@ const SideNav = () => {
                             <i className="fa-solid fa-users-between-lines text-xs"></i>
                         </span>
                         <span className='hidden truncate font-medium sm:inline'>Vendors</span>
-                    </Link>
+                    </Link>}
 
                     {/* Purchase Requests */}
-                    <Link
+                    {canViewPurchaseRequests && <Link
                         to='/purchase-requests'
                         className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isActive('/purchase-requests') ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
@@ -72,10 +82,10 @@ const SideNav = () => {
                             <i className="fa-solid fa-list-check text-xs"></i>
                         </span>
                         <span className='hidden truncate font-medium sm:inline'>Purchase Requests</span>
-                    </Link>
+                    </Link>}
 
                     {/* Collapsible Purchase Orders Dropdown Menu Block */}
-                    <div className="space-y-1">
+                    {(canCreatePurchaseOrders || canViewPurchaseOrders) && <div className="space-y-1">
                         <button
                             type='button'
                             onClick={() => setOpenPO(!openPO)}
@@ -93,22 +103,22 @@ const SideNav = () => {
                         </button>
 
                         <div className={`space-y-1 overflow-hidden pl-0 transition-[max-height,opacity] duration-200 ease-in-out sm:pl-10 ${openPO ? 'max-h-40 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
-                            <Link to='/purchase-orders'>
+                            {canCreatePurchaseOrders && <Link to='/purchase-orders'>
                                 <div className={`rounded-md px-3 py-2 text-sm ${isActive('/purchase-orders') ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white'}`}>Create PO</div>
-                            </Link>
+                            </Link>}
 
-                            <Link to='/purchase-orders/drafted-purchase-orders'>
+                            {canViewPurchaseOrders && <Link to='/purchase-orders/drafted-purchase-orders'>
                                 <div className={`rounded-md px-3 py-2 text-sm ${isActive('/purchase-orders/drafted-purchase-orders') ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white'}`}>PO Requests</div>
-                            </Link>
+                            </Link>}
 
-                            <Link to='/purchase-orders/approved-purchase-orders'>
+                            {canViewPurchaseOrders && <Link to='/purchase-orders/approved-purchase-orders'>
                                 <div className={`rounded-md px-3 py-2 text-sm ${isActive('/purchase-orders/approved-purchase-orders') ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white'}`}>Approved POs</div>
-                            </Link>
+                            </Link>}
                         </div>
-                    </div>
+                    </div>}
 
-                    {/* Reports and Analysis */}
-                    <Link
+                    {/* Reports */}
+                    {canViewReports && <Link
                         to='/reports'
                         className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-200 ${isReportsActive ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                     >
@@ -116,7 +126,7 @@ const SideNav = () => {
                             <i className="fa-solid fa-file-lines text-xs"></i>
                         </span>
                         <span className='hidden truncate font-medium sm:inline'>Reports</span>
-                    </Link>
+                    </Link>}
 
                     <Link
                         to='/analysis'

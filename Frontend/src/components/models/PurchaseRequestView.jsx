@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { updateMaterialStatus } from "../../api/purchaseRequestApi"
 import Button from "../common/Button"
+import useAuth from "../../hooks/useAuth"
+import { hasPermission } from "../../utils/permissions"
 
 const formatDate = (dateStr) => {
     if (!dateStr) return ""
@@ -16,6 +18,8 @@ const Field = ({ label, value }) => (
 )
 
 const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
+    const { user } = useAuth()
+    const canApprove = hasPermission(user, "purchase_requests", "approve")
     const [activeIndex, setActiveIndex] = useState(0)
     const [showApprovalModal, setShowApprovalModal] = useState(false)
     const [selectedMaterialIndex, setSelectedMaterialIndex] = useState(null)
@@ -72,9 +76,9 @@ const PurchaseRequestView = ({ req, onClose, refreshRequest }) => {
                         ))}
                     </div>
 
-                    <div className="mr-5">
+                    {canApprove && <div className="mr-5">
                         <Button lable="Action" onClick={() => { setSelectedMaterialIndex(activeIndex), setShowApprovalModal(true) }} className="px-4 py-2 text-xs bg-green-600 text-white rounded-lg hover:bg-gray-500 hover:cursor-pointer" />
-                    </div>
+                    </div>}
                 </div>
 
                 {/* 🔷 MATERIAL DETAILS */}

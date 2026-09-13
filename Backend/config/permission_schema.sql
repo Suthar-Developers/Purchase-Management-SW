@@ -1,14 +1,3 @@
-CREATE TABLE users (
-user_id INT AUTO_INCREMENT UNIQUE,
-username VARCHAR(100),
-password_hash VARCHAR(200),
-full_name VARCHAR(100),
-role VARCHAR(100),
-status ENUM('Active', 'Deactivate', 'Inactivate'),
-created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS user_permissions (
 permission_id INT AUTO_INCREMENT PRIMARY KEY,
 user_id INT NOT NULL,

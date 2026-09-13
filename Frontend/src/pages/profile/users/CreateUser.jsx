@@ -5,6 +5,7 @@ import Input from "../../../components/common/Input";
 import PasswordRule from "../../../components/common/PasswordRule";
 import { createNewUser } from "../../../api/userApi";
 import { ROLE_OPTIONS } from "../../../utils/roles";
+import EditRolePermissions from "./EditRolePermissions";
 
 const emptyForm = {
     fullName: "",
@@ -15,6 +16,7 @@ const emptyForm = {
 
 const CreateUser = ({ isModal = false, onClose }) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [showRolePermissions, setShowRolePermissions] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(emptyForm);
 
@@ -87,6 +89,7 @@ const CreateUser = ({ isModal = false, onClose }) => {
     };
 
     const form = (
+        <>
         <form onSubmit={handleSubmit} className="w-full">
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
                 <div className="flex min-w-0 items-center gap-3">
@@ -173,7 +176,17 @@ const CreateUser = ({ isModal = false, onClose }) => {
                     </div>
 
                     <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-gray-700">Role</label>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                            <label className="block text-sm font-medium text-gray-700">Role</label>
+                            <button
+                                type="button"
+                                onClick={() => setShowRolePermissions(true)}
+                                disabled={loading || !formData.role}
+                                className="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 disabled:cursor-not-allowed disabled:text-slate-400"
+                            >
+                                Assign Role Permissions
+                            </button>
+                        </div>
 
                         <div className="relative">
                             <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -214,7 +227,15 @@ const CreateUser = ({ isModal = false, onClose }) => {
                     {loading ? "Creating user..." : "Create User"}
                 </button>
             </div>
+
         </form>
+        {showRolePermissions && (
+            <EditRolePermissions
+                role={formData.role}
+                onClose={() => setShowRolePermissions(false)}
+            />
+        )}
+        </>
     );
 
     if (isModal) {
