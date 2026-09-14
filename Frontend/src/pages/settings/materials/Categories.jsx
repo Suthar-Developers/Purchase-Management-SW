@@ -228,14 +228,14 @@ const Categories = () => {
 
                                             {/* Action */}
                                             <div className="flex w-20 justify-center">
-                                                <button
+                                                <Button
                                                     type="button"
                                                     onClick={() => handleEdit(item)}
-                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600"
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:cursor-pointer hover:bg-emerald-50 hover:text-emerald-600"
                                                     title="Edit category"
-                                                >
-                                                    <Pencil size={15} />
-                                                </button>
+
+                                                    icon={<Pencil size={15} />}
+                                                />
                                             </div>
                                         </div>
                                     );
