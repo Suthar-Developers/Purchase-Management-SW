@@ -181,7 +181,7 @@ const Settings = () => {
                             <button
                                 key={category.id}
                                 onClick={category.onClick}
-                                className="group flex w-full items-center gap-4 rounded-xl p-3 text-left transition hover:bg-gray-50"
+                                className="group flex w-full items-center gap-4 rounded-xl p-3 text-left transition hover:bg-gray-50 hover:cursor-pointer"
                             >
                                 {/* Category Icon */}
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-2xl">
