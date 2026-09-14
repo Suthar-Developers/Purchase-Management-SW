@@ -228,14 +228,14 @@ const Units = () => {
 
                                             {/* Action */}
                                             <div className="flex w-20 justify-center">
-                                                <button
+                                                <Button
                                                     type="button"
                                                     onClick={() => handleEdit(item)}
-                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600"
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:cursor-pointer hover:bg-emerald-50 hover:text-emerald-600"
                                                     title="Edit unit"
-                                                >
-                                                    <Pencil size={15} />
-                                                </button>
+
+                                                    icon={<Pencil size={15} />}
+                                                />
                                             </div>
                                         </div>
                                     );
@@ -282,7 +282,7 @@ const Units = () => {
                                             setItemsPerPage(Number(e.target.value));
                                             setCurrentPage(1);
                                         }}
-                                        className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-600 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                        className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-600 outline-none hover:cursor-pointer focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                                     >
                                         <option value={5}>5</option>
                                         <option value={10}>10</option>
@@ -292,15 +292,15 @@ const Units = () => {
                                 </div>
 
                                 {/* Previous */}
-                                <button
+                                <Button
                                     type="button"
                                     disabled={currentPage === 1 || totalPages === 0}
                                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:cursor-pointer hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                                     title="Previous page"
-                                >
-                                    <PreviousIcon size={15} />
-                                </button>
+
+                                    icon={<PreviousIcon size={15} />}
+                                />
 
                                 {/* Page Number */}
                                 <div className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-blue-600 px-2 text-xs font-semibold text-white">
@@ -312,15 +312,15 @@ const Units = () => {
                                 </span>
 
                                 {/* Next */}
-                                <button
+                                <Button
                                     type="button"
                                     disabled={currentPage === totalPages || totalPages === 0}
                                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:cursor-pointer hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                                     title="Next page"
-                                >
-                                    <NextIcon size={15} />
-                                </button>
+
+                                    icon={<NextIcon size={15} />}
+                                />
                             </div>
                         </div>
                     </div>
