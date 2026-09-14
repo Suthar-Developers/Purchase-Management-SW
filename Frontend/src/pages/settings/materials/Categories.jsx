@@ -190,8 +190,8 @@ const Categories = () => {
 
                     {/* Table Header */}
                     <div className="mx-4 mt-4 shrink-0 flex items-center rounded-lg bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                        <div className="w-14 text-center">#</div>
-                        <div className="flex-1">Category</div>
+                        <div className="w-20 text-center">#</div>
+                        <div className="pl-5 flex-1">Category</div>
                         <div className="w-20 text-center">Action</div>
                     </div>
 
@@ -207,7 +207,7 @@ const Categories = () => {
                                             className="group flex items-center border-b border-slate-100 px-4 py-3 text-sm transition hover:bg-slate-50"
                                         >
                                             {/* Serial Number */}
-                                            <div className="w-14 text-center text-xs font-medium text-slate-400">
+                                            <div className="w-20 text-center text-xs font-medium text-slate-400">
                                                 {serialNumber}
                                             </div>
 
@@ -370,21 +370,19 @@ const Categories = () => {
                         </div>
 
                         <div className="mt-6 flex justify-end gap-2">
-
-                            <button
+                            <Button
                                 type="button"
                                 disabled={isSubmitting}
                                 onClick={() => setForm({ material_category: "", })}
-                                className="rounded-lg bg-slate-100 px-5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Clear
-                            </button>
+                                lable="Clear"
+                                className="rounded-lg bg-slate-100 px-5 py-2 text-xs font-medium text-slate-600 transition hover:cursor-pointer hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
 
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
                                 lable={isSubmitting ? "Adding..." : "Add Category"}
-                                className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:cursor-pointer hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                             />
                         </div>
                     </form>
