@@ -5,6 +5,7 @@ import { fetchNextPONumber, newPurchaseOrder, updatePOStatus, fetchPurchaseOrder
 import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
+import { fetchMaterialsList, fetchUnitList } from "../../api/materialListApi";
 import Button from "../common/Button";
 import useAuth from "../../hooks/useAuth";
 import { hasPermission } from "../../utils/permissions";
@@ -29,16 +30,30 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const pdfRef = useRef()
 
     const [isEditing, setIsEditing] = useState(false);
-    const [vendorList, setVendorList] = useState([])
-    const [projectList, setProjectList] = useState([])
-    const [materials, setMaterials] = useState([])
-    const [extraChargeList, setExtraChargeList] = useState([])
-    const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false)
+
+    const [vendorList, setVendorList] = useState([]);
+    const [projectList, setProjectList] = useState([]);
+
+    const [materials, setMaterials] = useState([]);
+    const [materialMasterList, setMaterialMasterList] = useState([]);
+    const [materialSearch, setMaterialSearch] = useState("");
+    const [activeMaterialRow, setActiveMaterialRow] = useState(null);
+
+    const materialDropdownRef = useRef(null);
+
+    const [unitMasterList, setUnitMasterList] = useState([]);
+    const [unitSearch, setUnitSearch] = useState("");
+    const [activeUnitRow, setActiveUnitRow] = useState(null);
+
+    const unitDropdownRef = useRef(null);
+
+    const [extraChargeList, setExtraChargeList] = useState([]);
+    const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false);
     const [extraCharges, setExtraCharges] = useState({
         extraChargeCategory: "",
         extraChargeAmount: "",
         extraChargeGst: ""
-    })
+    });
 
     const [loading, setLoading] = useState(false);
     const [isPdfRendering, setIsPdfRendering] = useState(false);
@@ -73,9 +88,116 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }, [mode]);
 
     useEffect(() => {
-        fetchVendors().then(res => setVendorList(res.data || res))
-        fetchProjects().then(res => setProjectList(res.data || res))
-    }, [])
+        const loadMasterData = async () => {
+            try {
+                const [vendors, projects, materialData, unitData] = await Promise.all([
+                    fetchVendors(),
+                    fetchProjects(),
+                    fetchMaterialsList(),
+                    fetchUnitList()
+                ]);
+
+                setVendorList(vendors?.data || vendors || []);
+                setProjectList(projects?.data || projects || []);
+
+                setMaterialMasterList(
+                    Array.isArray(materialData) ? materialData : []
+                );
+
+                setUnitMasterList(
+                    Array.isArray(unitData) ? unitData : []
+                );
+            } catch (error) {
+                console.error("Failed to load PO master data:", error);
+
+                setVendorList([]);
+                setProjectList([]);
+                setMaterialMasterList([]);
+                setUnitMasterList([]);
+            }
+        };
+
+        loadMasterData();
+    }, []);
+
+    // Search materials from material list 
+    const filteredMaterialMasterList = materialMasterList.filter((item) => {
+        const search = materialSearch.toLowerCase().trim();
+
+        if (!search) return true;
+
+        return (
+            item.material_name?.toLowerCase().includes(search) ||
+            item.material_code?.toLowerCase().includes(search) ||
+            item.material_category?.toLowerCase().includes(search)
+        );
+    });
+
+    // Search unit from unit list
+    const filteredUnitMasterList = unitMasterList.filter((item) => {
+        const search = unitSearch.toLowerCase().trim();
+
+        if (!search) return true;
+
+        const unitName = item.material_unit || "";
+
+        return unitName.toLowerCase().includes(search);
+    });
+
+    // Material selection handler
+    const handleMaterialSelect = (rowIndex, materialItem) => {
+        handleMaterialChange(
+            rowIndex,
+            "material",
+            materialItem.material_name
+        );
+
+        // Clear search/dropdown
+        setMaterialSearch("");
+        setActiveMaterialRow(null);
+    };
+
+    // Unit selection handler
+    const handleUnitSelect = (rowIndex, unitItem) => {
+        const unitValue = unitItem.material_unit || "";
+
+        handleMaterialChange(
+            rowIndex,
+            "unit",
+            unitValue
+        );
+
+        setUnitSearch("");
+        setActiveUnitRow(null);
+    };
+
+    // Outside click handler
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+
+            // Close Material dropdown
+            if (
+                materialDropdownRef.current && !materialDropdownRef.current.contains(event.target)
+            ) {
+                setActiveMaterialRow(null);
+                setMaterialSearch("");
+            }
+
+            // Close Unit dropdown
+            if (
+                unitDropdownRef.current && !unitDropdownRef.current.contains(event.target)
+            ) {
+                setActiveUnitRow(null);
+                setUnitSearch("");
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     // --- Loading existing PO data when in view mode ---
     useEffect(() => {
@@ -753,12 +875,68 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                     <td className="w-[46.3%] text-center">
                                                         {editable && !isPdfRendering ? (
-                                                            <input
-                                                                placeholder="Enter Material"
-                                                                className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(originalIndex, "material", e.target.value)}
-                                                                value={m.material}
-                                                            />
+                                                            <div
+                                                                ref={materialDropdownRef}
+                                                                className="relative w-full flex justify-center"
+                                                            >
+                                                                {/* Material Search Input */}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Search Material"
+                                                                    value={activeMaterialRow === originalIndex ? materialSearch : m.material || ""}
+                                                                    className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 focus:border-blue-500 text-red-500 font-bold text-center"
+                                                                    onFocus={() => {
+                                                                        setActiveMaterialRow(originalIndex);
+
+                                                                        // Empty search = show complete material list
+                                                                        setMaterialSearch("");
+                                                                    }}
+                                                                    onChange={(e) => {
+                                                                        setActiveMaterialRow(originalIndex);
+                                                                        setMaterialSearch(e.target.value);
+                                                                    }}
+                                                                />
+
+                                                                {/* Material Dropdown */}
+                                                                {activeMaterialRow === originalIndex && (
+                                                                    <div
+                                                                        className="absolute z-100 top-full left-1/2 -translate-x-1/2 mt-1 w-[90%] max-h-64 overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white shadow-xl text-left"
+                                                                    >
+                                                                        {filteredMaterialMasterList.length > 0 ? (
+                                                                            filteredMaterialMasterList.map((item) => (
+                                                                                <button
+                                                                                    key={item.material_id}
+                                                                                    type="button"
+                                                                                    onClick={() => {
+                                                                                        handleMaterialSelect(originalIndex, item);
+                                                                                    }}
+                                                                                    className="block w-full min-w-0 overflow-hidden border-b border-gray-100 px-3 py-2 text-left hover:bg-blue-50"
+                                                                                >
+                                                                                    {/* Material Name */}
+                                                                                    <div className="truncate font-semibold text-gray-800">
+                                                                                        {item.material_name}
+                                                                                    </div>
+
+                                                                                    {/* Code + Category */}
+                                                                                    <div className="mt-0.5 flex w-full min-w-0 justify-between gap-2 text-[10px] text-gray-500">
+                                                                                        <span className="min-w-0 truncate">
+                                                                                            Code: {item.material_code || "-"}
+                                                                                        </span>
+
+                                                                                        <span className="min-w-0 truncate">
+                                                                                            {item.material_category || "-"}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                </button>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="px-4 py-6 text-center text-sm text-gray-500">
+                                                                                No materials found
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         ) : (
                                                             <span>{m.material}</span>
                                                         )}
@@ -766,12 +944,58 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
-                                                            <input
-                                                                placeholder="Enter Unit"
-                                                                className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(originalIndex, "unit", e.target.value)}
-                                                                value={m.unit}
-                                                            />
+                                                            <div
+                                                                ref={unitDropdownRef}
+                                                                className="relative w-full flex justify-center"
+                                                            >
+
+                                                                {/* Unit Search Input */}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Search Unit"
+                                                                    value={activeUnitRow === originalIndex ? unitSearch : m.unit || ""}
+                                                                    className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 focus:border-blue-500 text-red-500 font-bold text-center"
+                                                                    onFocus={() => {
+                                                                        setActiveUnitRow(originalIndex);
+
+                                                                        // Empty search = show complete unit list
+                                                                        setUnitSearch("");
+                                                                    }}
+                                                                    onChange={(e) => {
+                                                                        setActiveUnitRow(originalIndex);
+                                                                        setUnitSearch(e.target.value);
+                                                                    }}
+                                                                />
+
+                                                                {/* Unit Dropdown */}
+                                                                {activeUnitRow === originalIndex && (
+                                                                    <div className="absolute z-100 top-full left-1/2 -translate-x-1/2 mt-1 w-full max-h-64 overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white shadow-xl text-left">
+                                                                        {filteredUnitMasterList.length > 0 ? (
+                                                                            filteredUnitMasterList.map((item, index) => {
+
+                                                                                const unitValue = item.material_unit || "";
+
+                                                                                return (
+                                                                                    <button
+                                                                                        key={item.material_unit_id || `${unitValue}-${index}`}
+                                                                                        type="button"
+                                                                                        onClick={() => handleUnitSelect(originalIndex, item)}
+                                                                                        className="block w-full min-w-0 overflow-hidden border-b border-gray-100 px-3 py-2 text-left hover:bg-blue-50"
+                                                                                    >
+                                                                                        <div className="truncate font-semibold text-gray-800">
+                                                                                            {unitValue}
+                                                                                        </div>
+                                                                                    </button>
+                                                                                );
+                                                                            })
+                                                                        ) : (
+                                                                            <div className="px-4 py-6 text-center text-sm text-gray-500">
+                                                                                No units found
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         ) : (
                                                             <span>{m.unit}</span>
                                                         )}
