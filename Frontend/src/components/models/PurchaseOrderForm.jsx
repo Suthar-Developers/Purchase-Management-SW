@@ -47,6 +47,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
     const unitDropdownRef = useRef(null);
 
+    const [orderPlacedById, setOrderPlacedById] = useState("");
+
     const [extraChargeList, setExtraChargeList] = useState([]);
     const [openExtraChargeModel, setOpenExtraChargeModel] = useState(false);
     const [extraCharges, setExtraCharges] = useState({
@@ -280,7 +282,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }, [selectedRequest, mode]);
 
     useEffect(() => {
-        if (mode === "create" && selectedRequest && projectList.length > 0 & vendorList.length > 0) {
+        if (mode === "create" && selectedRequest && projectList.length > 0 && vendorList.length > 0) {
             const project = projectList.find(
                 (p) => p.projectName === selectedRequest.projectName
             );
@@ -419,6 +421,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         const payload = {
             ...form,
             delivery_address: selectedProject?.address || "",
+            order_placed_by: orderPlacedById,
             initiator: selectedProject?.contactPersonName || "",
             initiator_number: selectedProject?.contactPersonNumber || "",
             materials,
@@ -491,11 +494,98 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }
     };
 
-    const projectData = projectList.find((p) =>
-        selectedRequest
-            ? p.projectName === selectedRequest.projectName
-            : p.project_id === Number(form.project_id)
+    const projectData = projectList.find(
+        (p) => Number(p.project_id) === Number(form.project_id)
     );
+
+    // Helper to create list of project contacts
+    const projectContacts = projectData?.contacts || {};
+
+    const projectContactsList = [
+        // Project Manager
+        projectContacts.projectManager
+            ? {
+                ...projectContacts.projectManager,
+                type: "PROJECT_MANAGER",
+            }
+            : projectData?.projectManagerName
+                ? {
+                    name: projectData.projectManagerName,
+                    phone: projectData.projectManagerNumber || "",
+                    email: projectData.projectManagerEmail || "",
+                    type: "PROJECT_MANAGER",
+                }
+                : null,
+
+        // Primary Supervisor
+        projectContacts.primarySupervisor
+            ? {
+                ...projectContacts.primarySupervisor,
+                type: "SUPERVISOR",
+            }
+            : projectData?.supervisorName
+                ? {
+                    name: projectData.supervisorName,
+                    phone: projectData.supervisorNumber || "",
+                    email: projectData.supervisorEmail || "",
+                    type: "SUPERVISOR",
+                }
+                : null,
+
+        // Secondary Supervisors
+        ...(projectContacts.secondarySupervisors || []).map(person => ({
+            ...person,
+            type: "SUPERVISOR",
+        })),
+
+        // Primary Contact Person
+        projectContacts.primaryContactPerson
+            ? {
+                ...projectContacts.primaryContactPerson,
+                type: "PRIMARY_CONTACT_PERSON",
+            }
+            : projectData?.contactPersonName
+                ? {
+                    name: projectData.contactPersonName,
+                    phone: projectData.contactPersonNumber || "",
+                    email: projectData.contactPersonEmail || "",
+                    type: "PRIMARY_CONTACT_PERSON",
+                }
+                : null,
+
+        // Secondary Contact Person
+        projectContacts.secondaryContactPerson
+            ? {
+                ...projectContacts.secondaryContactPerson,
+                type: "SECONDARY_CONTACT_PERSON",
+            }
+            : projectData?.secondaryContactPerson?.name
+                ? {
+                    name: projectData.secondaryContactPerson.name,
+                    phone: projectData.secondaryContactPerson.number || "",
+                    email: projectData.secondaryContactPerson.email || "",
+                    type: "SECONDARY_CONTACT_PERSON",
+                }
+                : null,
+    ]
+        .filter(person => person?.name)
+        .map(person => ({
+            ...person,
+            name: person.name.trim(),
+            phone: person.phone || person.number || "",
+            email: person.email || "",
+        }))
+        .filter(
+            (person, index, arr) =>
+                arr.findIndex(
+                    p =>
+                        p.name.toLowerCase() === person.name.toLowerCase()
+                ) === index
+        );
+
+    useEffect(() => {
+        setOrderPlacedById("");
+    }, [form.project_id]);
 
     // ✅ EXTRA CHARGE (MODAL CALCULATION)
     const modalBase = Number(extraCharges.extraChargeAmount || 0)
@@ -768,7 +858,28 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                         <div className="col-start-8 border-b flex flex-col justify-evenly">
                                             <p className="pl-1 border-b border-b-gray-400">{new Date().toLocaleDateString()}</p>
-                                            <p className="pl-1">Shyam</p>
+                                            {editable && !isPdfRendering ? (
+                                                <select
+                                                    value={orderPlacedById}
+                                                    className="outline-none text-red-500 font-medium"
+                                                    onChange={(e) => setOrderPlacedById(e.target.value)}
+                                                >
+                                                    <option value="">Select Person</option>
+
+                                                    {projectContactsList.map((person) => (
+                                                        <option
+                                                            key={person.contact_id || `${person.type}-${person.name}`}
+                                                            value={person.name}
+                                                        >
+                                                            {person.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                    <p className="pl-1">
+                                                        {form.order_placed_by || orderPlacedById || "N/A"}
+                                                    </p>
+                                            )}
                                         </div>
 
                                         <div className="col-span-4 row-start-2 border-r">
@@ -787,9 +898,24 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             <p className="pl-1 text-xs font-bold">Contact Person Number</p>
                                         </div>
 
-                                        <div className="col-span-2 col-start-7 row-start-2 border-l flex flex-col justify-evenly">
-                                            <p className="pl-1 border-b border-b-gray-400">{projectData?.contactPersonName || "N/A"}</p>
-                                            <p className="pl-1">{projectData?.contactPersonNumber || "N/A"}</p>
+                                        <div className="col-span-1 col-start-7 row-start-2 border-l flex flex-col justify-evenly">
+                                            <p className="pl-1 border-b border-b-gray-400">
+                                                {projectData?.contacts?.primaryContactPerson?.name || "N/A"}
+                                            </p>
+
+                                            <p className="pl-1">
+                                                {projectData?.contacts?.primaryContactPerson?.phone || "N/A"}
+                                            </p>
+                                        </div>
+
+                                        <div className="col-span-1 col-start-8 row-start-2 border-l flex flex-col justify-evenly">
+                                            <p className="pl-1 border-b border-b-gray-400">
+                                                {projectData?.contacts?.secondaryContactPerson?.name || "N/A"}
+                                            </p>
+
+                                            <p className="pl-1">
+                                                {projectData?.contacts?.secondaryContactPerson?.phone || "N/A"}
+                                            </p>
                                         </div>
 
                                         <div className="col-span-4 row-start-3 border-y border-r">

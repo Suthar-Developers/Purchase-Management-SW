@@ -239,15 +239,30 @@ const getAllProjects = async (req, res) => {
             return {
                 ...project,
                 contacts: {
-                    primaryContactPerson: contactPersons.find(c => c.is_primary) || null,
+                    primaryContactPerson:
+                        contactPersons.find(
+                            c => Number(c.is_primary) === 1
+                        ) || null,
 
-                    secondaryContactPersons: contactPersons.filter(c => !c.is_primary),
+                    secondaryContactPerson:
+                        contactPersons.find(
+                            c => Number(c.is_primary) === 0
+                        ) || null,
 
-                    projectManager: managers.find(c => c.is_primary) || null,
+                    projectManager:
+                        managers.find(
+                            c => Number(c.is_primary) === 1
+                        ) || null,
 
-                    primarySupervisor: supervisors.find(c => c.is_primary) || null,
+                    primarySupervisor:
+                        supervisors.find(
+                            c => Number(c.is_primary) === 1
+                        ) || null,
 
-                    secondarySupervisors: supervisors.filter(c => !c.is_primary)
+                    secondarySupervisors:
+                        supervisors.filter(
+                            c => Number(c.is_primary) === 0
+                        )
                 }
             };
         });
