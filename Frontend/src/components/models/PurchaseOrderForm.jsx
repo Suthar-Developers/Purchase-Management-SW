@@ -299,11 +299,129 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }
     }, [selectedRequest, projectList, vendorList, mode]);
 
-    const handleMaterialChange = (index, field, value) => {
-        const updated = [...materials]
-        updated[index][field] = value
+    // Helper to execute calculation in qty feild
+    const evaluateQtyExpression = (value) => {
+        if (value === null || value === undefined) return 0;
 
-        const qty = Number(updated[index].qty || 0)
+        let expression = String(value).trim().replace(/^=/, "").replace(/\s+/g, "");
+
+        if (!expression) return 0;
+
+        // Allow numbers, operators, %, decimal and parentheses only
+        if (!/^[0-9+\-*/().%]+$/.test(expression)) {
+            return null;
+        }
+
+        try {
+            // Convert:
+            // 20%      -> (20/100)
+            // 5400*20% -> 5400*(20/100)
+            expression = expression.replace(
+                /(\d+(?:\.\d+)?)%/g,
+                "($1/100)"
+            );
+
+            const tokens = expression.match(
+                /(\d+(?:\.\d+)?|\+|\-|\*|\/|\(|\))/g
+            );
+
+            if (!tokens || tokens.join("") !== expression) {
+                return null;
+            }
+
+            let position = 0;
+
+            const parseExpression = () => {
+                let result = parseTerm();
+
+                while (tokens[position] === "+" || tokens[position] === "-") {
+                    const operator = tokens[position++];
+                    const right = parseTerm();
+
+                    result = operator === "+" ? result + right : result - right;
+                }
+
+                return result;
+            };
+
+            const parseTerm = () => {
+                let result = parseFactor();
+
+                while (tokens[position] === "*" || tokens[position] === "/") {
+                    const operator = tokens[position++];
+                    const right = parseFactor();
+
+                    if (operator === "*") {
+                        result *= right;
+                    } else {
+                        if (right === 0) {
+                            throw new Error("Division by zero");
+                        }
+
+                        result /= right;
+                    }
+                }
+
+                return result;
+            };
+
+            const parseFactor = () => {
+                const token = tokens[position];
+
+                if (token === "+") {
+                    position++;
+                    return parseFactor();
+                }
+
+                if (token === "-") {
+                    position++;
+                    return -parseFactor();
+                }
+
+                if (token === "(") {
+                    position++;
+
+                    const result = parseExpression();
+
+                    if (tokens[position] !== ")") {
+                        throw new Error("Missing closing parenthesis");
+                    }
+
+                    position++;
+
+                    return result;
+                }
+
+                if (/^\d+(?:\.\d+)?$/.test(token)) {
+                    position++;
+                    return Number(token);
+                }
+
+                throw new Error("Invalid expression");
+            };
+
+            const result = parseExpression();
+
+            if (position !== tokens.length) {
+                return null;
+            }
+
+            return Number.isFinite(result) ? result : null;
+
+        } catch {
+            return null;
+        }
+    };
+
+    const handleMaterialChange = (index, field, value) => {
+        const updated = [...materials];
+        updated[index][field] = value;
+
+        const qty =
+            field === "qty"
+                ? evaluateQtyExpression(value) ?? 0
+                : evaluateQtyExpression(updated[index].qty) ?? 0;
+
         const rate = Number(updated[index].rate || 0)
         const discPercent = Number(updated[index].discount || 0)
 
@@ -316,13 +434,47 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         setMaterials(updated)
     }
 
+    const commitQtyExpression = (index) => {
+        const currentValue = materials[index]?.qty;
+
+        if (
+            currentValue === null || currentValue === undefined || currentValue === ""
+        ) {
+            return;
+        }
+
+        const result = evaluateQtyExpression(currentValue);
+
+        // Invalid expression → don't modify the input
+        if (result === null) {
+            return;
+        }
+
+        const updated = [...materials];
+
+        // Convert formula into calculated number
+        updated[index].qty = result;
+
+        // Recalculate row
+        const rate = Number(updated[index].rate || 0);
+        const discPercent = Number(updated[index].discount || 0);
+
+        const base = result * rate;
+        const discountAmt = (base * discPercent) / 100;
+
+        updated[index].total = base - discountAmt;
+        updated[index].amount = base;
+
+        setMaterials(updated);
+    };
+
     const handleFormChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
     // Calculate Totals
     const totals = materials.reduce((acc, m) => {
-        const qty = Number(m.qty || 0);
+        const qty = evaluateQtyExpression(m.qty) ?? 0;
         const rate = Number(m.rate || 0);
         const discPercent = Number(m.discount || 0);
         const gstPercent = Number(m.gst || 0);
@@ -1130,10 +1282,18 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
                                                             <input
+                                                                type="text"
                                                                 placeholder="Enter Quantity"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(originalIndex, "qty", e.target.value)}
                                                                 value={m.qty}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "qty", e.target.value)}
+                                                                onBlur={() => {commitQtyExpression(originalIndex);}}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Enter") {
+                                                                        e.preventDefault();
+                                                                        e.currentTarget.blur();
+                                                                    }
+                                                                }}
                                                             />
                                                         ) : (
                                                             <span>{m.qty}</span>
@@ -1182,7 +1342,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         )}
                                                     </td>
 
-                                                    <td className="w-[8.33%] text-center">₹ {((Number(m.qty)) * ((Number(m.rate))) || 0).toFixed(2)}</td>
+                                                    <td className="w-[8.33%] text-center">
+                                                        ₹ {(
+                                                            (evaluateQtyExpression(m.qty) ?? 0) *
+                                                            (Number(m.rate) || 0)
+                                                        ).toFixed(2)}
+                                                    </td>
 
                                                     {!selectedRequest && !isReadOnly && !isPdfRendering && (
                                                         <td className="no-print border-none">
