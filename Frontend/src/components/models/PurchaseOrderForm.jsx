@@ -5,6 +5,7 @@ import { fetchNextPONumber, newPurchaseOrder, updatePOStatus, fetchPurchaseOrder
 import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
+import { fetchCompanyGST } from "../../api/companyGstApi";
 import { fetchMaterialsList, fetchUnitList } from "../../api/materialListApi";
 import Button from "../common/Button";
 import useAuth from "../../hooks/useAuth";
@@ -33,6 +34,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
     const [vendorList, setVendorList] = useState([]);
     const [projectList, setProjectList] = useState([]);
+
+    const [companyGSTList, setCompanyGSTList] = useState([]);
+    const [isGSTDropdownOpen, setIsGSTDropdownOpen] = useState(false);
 
     const [materials, setMaterials] = useState([]);
     const [materialMasterList, setMaterialMasterList] = useState([]);
@@ -92,15 +96,20 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     useEffect(() => {
         const loadMasterData = async () => {
             try {
-                const [vendors, projects, materialData, unitData] = await Promise.all([
+                const [vendors, projects, gstData, materialData, unitData] = await Promise.all([
                     fetchVendors(),
                     fetchProjects(),
+                    fetchCompanyGST(),
                     fetchMaterialsList(),
                     fetchUnitList()
                 ]);
 
                 setVendorList(vendors?.data || vendors || []);
                 setProjectList(projects?.data || projects || []);
+
+                setCompanyGSTList(
+                    Array.isArray(gstData) ? gstData : gstData?.data || []
+                );
 
                 setMaterialMasterList(
                     Array.isArray(materialData) ? materialData : []
@@ -121,6 +130,25 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         loadMasterData();
     }, []);
+
+    // GST change handler
+    const handleBillingGSTChange = (gstId) => {
+        const selectedGST = companyGSTList.find(
+            item => Number(item.gst_id) === Number(gstId)
+        );
+
+        if (!selectedGST) return;
+
+        setForm(prev => ({
+            ...prev,
+            billing_gst: selectedGST.gstin,
+            billing_address: selectedGST.billing_address,
+            billing_contact_number: selectedGST.phone || "",
+            billing_contact_email: selectedGST.email || ""
+        }));
+
+        setIsGSTDropdownOpen(false);
+    };
 
     // Search materials from material list 
     const filteredMaterialMasterList = materialMasterList.filter((item) => {
@@ -1028,9 +1056,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     ))}
                                                 </select>
                                             ) : (
-                                                    <p className="pl-1">
-                                                        {form.order_placed_by || orderPlacedById || "N/A"}
-                                                    </p>
+                                                <p className="pl-1">
+                                                    {form.order_placed_by || orderPlacedById || "N/A"}
+                                                </p>
                                             )}
                                         </div>
 
@@ -1073,7 +1101,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                         <div className="col-span-4 row-start-3 border-y border-r">
                                             <div className="pl-1">
                                                 <p className="font-bold">Billing Address :</p>
-                                                <p>JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013</p>
+                                                <p>{form.billing_address || "N/A"}</p>
                                             </div>
                                         </div>
 
@@ -1092,8 +1120,45 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                         <div className="col-span-3 row-start-4 border-r">
                                             <p className="pl-2 border-b">-</p>
-                                            <p className="pl-2 border-b">27AAGFJ5194C1ZC</p>
-                                            <p className="pl-2 border-b">-</p>
+
+                                            <div className="relative w-full">
+                                                {editable && !isPdfRendering ? (
+                                                    <>
+                                                        {/* Selected GST - ONLY GST NUMBER */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsGSTDropdownOpen(prev => !prev)}
+                                                            className="w-full flex items-center justify-between pl-2 pr-2 outline-none text-red-500 font-bold text-left"
+                                                        >
+                                                            <span>{form.billing_gst || "Select GST"}</span>
+
+                                                            <i className={`fa-solid ${isGSTDropdownOpen ? "fa-chevron-up" : "fa-chevron-down"} text-xs`}></i>
+                                                        </button>
+
+                                                        {/* Dropdown List */}
+                                                        {isGSTDropdownOpen && (
+                                                            <div className="no-print absolute z-100 top-full left-0 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                                                {companyGSTList.map((gst) => (
+                                                                    <button
+                                                                        key={gst.gst_id}
+                                                                        type="button"
+                                                                        onClick={() => handleBillingGSTChange(gst.gst_id)}
+                                                                        className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100"
+                                                                    >
+                                                                        <div className="font-semibold text-gray-800">{gst.state}</div>
+                                                                        <div className="text-xs text-gray-500">{gst.gstin}</div>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    /* View/PDF → ONLY GST NUMBER */
+                                                    <p className="pl-2">{form.billing_gst || "-"}</p>
+                                                )}
+                                            </div>
+
+                                            <p className="pl-2 border-y">-</p>
                                         </div>
 
                                         <div className="col-span-4 col-start-5 row-start-4 border-b flex items-center">
@@ -1287,7 +1352,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 value={m.qty}
                                                                 onChange={(e) => handleMaterialChange(originalIndex, "qty", e.target.value)}
-                                                                onBlur={() => {commitQtyExpression(originalIndex);}}
+                                                                onBlur={() => { commitQtyExpression(originalIndex); }}
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
                                                                         e.preventDefault();
