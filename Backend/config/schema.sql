@@ -10,14 +10,46 @@ CREATE TABLE projects (
     contactPersonName VARCHAR(100),
     contactPersonNumber VARCHAR(10),
     contactPersonEmail VARCHAR(100),
-    budget VARCHAR(20),
+    budget DECIMAL(15,2) NULL,
     status ENUM("Planned", "Started", "Completed", "Hold"),
     state VARCHAR(100),
+    stateCode VARCHAR(20) NULL,
     city VARCHAR(100),
     address VARCHAR(200),
-    description VARCHAR(200),
+    description VARCHAR(500) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE project_contacts (
+    contact_id INT NOT NULL AUTO_INCREMENT,
+    project_id INT NOT NULL,
+
+    contact_type ENUM(
+        'CONTACT_PERSON',
+        'PROJECT_MANAGER',
+        'SUPERVISOR'
+    ) NOT NULL,
+
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NULL,
+    email VARCHAR(150) NULL,
+
+    is_primary BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (contact_id),
+
+    INDEX idx_project_contacts_project (project_id),
+    INDEX idx_project_contacts_type (project_id, contact_type),
+
+    CONSTRAINT fk_project_contacts_project
+        FOREIGN KEY (project_id)
+        REFERENCES projects(project_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE vendors (

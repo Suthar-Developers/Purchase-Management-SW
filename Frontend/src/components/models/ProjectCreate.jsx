@@ -18,13 +18,170 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
         address: "",
         startDate: "",
         endDate: "",
+
         contactPersonName: "",
         contactPersonNumber: "",
         contactPersonEmail: "",
+
+        secondaryContactPerson: {
+            name: "",
+            number: "",
+            email: ""
+        },
+
+        projectManagerName: "",
+        projectManagerNumber: "",
+        projectManagerEmail: "",
+
+        supervisorName: "",
+        supervisorNumber: "",
+        supervisorEmail: "",
+
+        secondarySupervisors: [],
+
         status: "Planned",
         budget: "",
         description: ""
     });
+
+    const [showContactPersonModal, setShowContactPersonModal] = useState(false);
+    const [showProjectManagerModal, setShowProjectManagerModal] = useState(false);
+    const [showSupervisorModal, setShowSupervisorModal] = useState(false);
+
+    const [contactPersonForm, setContactPersonForm] = useState({
+        name: "",
+        number: "",
+        email: ""
+    });
+
+    const [managerForm, setManagerForm] = useState({
+        name: "",
+        number: "",
+        email: ""
+    });
+
+    const [supervisorForm, setSupervisorForm] = useState({
+        name: "",
+        number: "",
+        email: ""
+    });
+
+    const [secondaryContactPerson, setSecondaryContactPerson] = useState({
+        name: "",
+        number: "",
+        email: ""
+    });
+
+    const [secondarySupervisors, setSecondarySupervisors] = useState([]);
+
+    const handleContactPersonChange = (e) => {
+        setContactPersonForm((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
+
+    const handleSecondaryContactChange = (e) => {
+        setSecondaryContactPerson((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
+
+    const saveContactPerson = () => {
+        if (!contactPersonForm.name.trim()) {
+            alert("Please enter contact person name.");
+            return;
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            contactPersonName: contactPersonForm.name,
+            contactPersonNumber: contactPersonForm.number,
+            contactPersonEmail: contactPersonForm.email,
+            secondaryContactPerson
+        }));
+
+        setShowContactPersonModal(false);
+    };
+
+    const handleManagerChange = (e) => {
+        setManagerForm((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
+
+    const saveProjectManager = () => {
+        if (!managerForm.name.trim()) {
+            alert("Please enter Project Manager name.");
+            return;
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            projectManagerName: managerForm.name,
+            projectManagerNumber: managerForm.number,
+            projectManagerEmail: managerForm.email
+        }));
+
+        setShowProjectManagerModal(false);
+    };
+
+    const handleSupervisorChange = (e) => {
+        setSupervisorForm((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
+    };
+
+    const saveSupervisor = () => {
+        if (!supervisorForm.name.trim()) {
+            alert("Please enter Supervisor name.");
+            return;
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            supervisorName: supervisorForm.name,
+            supervisorNumber: supervisorForm.number,
+            supervisorEmail: supervisorForm.email,
+            secondarySupervisors
+        }));
+
+        setShowSupervisorModal(false);
+    };
+
+    const addSecondarySupervisor = () => {
+        setSecondarySupervisors((prev) => [
+            ...prev,
+            {
+                id: Date.now(),
+                name: "",
+                number: "",
+                email: ""
+            }
+        ]);
+    };
+
+    const updateSecondarySupervisor = (id, field, value) => {
+        setSecondarySupervisors((prev) =>
+            prev.map((supervisor) =>
+                supervisor.id === id
+                    ? {
+                        ...supervisor,
+                        [field]: value
+                    }
+                    : supervisor
+            )
+        );
+    };
+
+    const removeSecondarySupervisor = (id) => {
+        setSecondarySupervisors((prev) =>
+            prev.filter((supervisor) => supervisor.id !== id)
+        );
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -87,6 +244,18 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                 contactPersonName: "",
                 contactPersonNumber: "",
                 contactPersonEmail: "",
+                secondaryContactPerson: {
+                    name: "",
+                    number: "",
+                    email: ""
+                },
+                projectManagerName: "",
+                projectManagerNumber: "",
+                projectManagerEmail: "",
+                supervisorName: "",
+                supervisorNumber: "",
+                supervisorEmail: "",
+                secondarySupervisors: [],
                 status: "Planned",
                 budget: "",
                 description: ""
@@ -189,33 +358,6 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                             />
 
                             <input
-                                type="tel"
-                                name="contactPersonName"
-                                placeholder="Contact Person Name"
-                                value={formData.contactPersonName}
-                                onChange={handleChange}
-                                className={inputStyle}
-                            />
-
-                            <input
-                                type="tel"
-                                name="contactPersonNumber"
-                                placeholder="Contact Person Number"
-                                value={formData.contactPersonNumber}
-                                onChange={handleChange}
-                                className={inputStyle}
-                            />
-
-                            <input
-                                type="tel"
-                                name="contactPersonEmail"
-                                placeholder="Contact Person Email"
-                                value={formData.contactPersonEmail}
-                                onChange={handleChange}
-                                className={inputStyle}
-                            />
-
-                            <input
                                 type="number"
                                 name="budget"
                                 placeholder="Budget"
@@ -223,7 +365,6 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                                 onChange={handleChange}
                                 className={inputStyle}
                             />
-
 
                             <select
                                 name="status"
@@ -236,6 +377,135 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                                 <option>Planned</option>
                                 <option>Started</option>
                             </select>
+
+                            {/* Project Manager */}
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-semibold text-slate-700">
+                                            Project Manager
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-slate-400">
+                                            {formData.projectManagerName
+                                                ? formData.projectManagerName
+                                                : "No project manager added"}
+                                        </p>
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        lable={
+                                            formData.projectManagerName
+                                                ? "Edit"
+                                                : "Add Manager"
+                                        }
+                                        onClick={() => {
+                                            setManagerForm({
+                                                name: formData.projectManagerName || "",
+                                                number: formData.projectManagerNumber || "",
+                                                email: formData.projectManagerEmail || ""
+                                            });
+
+                                            setShowProjectManagerModal(true);
+                                        }}
+                                        className="rounded-lg bg-indigo-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-indigo-700"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Supervisor */}
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-semibold text-slate-700">
+                                            Supervisor
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-slate-400">
+                                            {formData.supervisorName
+                                                ? formData.supervisorName
+                                                : "No supervisor added"}
+                                        </p>
+
+                                        {secondarySupervisors.length > 0 && (
+                                            <p className="mt-1 text-[10px] text-indigo-500">
+                                                + {secondarySupervisors.length} secondary supervisor
+                                                {secondarySupervisors.length > 1 ? "s" : ""}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        lable={
+                                            formData.supervisorName
+                                                ? "Edit"
+                                                : "Add Supervisor"
+                                        }
+                                        onClick={() => {
+                                            setSupervisorForm({
+                                                name: formData.supervisorName || "",
+                                                number: formData.supervisorNumber || "",
+                                                email: formData.supervisorEmail || ""
+                                            });
+
+                                            setShowSupervisorModal(true);
+                                        }}
+                                        className="rounded-lg bg-emerald-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-emerald-700"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Contact Person */}
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-semibold text-slate-700">
+                                            Contact Person
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-slate-400">
+                                            {formData.contactPersonName
+                                                ? formData.contactPersonName
+                                                : "No contact person added"}
+                                        </p>
+
+                                        {secondaryContactPerson.name && (
+                                            <p className="mt-1 text-[10px] text-indigo-500">
+                                                + 1 secondary contact person
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        lable={
+                                            formData.contactPersonName
+                                                ? "Edit"
+                                                : "Add Contact Person"
+                                        }
+                                        onClick={() => {
+                                            setContactPersonForm({
+                                                name: formData.contactPersonName || "",
+                                                number: formData.contactPersonNumber || "",
+                                                email: formData.contactPersonEmail || ""
+                                            });
+
+                                            setSecondaryContactPerson(
+                                                formData.secondaryContactPerson || {
+                                                    name: "",
+                                                    number: "",
+                                                    email: ""
+                                                }
+                                            );
+
+                                            setShowContactPersonModal(true);
+                                        }}
+                                        className="rounded-lg bg-gray-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-emerald-700"
+                                    />
+                                </div>
+                            </div>
 
                             <select
                                 value={formData.state}
@@ -308,6 +578,419 @@ const ProjectCreate = ({ isOpen, onClose, refreshProjects }) => {
                     </form>
                 </div>
             </div>
+
+            {/* CONTACT PERSON MODAL */}
+            {showContactPersonModal && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                            <div>
+                                <h3 className="text-base font-semibold text-slate-900">
+                                    Contact Person Details
+                                </h3>
+
+                                <p className="mt-1 text-xs text-slate-400">
+                                    Add primary and secondary contact persons
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowContactPersonModal(false)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Scrollable Body */}
+                        <div className="max-h-[65vh] overflow-y-auto p-5">
+
+                            {/* Primary Contact Person */}
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                                <div className="mb-4">
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        Primary Contact Person
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={contactPersonForm.name}
+                                            onChange={handleContactPersonChange}
+                                            placeholder="contact person Name"
+                                            className={inputStyle}
+                                        />
+
+                                        <input
+                                            type="tel"
+                                            name="number"
+                                            value={contactPersonForm.number}
+                                            onChange={handleContactPersonChange}
+                                            placeholder="Contact Number"
+                                            className={inputStyle}
+                                        />
+
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={contactPersonForm.email}
+                                            onChange={handleContactPersonChange}
+                                            placeholder="Email Address"
+                                            className={inputStyle}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Secondary Contact Person */}
+                        <div className="max-h-[65vh] overflow-y-auto p-5">
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                                <div className="mb-3">
+                                    <h4 className="text-sm font-semibold text-slate-800">
+                                        Secondary Contact Person
+                                    </h4>
+
+                                    <p className="text-[11px] text-slate-400">
+                                        Add one additional contact person if required
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={secondaryContactPerson.name}
+                                            onChange={handleSecondaryContactChange}
+                                            placeholder="Contact Person Name"
+                                            className={inputStyle}
+                                        />
+
+                                        <input
+                                            type="tel"
+                                            name="number"
+                                            value={secondaryContactPerson.number}
+                                            onChange={handleSecondaryContactChange}
+                                            placeholder="Contact Number"
+                                            className={inputStyle}
+                                        />
+
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={secondaryContactPerson.email}
+                                            onChange={handleSecondaryContactChange}
+                                            placeholder="Email Address"
+                                            className={inputStyle}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+
+                            <Button
+                                type="button"
+                                lable="Cancel"
+                                onClick={() => setShowContactPersonModal(false)}
+                                className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200"
+                            />
+
+                            <Button
+                                type="button"
+                                lable="Save Contact Person"
+                                onClick={saveContactPerson}
+                                className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                            />
+
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PROJECT MANAGER MODAL */}
+            {showProjectManagerModal && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                            <div>
+                                <h3 className="text-base font-semibold text-slate-900">
+                                    Project Manager Details
+                                </h3>
+
+                                <p className="mt-1 text-xs text-slate-400">
+                                    Add project manager
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowProjectManagerModal(false)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Scrollable Body */}
+                        <div className="max-h-[65vh] overflow-y-auto p-5">
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                                <div className="mb-4">
+                                    <p className="text-[11px] text-slate-400">
+                                        The project manager responsible for this project
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={managerForm.name}
+                                        onChange={handleManagerChange}
+                                        placeholder="Project Manager Name"
+                                        className={inputStyle}
+                                    />
+
+                                    <input
+                                        type="tel"
+                                        name="number"
+                                        value={managerForm.number}
+                                        onChange={handleManagerChange}
+                                        placeholder="Contact Number"
+                                        className={inputStyle}
+                                    />
+
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={managerForm.email}
+                                        onChange={handleManagerChange}
+                                        placeholder="Email Address"
+                                        className={inputStyle}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+                            <Button
+                                type="button"
+                                lable="Cancel"
+                                onClick={() => setShowProjectManagerModal(false)}
+                                className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200"
+                            />
+
+                            <Button
+                                type="button"
+                                lable="Save Project Manager"
+                                onClick={saveProjectManager}
+                                className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SUPERVISOR MODAL */}
+            {showSupervisorModal && (
+                <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                            <div>
+                                <h3 className="text-base font-semibold text-slate-900">
+                                    Supervisor Details
+                                </h3>
+
+                                <p className="mt-1 text-xs text-slate-400">
+                                    Add primary and secondary supervisors
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowSupervisorModal(false)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Scrollable Body */}
+                        <div className="max-h-[65vh] overflow-y-auto p-5">
+
+                            {/* Primary Supervisor */}
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                                <div className="mb-4">
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        Primary Supervisor
+                                    </p>
+
+                                    <p className="text-[11px] text-slate-400">
+                                        Main supervisor responsible for this project
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={supervisorForm.name}
+                                        onChange={handleSupervisorChange}
+                                        placeholder="Supervisor Name"
+                                        className={inputStyle}
+                                    />
+
+                                    <input
+                                        type="tel"
+                                        name="number"
+                                        value={supervisorForm.number}
+                                        onChange={handleSupervisorChange}
+                                        placeholder="Contact Number"
+                                        className={inputStyle}
+                                    />
+
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={supervisorForm.email}
+                                        onChange={handleSupervisorChange}
+                                        placeholder="Email Address"
+                                        className={inputStyle}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Secondary Supervisors */}
+                            <div className="mt-5">
+                                <div className="mb-3 flex items-center justify-between">
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-slate-800">
+                                            Secondary Supervisors
+                                        </h4>
+
+                                        <p className="text-[11px] text-slate-400">
+                                            Add additional supervisors if required
+                                        </p>
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        lable="+ Add Supervisor"
+                                        onClick={addSecondarySupervisor}
+                                        className="rounded-lg bg-blue-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-700"
+                                    />
+                                </div>
+
+                                {secondarySupervisors.length === 0 ? (
+                                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
+                                        <p className="text-xs text-slate-400">
+                                            No secondary supervisors added
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {secondarySupervisors.map(
+                                            (supervisor, index) => (
+                                                <div
+                                                    key={supervisor.id}
+                                                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                                                >
+
+                                                    <div className="mb-3 flex items-center justify-between">
+                                                        <p className="text-xs font-semibold text-slate-700">
+                                                            Secondary Supervisor {index + 1}
+                                                        </p>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeSecondarySupervisor(supervisor.id)}
+                                                            className="text-xs font-medium text-red-500 hover:text-red-700"
+                                                        >
+                                                            Remove
+                                                        </button>
+
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                                        <input
+                                                            type="text"
+                                                            value={supervisor.name}
+                                                            onChange={(e) => updateSecondarySupervisor(
+                                                                supervisor.id,
+                                                                "name",
+                                                                e.target.value
+                                                            )}
+                                                            placeholder="Supervisor Name"
+                                                            className={inputStyle}
+                                                        />
+
+                                                        <input
+                                                            type="tel"
+                                                            value={supervisor.number}
+                                                            onChange={(e) => updateSecondarySupervisor(
+                                                                supervisor.id,
+                                                                "number",
+                                                                e.target.value
+                                                            )}
+                                                            placeholder="Contact Number"
+                                                            className={inputStyle}
+                                                        />
+
+                                                        <input
+                                                            type="email"
+                                                            value={supervisor.email}
+                                                            onChange={(e) => updateSecondarySupervisor(
+                                                                supervisor.id,
+                                                                "email",
+                                                                e.target.value
+                                                            )}
+                                                            placeholder="Email Address"
+                                                            className={inputStyle}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )
+                                        )}
+
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+                            <Button
+                                type="button"
+                                lable="Cancel"
+                                onClick={() => setShowSupervisorModal(false)}
+                                className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200"
+                            />
+
+                            <Button
+                                type="button"
+                                lable="Save Supervisors"
+                                onClick={saveSupervisor}
+                                className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
