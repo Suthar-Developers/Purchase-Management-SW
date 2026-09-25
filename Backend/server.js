@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const db = require('./config/db')
 const projectRoute = require('./routes/projectRoute')
 const vendorRoute = require('./routes/vendorRoute')
+const companyGstRoute = require('./routes/CompanyGstRoute');
 const purchaseRequestRoute = require('./routes/purchaseRequestRoute')
 const purchaseOrderRoute = require('./routes/purchaseOrderRoute')
 const authRoute = require('./routes/authRoute')
@@ -70,6 +71,7 @@ app.get('/', (req, res) => {
 
 app.use('/api', projectRoute)
 app.use('/api', vendorRoute)
+app.use('/api', companyGstRoute);
 app.use('/api', purchaseRequestRoute)
 app.use('/api', purchaseOrderRoute)
 app.use('/api', authRoute)
