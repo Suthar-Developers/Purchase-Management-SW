@@ -15,7 +15,7 @@ const login = async (req, res) => {
 
         res.cookie(process.env.COOKIE_NAME, refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
@@ -54,7 +54,7 @@ const refresh = async (req, res) => {
             response.refreshToken,
             {
                 httpOnly: true,
-                secure: false,
+                secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
                 maxAge: 7 * 24 * 60 * 60 * 1000
             }
@@ -93,7 +93,7 @@ const logout = async (req, res) => {
 
         res.clearCookie(process.env.COOKIE_NAME, {
             httpOnly: true,
-            secure: false,
+            secure: process.env.NODE_ENV === "production",
             sameSite: "lax"
         });
 
