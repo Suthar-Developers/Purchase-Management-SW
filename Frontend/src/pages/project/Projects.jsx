@@ -181,10 +181,10 @@ const Projects = () => {
 
                 {/* ===================== TABLE ===================== */}
                 <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto bg-slate-50/70 px-3">
-                    <div className="w-max min-w-full rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
 
                         {/* Table header */}
-                        <div className="sticky top-0 z-30 grid grid-cols-[44px_44px_2.1fr_1.25fr_1.5fr_1.25fr_1.25fr_1.15fr_1.15fr_1fr_1.1fr_100px] items-center border-b border-slate-700 bg-slate-900 px-4 py-3 shadow-sm text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <div className="sticky top-0 z-30 grid grid-cols-[36px_36px_minmax(0,1.5fr)_minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.95fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.95fr)_minmax(0,0.8fr)_minmax(0,0.85fr)_76px] items-center border-b border-slate-700 bg-slate-900 px-3 py-3 shadow-sm text-[9px] font-bold uppercase tracking-wider text-slate-300">
                             <div className="flex justify-center">
                                 <input
                                     type="checkbox"
@@ -244,7 +244,7 @@ const Projects = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="min-h-0 flex-1 overflow-auto">
+                            <div className="min-h-0">
                                 {filteredProjects.map((project, index) => {
                                     const isSelected = selectedProjects.some(
                                         (item) => item.project_id === project.project_id
@@ -305,9 +305,9 @@ const Projects = () => {
                                     return (
                                         <div
                                             key={project.project_id}
-                                            className={`min-w-375 grid grid-cols-[44px_44px_2.1fr_1.25fr_1.5fr_1.25fr_1.25fr_1.15fr_1.15fr_1fr_1.1fr_100px] items-center border-b border-slate-100 px-4 py-5 transition last:border-b-0 ${isSelected
-                                                ? "bg-indigo-50/70"
-                                                : "bg-white hover:bg-slate-50"
+                                            className={`grid grid-cols-[36px_36px_minmax(0,1.5fr)_minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.95fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.95fr)_minmax(0,0.8fr)_minmax(0,0.85fr)_76px] items-center border-b border-slate-100 px-3 py-4 transition last:border-b-0 ${isSelected
+                                                    ? "bg-indigo-50/70"
+                                                    : "bg-white hover:bg-slate-50"
                                                 }`}
                                         >
                                             {/* Selection */}
@@ -339,7 +339,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Project */}
-                                            <div className="min-w-0 pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <div className="flex items-start gap-3">
                                                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-xs font-bold text-indigo-600">
                                                         {project.projectName
@@ -363,7 +363,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Code + Client */}
-                                            <div className="min-w-0 pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <span className="inline-flex max-w-full truncate rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">
                                                     {project.projectCode || "—"}
                                                 </span>
@@ -375,7 +375,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Location */}
-                                            <div className="min-w-0 pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <p className="truncate text-xs font-semibold text-slate-700">
                                                     {project.city || "—"}
                                                 </p>
@@ -395,7 +395,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Schedule */}
-                                            <div className="pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <div className="flex items-center gap-2 text-[10px]">
                                                     <span className="rounded-md bg-emerald-50 px-1.5 py-1 font-semibold text-emerald-700">
                                                         {project.startDate
@@ -420,7 +420,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Project Manager */}
-                                            <div className="min-w-0 pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <p className="truncate text-xs font-semibold text-slate-700">
                                                     {manager?.name || "Not assigned"}
                                                 </p>
@@ -431,7 +431,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Supervisor */}
-                                            <div className="min-w-0 pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <p className="truncate text-xs font-semibold text-slate-700">
                                                     {supervisor?.name || "Not assigned"}
                                                 </p>
@@ -448,7 +448,7 @@ const Projects = () => {
                                             </div>
 
                                             {/* Contact */}
-                                            <div className="min-w-0 pr-4">
+                                            <div className="min-w-0 pr-3">
                                                 <p className="truncate text-xs font-semibold text-slate-700">
                                                     {contact?.name || "Not assigned"}
                                                 </p>
