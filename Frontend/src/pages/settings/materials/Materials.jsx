@@ -17,7 +17,6 @@ const Materials = () => {
 
   const [form, setForm] = useState({
     material_name: "",
-    material_code: "",
     material_category: "",
     material_status: "Active"
   });
@@ -66,7 +65,6 @@ const Materials = () => {
     e.preventDefault();
 
     const materialName = form.material_name.trim();
-    const materialCode = form.material_code.trim();
     const materialCategory = form.material_category.trim();
     const materialStatus = form.material_status.trim();
 
@@ -90,7 +88,6 @@ const Materials = () => {
 
       const data = await createMaterial({
         material_name: materialName,
-        material_code: materialCode,
         material_category: materialCategory,
         material_status: materialStatus
       });
@@ -103,7 +100,6 @@ const Materials = () => {
       // Reset form
       setForm({
         material_name: "",
-        material_code: "",
         material_category: "",
         material_status: "Active"
       });
@@ -136,7 +132,6 @@ const Materials = () => {
     return materials.filter((item) => {
       return (
         item.material_name?.toLowerCase().includes(search) ||
-        item.material_code?.toLowerCase().includes(search) ||
         item.material_category?.toLowerCase().includes(search) ||
         item.material_status?.toLowerCase().includes(search)
       );
@@ -241,8 +236,7 @@ const Materials = () => {
             <div className="mt-4 shrink-0 flex items-center rounded-lg bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
               <div className="w-12 shrink-0 text-center">#</div>
               <div className="min-w-0 flex-1">Material</div>
-              <div className="w-28 shrink-0">Material Code</div>
-              <div className="w-32 shrink-0">Category</div>
+              <div className="w-40 shrink-0">Category</div>
               <div className="w-24 shrink-0">Status</div>
               <div className="w-16 shrink-0 text-center">Action</div>
             </div>
@@ -279,15 +273,8 @@ const Materials = () => {
                         </div>
                       </div>
 
-                      {/* Material Code */}
-                      <div className="w-28 shrink-0 min-w-0 pr-2">
-                        <p className="truncate font-medium text-slate-800">
-                          {item.material_code}
-                        </p>
-                      </div>
-
                       {/* Material Category */}
-                      <div className="w-32 shrink-0 min-w-0 pr-2">
+                      <div className="w-40 shrink-0 min-w-0 pr-2">
                         <p className="truncate font-medium text-slate-800">
                           {item.material_category}
                         </p>
@@ -442,26 +429,6 @@ const Materials = () => {
               />
             </div>
 
-            {/* Material Code */}
-            <div className="mt-4">
-              <label htmlFor="material_code" className="mb-1 block text-xs font-semibold text-slate-700">
-                Material Code
-                <span className="ml-1 text-red-500">*</span>
-              </label>
-
-              <input
-                id="material_code"
-                type="text"
-                name="material_code"
-                value={form.material_code}
-                onChange={handleChange}
-                placeholder="Enter material code"
-                disabled={isSubmitting}
-                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-                required
-              />
-            </div>
-
             {/* Material Category */}
             <div className="mt-4">
               <label htmlFor="material_category" className="mb-1 block text-xs font-semibold text-slate-700">
@@ -493,7 +460,6 @@ const Materials = () => {
                 disabled={isSubmitting}
                 onClick={() => setForm({
                   material_name: "",
-                  material_code: "",
                   material_category: "",
                   material_status: "",
                 })}

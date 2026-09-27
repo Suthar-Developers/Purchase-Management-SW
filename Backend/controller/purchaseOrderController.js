@@ -170,22 +170,8 @@ const newPurchaseOrder = async (req, res) => {
             }
         }
 
-        const totalQuantity = Array.isArray(materials)
-            ? materials.reduce((sum, item) => sum + Number(item.qty || 0), 0)
-            : 0;
-        const thresholdAlerts = await evaluateThresholdAlerts({
-            grandTotal: grand_total,
-            quantity: totalQuantity,
-            totalGst: total_gst,
-            totalDiscount: total_discount
-        });
-
         return res.status(201).json({
-            message: thresholdAlerts.length
-                ? "New purchase order placed successfully. Threshold alert matched."
-                : "New purchase order placed successfully..",
-            po_id,
-            thresholdAlerts
+            message: "New purchase order placed successfully..", po_id,
         })
 
     } catch (error) {
