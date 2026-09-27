@@ -14,10 +14,24 @@ const materialsRoute = require('./routes/materialsRoute')
 const app = express()
 const port = 3000;
 
-app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
-}));
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://purchase.jrcinteriors.dpdns.org",
+];
+
+app.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+    })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
