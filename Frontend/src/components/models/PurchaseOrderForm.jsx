@@ -6,7 +6,7 @@ import { updatePRStatus } from "../../api/purchaseRequestApi"
 import { fetchVendors } from "../../api/vendorApi"
 import { fetchProjects } from "../../api/projectApi"
 import { fetchCompanyGST } from "../../api/companyGstApi";
-import { fetchMaterialsList, fetchUnitList } from "../../api/materialListApi";
+import { fetchMaterialsList, AddNewMaterial, fetchUnitList, AddNewUnit } from "../../api/materialListApi";
 import Button from "../common/Button";
 import useAuth from "../../hooks/useAuth";
 import { hasPermission } from "../../utils/permissions";
@@ -42,12 +42,14 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const [materialMasterList, setMaterialMasterList] = useState([]);
     const [materialSearch, setMaterialSearch] = useState("");
     const [activeMaterialRow, setActiveMaterialRow] = useState(null);
+    const [creatingMaterialRow, setCreatingMaterialRow] = useState(null);
 
     const materialDropdownRef = useRef(null);
 
     const [unitMasterList, setUnitMasterList] = useState([]);
     const [unitSearch, setUnitSearch] = useState("");
     const [activeUnitRow, setActiveUnitRow] = useState(null);
+    const [creatingUnitRow, setCreatingUnitRow] = useState(null);
 
     const unitDropdownRef = useRef(null);
 
@@ -187,6 +189,87 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         setActiveMaterialRow(null);
     };
 
+    // Create directly new material from PO form
+    const handleCreateMaterialDirectly = async (rowIndex) => {
+        const materialName = materialSearch.trim();
+
+        if (!materialName) return;
+
+        // Prevent double submission
+        if (creatingMaterialRow !== null) {
+            return;
+        }
+
+        try {
+            setCreatingMaterialRow(rowIndex);
+
+            const response = await AddNewMaterial({
+                material_name: materialName
+            });
+
+            const createdMaterial =
+                response?.material ||
+                response?.data?.material ||
+                response;
+
+            if (!createdMaterial?.material_name) {
+                throw new Error("Material was created but no material data was returned.");
+            }
+
+            // Add newly created material to local master list
+            setMaterialMasterList(prev => {
+                const exists = prev.some(
+                    item =>
+                        Number(item.material_id) ===
+                        Number(createdMaterial.material_id)
+                );
+
+                return exists ? prev : [...prev, createdMaterial];
+            });
+
+            // Put newly created material directly into PO row
+            handleMaterialChange(
+                rowIndex,
+                "material",
+                createdMaterial.material_name
+            );
+
+            // Clear material search
+            setMaterialSearch("");
+
+            // Close dropdown
+            setActiveMaterialRow(null);
+
+        } catch (error) {
+            console.error("Failed to create material:", error);
+
+            if (error?.response?.status === 409) {
+                const existingMaterial = error?.response?.data?.material;
+
+                if (existingMaterial?.material_name) {
+                    handleMaterialChange(
+                        rowIndex,
+                        "material",
+                        existingMaterial.material_name
+                    );
+
+                    setMaterialSearch("");
+                    setActiveMaterialRow(null);
+                    return;
+                }
+            }
+
+            alert(
+                error?.response?.data?.message ||
+                error.message ||
+                "Failed to create material."
+            );
+
+        } finally {
+            setCreatingMaterialRow(null);
+        }
+    };
+
     // Unit selection handler
     const handleUnitSelect = (rowIndex, unitItem) => {
         const unitValue = unitItem.material_unit || "";
@@ -199,6 +282,84 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         setUnitSearch("");
         setActiveUnitRow(null);
+    };
+
+    // Create directly new unit from PO form
+    const handleCreateUnitDirectly = async (rowIndex) => {
+        const unitName = unitSearch.trim();
+
+        if (!unitName) return;
+
+        try {
+            setCreatingUnitRow(rowIndex);
+
+            const response = await AddNewUnit({
+                material_unit: unitName
+            });
+
+            const createdUnit =
+                response?.unit ||
+                response?.data?.unit ||
+                response;
+
+            if (!createdUnit?.material_unit) {
+                throw new Error("Unit was created but no unit data was returned.");
+            }
+
+            // Add newly created unit to local master list
+            setUnitMasterList(prev => {
+                const exists = prev.some(
+                    item =>
+                        Number(item.material_unit_id) ===
+                        Number(createdUnit.material_unit_id)
+                );
+
+                return exists
+                    ? prev
+                    : [...prev, createdUnit];
+            });
+
+            // Immediately select the new unit
+            handleMaterialChange(
+                rowIndex,
+                "unit",
+                createdUnit.material_unit
+            );
+
+            // Close dropdown
+            setUnitSearch("");
+            setActiveUnitRow(null);
+
+        } catch (error) {
+            console.error("Failed to create unit:", error);
+
+            // If unit already exists, select it
+            if (error?.response?.status === 409) {
+                const existingUnit =
+                    error?.response?.data?.unit;
+
+                if (existingUnit?.material_unit) {
+                    handleMaterialChange(
+                        rowIndex,
+                        "unit",
+                        existingUnit.material_unit
+                    );
+
+                    setUnitSearch("");
+                    setActiveUnitRow(null);
+
+                    return;
+                }
+            }
+
+            alert(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Failed to create unit."
+            );
+        } finally {
+            setCreatingUnitRow(null);
+        }
     };
 
     // Outside click handler
@@ -1230,13 +1391,49 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                     className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 focus:border-blue-500 text-red-500 font-bold text-center"
                                                                     onFocus={() => {
                                                                         setActiveMaterialRow(originalIndex);
-
-                                                                        // Empty search = show complete material list
                                                                         setMaterialSearch("");
                                                                     }}
                                                                     onChange={(e) => {
                                                                         setActiveMaterialRow(originalIndex);
                                                                         setMaterialSearch(e.target.value);
+                                                                    }}
+
+                                                                    onKeyDown={async (e) => {
+                                                                        if (e.key !== "Enter") {
+                                                                            return;
+                                                                        }
+
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+
+                                                                        const searchValue = materialSearch.trim();
+
+                                                                        if (!searchValue) {
+                                                                            return;
+                                                                        }
+
+                                                                        // Check exact existing material
+                                                                        const existingMaterial =
+                                                                            materialMasterList.find(
+                                                                                item =>
+                                                                                    item.material_name
+                                                                                        ?.trim()
+                                                                                        .toLowerCase() ===
+                                                                                    searchValue.toLowerCase()
+                                                                            );
+
+                                                                        if (existingMaterial) {
+                                                                            handleMaterialSelect(
+                                                                                originalIndex,
+                                                                                existingMaterial
+                                                                            );
+                                                                            return;
+                                                                        }
+
+                                                                        // Material doesn't exist → create it
+                                                                        await handleCreateMaterialDirectly(
+                                                                            originalIndex
+                                                                        );
                                                                     }}
                                                                 />
 
@@ -1250,32 +1447,37 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                                 <button
                                                                                     key={item.material_id}
                                                                                     type="button"
-                                                                                    onClick={() => {
-                                                                                        handleMaterialSelect(originalIndex, item);
-                                                                                    }}
+                                                                                    onClick={() => handleMaterialSelect(originalIndex, item)}
                                                                                     className="block w-full min-w-0 overflow-hidden border-b border-gray-100 px-3 py-2 text-left hover:bg-blue-50"
                                                                                 >
-                                                                                    {/* Material Name */}
                                                                                     <div className="truncate font-semibold text-gray-800">
                                                                                         {item.material_name}
                                                                                     </div>
 
-                                                                                    {/* Code + Category */}
-                                                                                    <div className="mt-0.5 flex w-full min-w-0 justify-between gap-2 text-[10px] text-gray-500">
-                                                                                        <span className="min-w-0 truncate">
-                                                                                            Code: {item.material_code || "-"}
-                                                                                        </span>
-
-                                                                                        <span className="min-w-0 truncate">
-                                                                                            {item.material_category || "-"}
-                                                                                        </span>
+                                                                                    <div className="mt-0.5 text-[10px] text-gray-500">
+                                                                                        {item.material_category || "No category"}
                                                                                     </div>
                                                                                 </button>
                                                                             ))
                                                                         ) : (
-                                                                            <div className="px-4 py-6 text-center text-sm text-gray-500">
-                                                                                No materials found
-                                                                            </div>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleCreateMaterialDirectly(originalIndex)}
+                                                                                disabled={creatingMaterialRow === originalIndex}
+                                                                                className="block w-full px-3 py-3 text-left hover:bg-blue-50 disabled:opacity-60"
+                                                                            >
+                                                                                <div className="font-semibold text-blue-600">
+                                                                                    {creatingMaterialRow === originalIndex
+                                                                                        ? "Creating material..."
+                                                                                        : `+ Create "${materialSearch.trim()}"`}
+                                                                                </div>
+
+                                                                                {creatingMaterialRow !== originalIndex && (
+                                                                                    <div className="mt-1 text-[10px] text-gray-500">
+                                                                                        Press Enter to create • Category: None
+                                                                                    </div>
+                                                                                )}
+                                                                            </button>
                                                                         )}
                                                                     </div>
                                                                 )}
@@ -1308,33 +1510,70 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                         setActiveUnitRow(originalIndex);
                                                                         setUnitSearch(e.target.value);
                                                                     }}
+
+                                                                    onKeyDown={async (e) => {
+                                                                        if (e.key !== "Enter") return;
+
+                                                                        e.preventDefault();
+
+                                                                        const typedUnit = unitSearch.trim();
+
+                                                                        if (!typedUnit) return;
+
+                                                                        // Check if exact unit already exists
+                                                                        const existingUnit = unitMasterList.find(
+                                                                            item =>
+                                                                                String(item.material_unit || "")
+                                                                                    .trim()
+                                                                                    .toLowerCase() === typedUnit.toLowerCase()
+                                                                        );
+
+                                                                        if (existingUnit) {
+                                                                            handleUnitSelect(originalIndex, existingUnit);
+
+                                                                            return;
+                                                                        }
+
+                                                                        // Unit doesn't exist → create it
+                                                                        await handleCreateUnitDirectly(originalIndex);
+                                                                    }}
                                                                 />
 
                                                                 {/* Unit Dropdown */}
                                                                 {activeUnitRow === originalIndex && (
-                                                                    <div className="absolute z-100 top-full left-1/2 -translate-x-1/2 mt-1 w-full max-h-64 overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white shadow-xl text-left">
+                                                                    <div className="absolute z-100 top-full left-1/2 -translate-x-1/2 mt-1 min-w-55 max-h-64 overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white shadow-xl text-left">
                                                                         {filteredUnitMasterList.length > 0 ? (
-                                                                            filteredUnitMasterList.map((item, index) => {
-
-                                                                                const unitValue = item.material_unit || "";
-
-                                                                                return (
-                                                                                    <button
-                                                                                        key={item.material_unit_id || `${unitValue}-${index}`}
-                                                                                        type="button"
-                                                                                        onClick={() => handleUnitSelect(originalIndex, item)}
-                                                                                        className="block w-full min-w-0 overflow-hidden border-b border-gray-100 px-3 py-2 text-left hover:bg-blue-50"
-                                                                                    >
-                                                                                        <div className="truncate font-semibold text-gray-800">
-                                                                                            {unitValue}
-                                                                                        </div>
-                                                                                    </button>
-                                                                                );
-                                                                            })
+                                                                            filteredUnitMasterList.map((item) => (
+                                                                                <button
+                                                                                    key={item.material_unit_id}
+                                                                                    type="button"
+                                                                                    onClick={() => handleUnitSelect(originalIndex, item)}
+                                                                                    className="block w-full min-w-0 overflow-hidden border-b border-gray-100 px-3 py-2 text-left hover:bg-blue-50"
+                                                                                >
+                                                                                    <div className="truncate font-semibold text-gray-800">
+                                                                                        {item.material_unit}
+                                                                                    </div>
+                                                                                </button>
+                                                                            ))
                                                                         ) : (
-                                                                            <div className="px-4 py-6 text-center text-sm text-gray-500">
-                                                                                No units found
-                                                                            </div>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleCreateUnitDirectly(originalIndex)}
+                                                                                disabled={creatingMaterialRow === originalIndex}
+                                                                                className="block w-full px-3 py-3 text-left hover:bg-blue-50 disabled:opacity-60"
+                                                                            >
+                                                                                <div className="font-semibold text-blue-600">
+                                                                                    {creatingUnitRow === originalIndex
+                                                                                        ? "Creating unit..."
+                                                                                        : `+ Create "${unitSearch.trim()}"`}
+                                                                                </div>
+
+                                                                                {creatingUnitRow !== originalIndex && (
+                                                                                    <div className="mt-1 text-[10px] text-gray-500">
+                                                                                        Press Enter to create unit
+                                                                                    </div>
+                                                                                )}
+                                                                            </button>
                                                                         )}
                                                                     </div>
                                                                 )}
