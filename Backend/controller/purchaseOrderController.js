@@ -93,7 +93,7 @@ const newPurchaseOrder = async (req, res) => {
         // Re-generate the number at the moment of saving to ensure no duplicates
         const finalPONumber = await getNextSequence();
 
-        const { vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status, materials, extraCharges } = req.body
+        const { vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, prepared_by, po_status, materials, extraCharges } = req.body
 
         if (!finalPONumber || !project_id) {
             return res.status(400).json({ message: "Required field is missing.." })
@@ -101,9 +101,9 @@ const newPurchaseOrder = async (req, res) => {
 
         // 1. INSERT PO
         const [poResult] = await db.query(`
-        INSERT INTO purchase_orders(po_number, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [finalPONumber, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number || null, billing_contact_email || null, initiator, initiator_number, total_amount, total_discount || null, subtotal, taxable_amount, total_gst, grand_total, amount_in_words || null, po_status || "Draft"]
+        INSERT INTO purchase_orders(po_number, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number, billing_contact_email, initiator, initiator_number, total_amount, total_discount, subtotal, taxable_amount, total_gst, grand_total, amount_in_words, po_status,  prepared_by)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [finalPONumber, vendor_id, project_id, order_date, order_placed_by, billing_address, delivery_address, billing_gst, billing_contact_number || null, billing_contact_email || null, initiator, initiator_number, total_amount, total_discount || null, subtotal, taxable_amount, total_gst, grand_total, amount_in_words || null, po_status || "Draft", prepared_by]
         );
 
         const po_id = poResult.insertId;

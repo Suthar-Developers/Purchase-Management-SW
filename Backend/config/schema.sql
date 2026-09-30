@@ -106,7 +106,6 @@ CREATE TABLE purchase_orders (
     project_id INT,
 
     order_date DATE,
-    order_approved_date DATE,
     order_placed_by VARCHAR(100),
 
     billing_address TEXT,
@@ -130,6 +129,9 @@ CREATE TABLE purchase_orders (
     prepared_by VARCHAR(100),
     checked_by VARCHAR(100),
     approved_by VARCHAR(100),
+    order_approved_date DATE,
+    rejected_by VARCHAR(100),
+    order_rejected_date DATE,
 
     po_status VARCHAR(50) DEFAULT 'Draft',
 
