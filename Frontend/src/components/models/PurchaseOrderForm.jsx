@@ -87,6 +87,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         billing_contact_email: "",
         initiator: "",
         initiator_number: "",
+        prepared_by: user?.full_name,
         po_status: "Draft"
     });
 
@@ -494,6 +495,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             billing_contact_email: po.billing_contact_email || "",
             initiator: po.initiator,
             initiator_number: po.initiator_number,
+            prepared_by: user?.full_name,
             po_status: po.po_status
         });
 
@@ -2051,7 +2053,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <div>
                                                         <p className="mt-6">____________________</p>
                                                         <p>Prepared By</p>
-                                                        <p></p>
+                                                        <p>{form.prepared_by}</p>
                                                     </div>
 
                                                     <div>
