@@ -33,7 +33,15 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const [isEditing, setIsEditing] = useState(false);
 
     const [vendorList, setVendorList] = useState([]);
+    const [vendorSearch, setVendorSearch] = useState("");
+    const [isVendorDropdownOpen, setIsVendorDropdownOpen] = useState(false);
+
     const [projectList, setProjectList] = useState([]);
+    const [projectSearch, setProjectSearch] = useState("");
+    const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+
+    const vendorDropdownRef = useRef(null);
+    const projectDropdownRef = useRef(null);
 
     const [companyGSTList, setCompanyGSTList] = useState([]);
     const [isGSTDropdownOpen, setIsGSTDropdownOpen] = useState(false);
@@ -150,6 +158,57 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         }));
 
         setIsGSTDropdownOpen(false);
+    };
+
+    // Search vendors
+    const filteredVendorList = vendorList.filter((vendor) => {
+        const search = vendorSearch.toLowerCase().trim();
+
+        if (!search) return true;
+
+        return (
+            vendor.vendorName?.toLowerCase().includes(search) ||
+            vendor.vendorCode?.toLowerCase().includes(search) ||
+            vendor.location?.toLowerCase().includes(search)
+        );
+    });
+
+    const handleVendorSelect = (vendor) => {
+        setForm(prev => ({
+            ...prev,
+            vendor_id: vendor.vendor_id
+        }));
+
+        setVendorSearch("");
+        setIsVendorDropdownOpen(false);
+    };
+
+    // Search projects
+    const filteredProjectList = projectList.filter((project) => {
+        const search = projectSearch.toLowerCase().trim();
+
+        if (!search) return true;
+
+        return (
+            project.projectName?.toLowerCase().includes(search) ||
+            project.projectCode?.toLowerCase().includes(search) ||
+            project.clientName?.toLowerCase().includes(search) ||
+            project.city?.toLowerCase().includes(search) ||
+            project.state?.toLowerCase().includes(search)
+        );
+    });
+
+    const handleProjectSelect = (project) => {
+        setForm(prev => ({
+            ...prev,
+            project_id: project.project_id
+        }));
+
+        setProjectSearch("");
+        setIsProjectDropdownOpen(false);
+
+        // Reset order placed by when project changes
+        setOrderPlacedById("");
     };
 
     // Search materials from material list 
@@ -365,6 +424,22 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     // Outside click handler
     useEffect(() => {
         const handleClickOutside = (event) => {
+
+            // Close Vendor dropdown
+            if (
+                vendorDropdownRef.current && !vendorDropdownRef.current.contains(event.target)
+            ) {
+                setIsVendorDropdownOpen(false);
+                setVendorSearch("");
+            }
+
+            // Close Project dropdown
+            if (
+                projectDropdownRef.current && !projectDropdownRef.current.contains(event.target)
+            ) {
+                setIsProjectDropdownOpen(false);
+                setProjectSearch("");
+            }
 
             // Close Material dropdown
             if (
@@ -1166,22 +1241,66 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                             <div>
                                                 <label className="text-xs text-gray-500">To</label>
                                                 {editable && !isPdfRendering ? (
-                                                    <select
-                                                        name="vendor_id"
-                                                        className="input-line text-red-500 font-bold"
-                                                        onChange={handleFormChange}
-                                                        value={form.vendor_id || ""}
-                                                    >
-                                                        <option value="" disabled>Select Vendor</option>
-                                                        {vendorList.map((v) => (
-                                                            <option key={v.vendor_id} value={v.vendor_id}>
-                                                                {v.vendorName}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    <div ref={vendorDropdownRef} className="relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search Vendor"
+                                                            value={
+                                                                isVendorDropdownOpen
+                                                                    ? vendorSearch
+                                                                    : vendorList.find(
+                                                                        v =>
+                                                                            Number(v.vendor_id) ===
+                                                                            Number(form.vendor_id)
+                                                                    )?.vendorName || ""
+                                                            }
+                                                            className="input-line text-red-500 font-bold w-full"
+                                                            onFocus={() => {
+                                                                setIsVendorDropdownOpen(true);
+                                                                setVendorSearch("");
+                                                            }}
+                                                            onChange={(e) => {
+                                                                setVendorSearch(e.target.value);
+                                                                setIsVendorDropdownOpen(true);
+                                                            }}
+                                                        />
+
+                                                        {isVendorDropdownOpen && (
+                                                            <div className="absolute z-200 top-full left-0 w-full mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
+                                                                {filteredVendorList.length > 0 ? (
+                                                                    filteredVendorList.map((vendor) => (
+                                                                        <button
+                                                                            key={vendor.vendor_id}
+                                                                            type="button"
+                                                                            onClick={() => handleVendorSelect(vendor)}
+                                                                            className="block w-full px-3 py-2 text-left border-b border-gray-100 hover:bg-blue-50"
+                                                                        >
+                                                                            <div className="font-semibold text-gray-800 truncate">
+                                                                                {vendor.vendorName}
+                                                                            </div>
+
+                                                                            {vendor.location && (
+                                                                                <div className="text-xs text-gray-500 truncate">
+                                                                                    {vendor.location}
+                                                                                </div>
+                                                                            )}
+                                                                        </button>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="px-3 py-4 text-center text-sm text-gray-500">
+                                                                        No vendors found
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 ) : (
                                                     <p className="font-bold text-gray-800 px-2">
-                                                        {vendorList.find(v => v.vendor_id === Number(form.vendor_id))?.vendorName || 'N/A'}
+                                                        {vendorList.find(
+                                                            v =>
+                                                                Number(v.vendor_id) ===
+                                                                Number(form.vendor_id)
+                                                        )?.vendorName || "N/A"}
                                                     </p>
                                                 )}
                                             </div>
@@ -1328,22 +1447,68 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                 <div>
                                                     {(isReadOnly || selectedRequest || isPdfRendering) ? (
                                                         <p className="font-bold text-gray-800">
-                                                            {projectData?.projectName || 'N/A'}
+                                                            {projectData?.projectName || "N/A"}
                                                         </p>
                                                     ) : (
-                                                        <select
-                                                            name="project_id"
-                                                            className="w-3/2 outline-none text-red-500 font-bold"
-                                                            onChange={handleFormChange}
-                                                            value={form.project_id || ""}
-                                                        >
-                                                            <option value="" disabled>Select Project</option>
-                                                            {projectList.map((p) => (
-                                                                <option key={p.project_id} value={p.project_id}>
-                                                                    {p.projectName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                        <div ref={projectDropdownRef} className="relative w-full">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Search Project"
+                                                                value={
+                                                                    isProjectDropdownOpen
+                                                                        ? projectSearch
+                                                                        : projectList.find(
+                                                                            p =>
+                                                                                Number(p.project_id) ===
+                                                                                Number(form.project_id)
+                                                                        )?.projectName || ""
+                                                                }
+                                                                className="w-full outline-none text-red-500 font-bold"
+                                                                onFocus={() => {
+                                                                    setIsProjectDropdownOpen(true);
+                                                                    setProjectSearch("");
+                                                                }}
+                                                                onChange={(e) => {
+                                                                    setProjectSearch(e.target.value);
+                                                                    setIsProjectDropdownOpen(true);
+                                                                }}
+                                                            />
+
+                                                            {isProjectDropdownOpen && (
+                                                                    <div className="absolute z-200 top-full left-0 w-90 max-w-[50vw] mt-1 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
+                                                                    {filteredProjectList.length > 0 ? (
+                                                                        filteredProjectList.map((project) => (
+                                                                            <button
+                                                                                key={project.project_id}
+                                                                                type="button"
+                                                                                onClick={() => handleProjectSelect(project)}
+                                                                                className="block w-full px-3 py-2 text-left border-b border-gray-100 hover:bg-blue-50"
+                                                                            >
+                                                                                <div className="font-semibold text-gray-800 truncate">
+                                                                                    {project.projectName}
+                                                                                </div>
+
+                                                                                <div className="flex gap-2 text-xs text-gray-500">
+                                                                                    {project.projectCode && (
+                                                                                        <span>{project.projectCode}</span>
+                                                                                    )}
+
+                                                                                    {project.clientName && (
+                                                                                        <span className="truncate">
+                                                                                            • {project.clientName}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </button>
+                                                                        ))
+                                                                    ) : (
+                                                                        <div className="px-3 py-4 text-center text-sm text-gray-500">
+                                                                            No projects found
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
