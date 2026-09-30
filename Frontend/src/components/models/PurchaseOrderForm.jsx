@@ -564,7 +564,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }, [selectedRequest, projectList, vendorList, mode]);
 
     // Helper to execute calculation in qty feild
-    const evaluateQtyExpression = (value) => {
+    const evaluateExpression = (value) => {
         if (value === null || value === undefined) return 0;
 
         let expression = String(value).trim().replace(/^=/, "").replace(/\s+/g, "");
@@ -683,10 +683,14 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         const qty =
             field === "qty"
-                ? evaluateQtyExpression(value) ?? 0
-                : evaluateQtyExpression(updated[index].qty) ?? 0;
+                ? evaluateExpression(value) ?? 0
+                : evaluateExpression(updated[index].qty) ?? 0;
 
-        const rate = Number(updated[index].rate || 0)
+        const rate =
+            field === "rate"
+                ? evaluateExpression(value) ?? 0
+                : evaluateExpression(updated[index].rate) ?? 0;
+
         const discPercent = Number(updated[index].discount || 0)
 
         const base = qty * rate
@@ -707,7 +711,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             return;
         }
 
-        const result = evaluateQtyExpression(currentValue);
+        const result = evaluateExpression(currentValue);
 
         // Invalid expression → don't modify the input
         if (result === null) {
@@ -732,14 +736,44 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         setMaterials(updated);
     };
 
-    const handleFormChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const commitRateExpression = (index) => {
+        const currentValue = materials[index]?.rate;
+
+        if (
+            currentValue === null || currentValue === undefined || currentValue === ""
+        ) {
+            return;
+        }
+
+        const result = evaluateExpression(currentValue);
+
+        // Invalid expression → keep original input
+        if (result === null || !Number.isFinite(result)) {
+            return;
+        }
+
+        const updated = [...materials];
+
+        // Convert formula into calculated number
+        updated[index].rate = result;
+
+        // Recalculate row
+        const qty = evaluateExpression(updated[index].qty) ?? 0;
+        const discPercent = Number(updated[index].discount || 0);
+
+        const base = qty * result;
+        const discountAmt = (base * discPercent) / 100;
+
+        updated[index].total = base - discountAmt;
+        updated[index].amount = base;
+
+        setMaterials(updated);
     };
 
     // Calculate Totals
     const totals = materials.reduce((acc, m) => {
-        const qty = evaluateQtyExpression(m.qty) ?? 0;
-        const rate = Number(m.rate || 0);
+        const qty = evaluateExpression(m.qty) ?? 0;
+        const rate = evaluateExpression(m.rate || 0);
         const discPercent = Number(m.discount || 0);
         const gstPercent = Number(m.gst || 0);
 
@@ -1756,7 +1790,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 value={m.qty}
                                                                 onChange={(e) => handleMaterialChange(originalIndex, "qty", e.target.value)}
-                                                                onBlur={() => { commitQtyExpression(originalIndex); }}
+                                                                onBlur={() => {commitQtyExpression(originalIndex); }}
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
                                                                         e.preventDefault();
@@ -1772,11 +1806,19 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
                                                             <input
+                                                                type="text"
                                                                 placeholder="Enter Rate"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
-                                                                onChange={(e) => handleMaterialChange(originalIndex, "rate", e.target.value)}
-                                                                disabled={isReadOnly}
                                                                 value={m.rate}
+                                                                onChange={(e) => handleMaterialChange(originalIndex, "rate", e.target.value)}
+                                                                onBlur={() => {commitRateExpression(originalIndex);}}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Enter") {
+                                                                        e.preventDefault();
+                                                                        e.currentTarget.blur();
+                                                                    }
+                                                                }}
+                                                                disabled={isReadOnly}
                                                             />
                                                         ) : (
                                                             <span>{m.rate}</span>
@@ -1813,8 +1855,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                     <td className="w-[8.33%] text-center">
                                                         ₹ {(
-                                                            (evaluateQtyExpression(m.qty) ?? 0) *
-                                                            (Number(m.rate) || 0)
+                                                            (evaluateExpression(m.qty) ?? 0) *
+                                                            (evaluateExpression(m.rate) || 0)
                                                         ).toFixed(2)}
                                                     </td>
 
@@ -1895,7 +1937,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                                                         <div className="flex justify-between font-bold border-t pt-2 text-xs">
                                                             <span>Total</span>
-                                                            <span>₹ {grandTotal}</span>
+                                                            <span>₹ {(grandTotal).toFixed(2)}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1976,7 +2018,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                             ₹ {(totalGst / 2).toFixed(2)}
                                                                         </td>
                                                                         <td className="border-y p-1">
-                                                                            ₹ {totalGst}
+                                                                            ₹ {(totalGst).toFixed(2)}
                                                                         </td>
                                                                     </tr>
                                                                 </tfoot>
