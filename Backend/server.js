@@ -18,6 +18,7 @@ const port = 3000;
 const allowedOrigins = [
     "http://localhost:5173",
     "https://purchase.jrcinteriors.dpdns.org",
+    "HTTPS://jrcinteriors.dpdns.org",
 ];
 
 app.use(
