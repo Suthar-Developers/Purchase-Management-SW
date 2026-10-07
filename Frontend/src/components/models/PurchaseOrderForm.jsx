@@ -1313,10 +1313,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 {/* HEADER */}
                                 <div className="pb-1">
                                     <div>
-                                        <img className="w-[90%] h-20 m-auto" src="/Letter_Head_Logo.jpeg" alt="" />
+                                        <img className="w-[90%] h-20 m-auto" src="/Letter_Head_Logo.png" alt="" />
                                     </div>
 
-                                    <h2 className="text-center font-bold text-sm mt-2">
+                                    <h2 className="text-center font-bold text-sm">
                                         {form.po_status === "Revised" ? "PURCHASE ORDER (REVISED)" : "PURCHASE ORDER"}
                                     </h2>
                                 </div>
