@@ -61,21 +61,42 @@ const getNextSequence = async () => {
         fy = `${(year - 1).toString().slice(-2)}-${year.toString().slice(-2)}`;
     }
 
-    const prefix = `JRC/${fy}/`;
+    // Month name
+    const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+    const monthName = monthNames[month - 1];
+
+    const prefix = `JRC/`;
 
     // Look for the highest number in the CURRENT Financial Year only
+    const searchPattern = `${prefix}%/${monthName}/${fy}`;
+
     const [rows] = await db.query(
-        "SELECT po_number FROM purchase_orders WHERE po_number LIKE ? ORDER BY po_id DESC LIMIT 1",
-        [`${prefix}%`]
+        `
+        SELECT po_number
+        FROM purchase_orders
+        WHERE po_number LIKE ?
+        ORDER BY po_id DESC
+        LIMIT 1
+        `,
+        [searchPattern]
     );
 
     let nextSerial = 1;
     if (rows.length > 0) {
-        const lastNumber = rows[0].po_number.split('/').pop();
-        nextSerial = parseInt(lastNumber) + 1;
+        const lastPONumber = rows[0].po_number;
+
+        // Example: JRC/007/OCT/26-27 -->> Split: ["JRC", "007", "OCT", "26-27"]
+        const parts = lastPONumber.split("/");
+
+        const lastSerial = parseInt(parts[1], 10);
+
+        if (!isNaN(lastSerial)) {
+            nextSerial = lastSerial + 1;
+        }
     }
 
-    return `${prefix}${nextSerial.toString().padStart(4, '0')}`;
+    return `${prefix}${nextSerial.toString().padStart(3, "0")}/${monthName}/${fy}`;
 };
 
 // New endpoint to just FETCH the number for display
