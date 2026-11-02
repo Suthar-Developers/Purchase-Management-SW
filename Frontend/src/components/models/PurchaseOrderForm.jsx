@@ -52,14 +52,22 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     const [activeMaterialRow, setActiveMaterialRow] = useState(null);
     const [creatingMaterialRow, setCreatingMaterialRow] = useState(null);
 
-    const materialDropdownRef = useRef(null);
-
     const [unitMasterList, setUnitMasterList] = useState([]);
     const [unitSearch, setUnitSearch] = useState("");
     const [activeUnitRow, setActiveUnitRow] = useState(null);
     const [creatingUnitRow, setCreatingUnitRow] = useState(null);
 
+    const materialDropdownRef = useRef(null);
     const unitDropdownRef = useRef(null);
+
+    const materialInputRefs = useRef({});
+    const pendingMaterialFocusRef = useRef(null);
+
+    const focusMaterialField = (index, field) => {
+        setTimeout(() => {
+            materialInputRefs.current[`${index}-${field}`]?.focus();
+        }, 50);
+    };
 
     const [orderPlacedById, setOrderPlacedById] = useState("");
 
@@ -94,6 +102,17 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     // Helper to determine if a field should be read-only or editable
     const isReadOnly = mode === "view" && !isEditing;
     const editable = mode === "create" || isEditing;
+
+    useEffect(() => {
+        if (!pendingMaterialFocusRef.current) return;
+
+        const { index, field } = pendingMaterialFocusRef.current;
+
+        requestAnimationFrame(() => {
+            materialInputRefs.current[`${index}-${field}`]?.focus();
+            pendingMaterialFocusRef.current = null;
+        });
+    }, [materials]);
 
     // Handle PO Number Generation (Only for Create Mode)
     useEffect(() => {
@@ -247,6 +266,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         // Clear search/dropdown
         setMaterialSearch("");
         setActiveMaterialRow(null);
+
+        focusMaterialField(rowIndex, "unit");
     };
 
     // Create directly new material from PO form
@@ -315,6 +336,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
                     setMaterialSearch("");
                     setActiveMaterialRow(null);
+
+                    focusMaterialField(rowIndex, "unit");
                     return;
                 }
             }
@@ -324,7 +347,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                 error.message ||
                 "Failed to create material."
             );
-
         } finally {
             setCreatingMaterialRow(null);
         }
@@ -342,6 +364,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         setUnitSearch("");
         setActiveUnitRow(null);
+
+        focusMaterialField(rowIndex, "qty");
     };
 
     // Create directly new unit from PO form
@@ -389,7 +413,6 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
             // Close dropdown
             setUnitSearch("");
             setActiveUnitRow(null);
-
         } catch (error) {
             console.error("Failed to create unit:", error);
 
@@ -408,8 +431,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                     setUnitSearch("");
                     setActiveUnitRow(null);
 
+                    focusMaterialField(rowIndex, "qty");
                     return;
                 }
+
+                focusMaterialField(rowIndex, "unit");
+                focusMaterialField(rowIndex, "qty");
             }
 
             alert(
@@ -1080,8 +1107,27 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
     }
 
     const handleAddRow = () => {
-        setMaterials(prev => [...prev, { material: "", qty: "", rate: "", gst: "", discount: "", total: 0 }])
-    }
+        const newIndex = materials.length;
+
+        pendingMaterialFocusRef.current = {
+            index: newIndex,
+            field: "material"
+        };
+
+        setMaterials(prev => [
+            ...prev,
+            {
+                material: "",
+                unit: "",
+                qty: "",
+                rate: "",
+                gst: "",
+                discount: "",
+                total: 0,
+                amount: 0
+            }
+        ]);
+    };
 
     const handleDeleteRow = (index) => {
         setMaterials(prev => prev.filter((_, i) => i !== index))
@@ -1601,6 +1647,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                     placeholder="Search Material"
                                                                     value={activeMaterialRow === originalIndex ? materialSearch : m.material || ""}
                                                                     className="w-3/4 border-b border-gray-400 p-1 outline-none hover:border-gray-600 focus:border-blue-500 text-red-500 font-bold text-center"
+                                                                    ref={(el) => {
+                                                                        materialInputRefs.current[`${originalIndex}-material`] = el;
+                                                                    }}
                                                                     onFocus={() => {
                                                                         setActiveMaterialRow(originalIndex);
                                                                         setMaterialSearch("");
@@ -1712,6 +1761,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                     placeholder="Search Unit"
                                                                     value={activeUnitRow === originalIndex ? unitSearch : m.unit || ""}
                                                                     className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 focus:border-blue-500 text-red-500 font-bold text-center"
+                                                                    ref={(el) => {
+                                                                        materialInputRefs.current[`${originalIndex}-unit`] = el;
+                                                                    }}
                                                                     onFocus={() => {
                                                                         setActiveUnitRow(originalIndex);
 
@@ -1771,7 +1823,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => handleCreateUnitDirectly(originalIndex)}
-                                                                                disabled={creatingMaterialRow === originalIndex}
+                                                                                disabled={creatingUnitRow === originalIndex}
                                                                                 className="block w-full px-3 py-3 text-left hover:bg-blue-50 disabled:opacity-60"
                                                                             >
                                                                                 <div className="font-semibold text-blue-600">
@@ -1798,6 +1850,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
                                                             <input
+                                                                ref={(el) => {
+                                                                    materialInputRefs.current[`${originalIndex}-qty`] = el;
+                                                                }}
                                                                 type="text"
                                                                 placeholder="Enter Quantity"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
@@ -1807,7 +1862,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
                                                                         e.preventDefault();
-                                                                        e.currentTarget.blur();
+                                                                        commitQtyExpression(originalIndex);
+                                                                        focusMaterialField(originalIndex, "rate");
                                                                     }
                                                                 }}
                                                             />
@@ -1819,6 +1875,9 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
                                                             <input
+                                                                ref={(el) => {
+                                                                    materialInputRefs.current[`${originalIndex}-rate`] = el;
+                                                                }}
                                                                 type="text"
                                                                 placeholder="Enter Rate"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
@@ -1828,7 +1887,8 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
                                                                         e.preventDefault();
-                                                                        e.currentTarget.blur();
+                                                                        commitRateExpression(originalIndex);
+                                                                        focusMaterialField(originalIndex, "discount");
                                                                     }
                                                                 }}
                                                                 disabled={isReadOnly}
@@ -1841,9 +1901,19 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
                                                             <input
+                                                                ref={(el) => {
+                                                                    materialInputRefs.current[`${originalIndex}-discount`] = el;
+                                                                }}
+                                                                type="text"
                                                                 placeholder="Enter Discount"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(originalIndex, "discount", e.target.value)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Enter") {
+                                                                        e.preventDefault();
+                                                                        focusMaterialField(originalIndex, "gst");
+                                                                    }
+                                                                }}
                                                                 disabled={isReadOnly}
                                                                 value={m.discount}
                                                             />
@@ -1855,9 +1925,19 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                     <td className="w-[8.33%] text-center">
                                                         {editable && !isPdfRendering ? (
                                                             <input
+                                                                ref={(el) => {
+                                                                    materialInputRefs.current[`${originalIndex}-gst`] = el;
+                                                                }}
+                                                                type="text"
                                                                 placeholder="Enter GST"
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 onChange={(e) => handleMaterialChange(originalIndex, "gst", e.target.value)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Enter") {
+                                                                        e.preventDefault();
+                                                                        handleAddRow();
+                                                                    }
+                                                                }}
                                                                 disabled={isReadOnly}
                                                                 value={m.gst}
                                                             />
