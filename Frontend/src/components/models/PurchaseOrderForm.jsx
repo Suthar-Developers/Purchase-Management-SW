@@ -79,10 +79,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         vendor_id: "",
         project_id: "",
         order_date: new Date().toISOString().split('T')[0],
-        order_placed_by: "Shyam",
-        billing_address: "JRC Interiors, Unit 107, A To Z Ind. Estate, G.K. Marg, Lower Parel(W), Mumbai, 400013",
+        order_placed_by: "",
+        billing_address: "",
         delivery_address: "",
-        billing_gst: "27AAGFJ5194C1ZC",
+        billing_gst: "",
         billing_contact_number: "",
         billing_contact_email: "",
         initiator: "",
@@ -856,6 +856,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
 
         if (!form.project_id) return alert("Please select a project");
         if (!form.vendor_id) return alert("Please select a vendor");
+        if (!form.billing_gst) {
+            alert("Please select Billing GST Number");
+            setIsGSTDropdownOpen(true);
+            return;
+        }
+
         if (!form.po_number || !form.order_date || !form.order_placed_by)
             return alert("Please fill all required PO details");
 
@@ -1444,9 +1450,14 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsGSTDropdownOpen(prev => !prev)}
-                                                            className="w-full flex items-center justify-between pl-2 pr-2 outline-none text-red-500 font-bold text-left"
+                                                            className={`w-full flex items-center justify-between pl-2 pr-2 outline-none text-left font-bold ${!form.billing_gst
+                                                                ? "text-red-500"
+                                                                : "text-red-600"
+                                                                }`}
                                                         >
-                                                            <span>{form.billing_gst || "Select GST"}</span>
+                                                            <span className={!form.billing_gst ? "text-red-500" : ""}>
+                                                                {form.billing_gst || "Select GST *"}
+                                                            </span>
 
                                                             <i className={`fa-solid ${isGSTDropdownOpen ? "fa-chevron-up" : "fa-chevron-down"} text-xs`}></i>
                                                         </button>
@@ -1511,7 +1522,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                             />
 
                                                             {isProjectDropdownOpen && (
-                                                                    <div className="absolute z-200 top-full left-0 w-90 max-w-[50vw] mt-1 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
+                                                                <div className="absolute z-200 top-full left-0 w-90 max-w-[50vw] mt-1 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
                                                                     {filteredProjectList.length > 0 ? (
                                                                         filteredProjectList.map((project) => (
                                                                             <button
@@ -1792,7 +1803,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 value={m.qty}
                                                                 onChange={(e) => handleMaterialChange(originalIndex, "qty", e.target.value)}
-                                                                onBlur={() => {commitQtyExpression(originalIndex); }}
+                                                                onBlur={() => { commitQtyExpression(originalIndex); }}
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
                                                                         e.preventDefault();
@@ -1813,7 +1824,7 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                                                 className="w-full border-b border-gray-400 p-1 outline-none hover:border-gray-600 text-red-500 font-bold text-center"
                                                                 value={m.rate}
                                                                 onChange={(e) => handleMaterialChange(originalIndex, "rate", e.target.value)}
-                                                                onBlur={() => {commitRateExpression(originalIndex);}}
+                                                                onBlur={() => { commitRateExpression(originalIndex); }}
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
                                                                         e.preventDefault();
