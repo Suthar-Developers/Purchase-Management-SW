@@ -114,6 +114,10 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
         });
     }, [materials]);
 
+    // JRC logo
+    const isJrcPvtLtd = form.billing_gst?.trim().toUpperCase() === "27AAHCJ1955B1ZQ";
+    const poLogo = isJrcPvtLtd ? "/JRC_Interiors_Pvt_Ltd_Logo.png" : "/JRC_Interiors_Logo.png";
+
     // Handle PO Number Generation (Only for Create Mode)
     useEffect(() => {
         if (mode === "create") {
@@ -1313,7 +1317,12 @@ const PurchaseOrderForm = ({ mode = "create", selectedRequest, poData, onClose, 
                                 {/* HEADER */}
                                 <div className="pb-1">
                                     <div>
-                                        <img className="w-[90%] h-20 m-auto" src="/Letter_Head_Logo.png" alt="" />
+                                        <img
+                                            className="w-[90%] h-20 m-auto object-contain"
+                                            src={poLogo}
+                                            alt="JRC Interiors"
+                                            crossOrigin="anonymous"
+                                        />
                                     </div>
 
                                     <h2 className="text-center font-bold text-sm">
